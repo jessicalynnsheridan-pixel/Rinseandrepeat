@@ -9,7 +9,7 @@ interface ProgressBarProps {
   label?: string
   showPercent?: boolean
   size?: 'xs' | 'sm' | 'md' | 'lg'
-  color?: 'gold' | 'success' | 'ink' | 'auto'
+  color?: 'violet' | 'gold' | 'success' | 'dark' | 'auto'
   animated?: boolean
   className?: string
 }
@@ -21,18 +21,20 @@ const sizeMap = {
   lg: 'h-3',
 }
 
-const colorMap = {
-  gold: 'bg-gold-500',
-  success: 'bg-success',
-  ink: 'bg-ink-900',
-  auto: '',
+// All hardcoded hex — no Tailwind token dependencies
+const colorMap: Record<string, string> = {
+  violet:  'bg-[#7C3AED]',
+  gold:    'bg-[#7C3AED]',   // kept as alias so old code using color="gold" still works
+  success: 'bg-[#16A34A]',
+  dark:    'bg-[#18181B]',
+  auto:    '',
 }
 
 function getAutoColor(pct: number): string {
-  if (pct >= 80) return 'bg-success'
-  if (pct >= 50) return 'bg-gold-500'
-  if (pct >= 25) return 'bg-warning'
-  return 'bg-danger'
+  if (pct >= 80) return 'bg-[#16A34A]'
+  if (pct >= 50) return 'bg-[#7C3AED]'
+  if (pct >= 25) return 'bg-[#D97706]'
+  return 'bg-[#DC2626]'
 }
 
 export function ProgressBar({
@@ -41,26 +43,26 @@ export function ProgressBar({
   label,
   showPercent = false,
   size = 'md',
-  color = 'gold',
+  color = 'violet',
   animated = true,
   className,
 }: ProgressBarProps) {
   const percentage = Math.min(Math.round((value / max) * 100), 100)
-  const fillColor = color === 'auto' ? getAutoColor(percentage) : colorMap[color]
+  const fillColor = color === 'auto' ? getAutoColor(percentage) : (colorMap[color] ?? 'bg-[#7C3AED]')
 
   return (
     <div className={cn('w-full', className)}>
       {(label || showPercent) && (
         <div className="flex items-center justify-between mb-1.5">
-          {label && <span className="text-xs font-medium text-ink-500">{label}</span>}
+          {label && <span className="text-xs font-medium text-[#71717A]">{label}</span>}
           {showPercent && (
-            <span className="text-xs font-semibold text-ink-700 tabular-nums">
+            <span className="text-xs font-semibold text-[#3F3F46] tabular-nums">
               {percentage}%
             </span>
           )}
         </div>
       )}
-      <div className={cn('w-full bg-ink-100 rounded-full overflow-hidden', sizeMap[size])}>
+      <div className={cn('w-full bg-[#F4F4F5] rounded-full overflow-hidden', sizeMap[size])}>
         {animated ? (
           <motion.div
             className={cn('h-full rounded-full', fillColor)}
@@ -69,7 +71,10 @@ export function ProgressBar({
             transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
           />
         ) : (
-          <div className={cn('h-full rounded-full', fillColor)} style={{ width: `${percentage}%` }} />
+          <div
+            className={cn('h-full rounded-full', fillColor)}
+            style={{ width: `${percentage}%` }}
+          />
         )}
       </div>
     </div>

@@ -1,5 +1,5 @@
 import { OpenAI } from 'openai'
-import { createServerClient } from '@/lib/supabase'
+import { createRouteClient } from '@/lib/supabase-server'
 import { NextRequest } from 'next/server'
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
@@ -34,7 +34,7 @@ const QUERY_LIMITS: Record<string, number> = {
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase = createServerClient()
+    const supabase = createRouteClient()
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
@@ -94,41 +94,49 @@ export async function POST(req: NextRequest) {
 
     const readable = new ReadableStream({
       async start(controller) {
-        for await (const chunk of stream) {
-          const text = chunk.choices[0]?.delta?.content ?? ''
-          if (text) {
-            fullResponse += text
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text })}\n\n`))
+        try {
+          for await (const chunk of stream) {
+            const text = chunk.choices[0]?.delta?.content ?? ''
+            if (text) {
+              fullResponse += text
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text })}\n\n`))
+            }
           }
+
+          // Best-effort: save conversation (table may not exist yet — don't crash stream)
+          try {
+            const updatedMessages = [
+              ...messages,
+              { role: 'assistant', content: fullResponse, created_at: new Date().toISOString() },
+            ]
+            if (conversationId) {
+              await supabase
+                .from('ai_conversations')
+                .update({ messages: updatedMessages })
+                .eq('id', conversationId)
+                .eq('user_id', user.id)
+            } else {
+              await supabase
+                .from('ai_conversations')
+                .insert({
+                  user_id: user.id,
+                  messages: updatedMessages,
+                  title: messages[0]?.content?.slice(0, 50) ?? 'New conversation',
+                })
+            }
+          } catch { /* table may not exist yet */ }
+
+          // Best-effort: award XP
+          try {
+            await supabase.rpc('award_xp', { p_user_id: user.id, p_xp: 5 })
+          } catch { /* rpc may not exist yet */ }
+
+        } catch (streamErr) {
+          console.error('Stream error:', streamErr)
+        } finally {
+          controller.enqueue(encoder.encode('data: [DONE]\n\n'))
+          controller.close()
         }
-
-        // Save conversation to Supabase
-        const updatedMessages = [
-          ...messages,
-          { role: 'assistant', content: fullResponse, created_at: new Date().toISOString() },
-        ]
-
-        if (conversationId) {
-          await supabase
-            .from('ai_conversations')
-            .update({ messages: updatedMessages })
-            .eq('id', conversationId)
-            .eq('user_id', user.id)
-        } else {
-          await supabase
-            .from('ai_conversations')
-            .insert({
-              user_id: user.id,
-              messages: updatedMessages,
-              title: messages[0]?.content?.slice(0, 50) ?? 'New conversation',
-            })
-        }
-
-        // Award XP for using AI assistant
-        await supabase.rpc('award_xp', { p_user_id: user.id, p_xp: 5 })
-
-        controller.enqueue(encoder.encode('data: [DONE]\n\n'))
-        controller.close()
       },
     })
 

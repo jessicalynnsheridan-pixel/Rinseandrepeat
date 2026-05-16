@@ -58,7 +58,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={inter.variable}>
-      <body className="bg-cream-50 text-ink-900 antialiased">
+      <body className="bg-[#FAFAFA] text-[#18181B] antialiased">
         <UserProvider>
           {children}
           <Toaster

@@ -1,6 +1,6 @@
 'use client'
-
-export const dynamic = 'force-dynamic'
+// Note: force-dynamic has no effect on 'use client' pages in Next.js 14 App Router.
+// Dynamic rendering is handled by the UserProvider context (auth state).
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
@@ -64,7 +64,8 @@ const MOCK_ACHIEVEMENTS = [
 // ──────────────────────────────────────────
 function StatsRow({ profile }: { profile: Profile | null }) {
   const completedToday = MOCK_HABITS.filter(h => h.completed).length
-  const levelMeta = LEVEL_METADATA[profile?.level ?? 'intern']
+  const safeLevel = (profile?.level && LEVEL_METADATA[profile.level]) ? profile.level : 'intern'
+  const levelMeta = LEVEL_METADATA[safeLevel]
 
   const stats = [
     {
@@ -516,11 +517,24 @@ function AIQuickAccess() {
 // Page
 // ──────────────────────────────────────────
 export default function DashboardPage() {
-  const { profile, signOut } = useUser()
+  const { profile, signOut, loading } = useUser()
   const greeting = getGreeting()
   const today = new Date().toLocaleDateString('en-US', {
     weekday: 'long', month: 'long', day: 'numeric',
   })
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-[#7C3AED] flex items-center justify-center animate-pulse">
+            <span className="text-white text-lg">👑</span>
+          </div>
+          <p className="text-sm text-[#A1A1AA] font-medium">Loading your dashboard…</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-[#FAFAFA]">
@@ -533,7 +547,7 @@ export default function DashboardPage() {
             <div>
               <p className="text-xs text-[#A1A1AA]">{today}</p>
               <h1 className="font-display text-lg font-semibold text-[#18181B] mt-0.5">
-                {greeting}, {profile?.full_name}
+                {greeting}{profile?.full_name ? `, ${profile.full_name}` : ''}
               </h1>
             </div>
             <div className="flex items-center gap-3">

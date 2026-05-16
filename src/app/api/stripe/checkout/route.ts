@@ -1,5 +1,5 @@
 import Stripe from 'stripe'
-import { createServerClient } from '@/lib/supabase'
+import { createServerClient } from '@/lib/supabase-server'
 import { NextRequest } from 'next/server'
 import { SUBSCRIPTION_PLANS } from '@/types'
 
