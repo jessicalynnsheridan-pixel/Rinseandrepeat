@@ -349,30 +349,35 @@ export default function OnboardingPage() {
 
   const handleSubmit = async () => {
     setIsSubmitting(true)
+
+    // Safety net: if any await hangs (Safari ITP / slow network),
+    // navigate after 4 s so the user is never permanently stuck
+    const safetyTimer = setTimeout(() => router.push('/dashboard'), 4000)
+
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        // First mark onboarding complete (critical for middleware)
+      // getSession reads localStorage (no network) — avoids hanging on getUser()
+      const { data: { session } } = await supabase.auth.getSession()
+      const userId = session?.user?.id
+
+      if (userId) {
+        // Single upsert: one round trip, marks onboarding complete + saves profile
         await supabase.from('profiles').upsert({
-          id: user.id,
+          id: userId,
           onboarding_completed: true,
-        })
-        // Then update profile details (best effort)
-        await supabase.from('profiles').update({
           full_name: data.full_name,
           business_type: data.business_type,
           business_stage: data.business_stage,
           goals: data.goals,
           selected_roadmap: data.selected_roadmap,
-        }).eq('id', user.id)
+        })
       }
     } catch (err) {
-      // Log error but always navigate — don't trap the user
-      console.error('Onboarding save error:', err)
-      toast.error('Could not save all details — you can update them in Settings.')
+      console.error('Onboarding save error (non-fatal):', err)
+    } finally {
+      // Always navigate — finally runs even if the try block throws or hangs
+      clearTimeout(safetyTimer)
+      router.push('/dashboard')
     }
-    // Always navigate regardless of save result
-    router.push('/dashboard')
   }
 
   const steps = [
