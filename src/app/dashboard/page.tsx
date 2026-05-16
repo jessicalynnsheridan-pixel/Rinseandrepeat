@@ -7,8 +7,10 @@ import { motion } from 'framer-motion'
 import {
   Flame, Zap, Check, Plus, TrendingUp,
   Bot, ChevronRight, ArrowRight,
-  Lock, Award, Activity, Target, BookOpen,
+  Lock, Award, Activity, BookOpen,
 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { cn, getGreeting, getDailyQuote, formatCurrency } from '@/lib/utils'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 import { Sidebar } from '@/components/navigation/Sidebar'
@@ -60,7 +62,7 @@ const MOCK_ACHIEVEMENTS = [
 // ──────────────────────────────────────────
 // Stats Row
 // ──────────────────────────────────────────
-function StatsRow({ profile }: { profile: Profile }) {
+function StatsRow({ profile }: { profile: Profile | null }) {
   const completedToday = MOCK_HABITS.filter(h => h.completed).length
   const levelMeta = LEVEL_METADATA[profile?.level ?? 'intern']
 
@@ -150,10 +152,10 @@ function TodayTask() {
             <Check className="w-3.5 h-3.5" strokeWidth={2.5} />
             {done ? 'Completed' : 'Mark done'}
           </button>
-          <button className="flex items-center gap-1.5 text-sm text-[#A1A1AA] hover:text-[#3F3F46] transition-colors">
+          <Link href="/vault" className="flex items-center gap-1.5 text-sm text-[#A1A1AA] hover:text-[#3F3F46] transition-colors">
             <BookOpen className="w-3.5 h-3.5" />
             View template
-          </button>
+          </Link>
         </div>
 
         <div className="flex items-center gap-4 mt-4 pt-4 border-t border-[#FAFAFA]">
@@ -169,7 +171,7 @@ function TodayTask() {
 // ──────────────────────────────────────────
 // Revenue
 // ──────────────────────────────────────────
-function RevenueCard({ profile }: { profile: Profile }) {
+function RevenueCard({ profile }: { profile: Profile | null }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -182,9 +184,9 @@ function RevenueCard({ profile }: { profile: Profile }) {
           <TrendingUp className="w-3.5 h-3.5 text-[#A1A1AA]" strokeWidth={1.5} />
           <span className="text-xs font-semibold text-[#18181B] uppercase tracking-widest">Revenue</span>
         </div>
-        <button className="text-xs text-[#A1A1AA] hover:text-[#3F3F46] transition-colors flex items-center gap-1">
+        <Link href="/revenue" className="text-xs text-[#A1A1AA] hover:text-[#3F3F46] transition-colors flex items-center gap-1">
           <Plus className="w-3 h-3" /> Log
-        </button>
+        </Link>
       </div>
 
       <div className="flex items-baseline gap-2 mb-1">
@@ -453,6 +455,7 @@ function QuoteBanner() {
 // AI Quick Access
 // ──────────────────────────────────────────
 function AIQuickAccess() {
+  const router = useRouter()
   const [input, setInput] = useState('')
 
   const suggestions = [
@@ -461,6 +464,10 @@ function AIQuickAccess() {
     'Help me price my service',
     'Write a cold DM script',
   ]
+
+  function goToAI() {
+    router.push('/ai-assistant')
+  }
 
   return (
     <motion.div
@@ -480,8 +487,12 @@ function AIQuickAccess() {
           placeholder="Ask anything about your business..."
           value={input}
           onChange={e => setInput(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && goToAI()}
         />
-        <button className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-[#18181B] rounded-lg flex items-center justify-center hover:bg-[#3F3F46] transition-colors">
+        <button
+          onClick={goToAI}
+          className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-[#18181B] rounded-lg flex items-center justify-center hover:bg-[#3F3F46] transition-colors"
+        >
           <ArrowRight className="w-3 h-3 text-white" />
         </button>
       </div>
@@ -490,7 +501,7 @@ function AIQuickAccess() {
         {suggestions.map(s => (
           <button
             key={s}
-            onClick={() => setInput(s)}
+            onClick={() => router.push('/ai-assistant')}
             className="text-[11px] px-2.5 py-1 bg-[#FAFAFA] text-[#71717A] rounded-lg hover:bg-[#EDE9FE] hover:text-[#3F3F46] transition-colors"
           >
             {s}

@@ -417,19 +417,25 @@ export default function OnboardingPage() {
 
   const handleSubmit = async () => {
     setIsSubmitting(true)
-    const { data: { user } } = await supabase.auth.getUser()
-    if (user) {
-      await supabase.from('profiles').upsert({
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('Not authenticated')
+      const { error } = await supabase.from('profiles').upsert({
         id: user.id,
         full_name: data.full_name,
         business_type: data.business_type,
         business_stage: data.business_stage,
         goals: data.goals,
+        selected_roadmap: data.selected_roadmap,
         revenue_goal: data.revenue_goal,
         onboarding_completed: true,
       })
+      if (error) throw error
+      router.push('/dashboard')
+    } catch (err) {
+      console.error('Onboarding save failed:', err)
+      setIsSubmitting(false)
     }
-    router.push('/dashboard')
   }
 
   const steps = [

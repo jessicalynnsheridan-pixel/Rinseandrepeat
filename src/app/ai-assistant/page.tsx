@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic'
 
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Send, Bot, User, ArrowLeft, Sparkles } from 'lucide-react'
+import { Send, Bot, User, ArrowLeft } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { Sidebar } from '@/components/navigation/Sidebar'
@@ -26,15 +26,13 @@ const SUGGESTIONS = [
   'Help me write a product description',
 ]
 
-
-
 function TypingIndicator() {
   return (
     <div className="flex items-center gap-1.5 px-4 py-3">
       {[0, 1, 2].map(i => (
         <motion.div
           key={i}
-          className="w-1.5 h-1.5 rounded-full bg-ink-300"
+          className="w-1.5 h-1.5 rounded-full bg-[#D4D4D8]"
           animate={{ opacity: [0.3, 1, 0.3] }}
           transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.2 }}
         />
@@ -43,19 +41,45 @@ function TypingIndicator() {
   )
 }
 
+// Safe markdown-ish renderer — no dangerouslySetInnerHTML
+function MessageLine({ text }: { text: string }) {
+  const parts = text.split(/(\*\*[^*]+\*\*)/)
+  return (
+    <p className="mb-1 last:mb-0">
+      {parts.map((part, i) =>
+        part.startsWith('**') && part.endsWith('**')
+          ? <strong key={i}>{part.slice(2, -2)}</strong>
+          : <span key={i}>{part}</span>
+      )}
+    </p>
+  )
+}
+
 export default function AIAssistantPage() {
   const { profile, signOut } = useUser()
   const router = useRouter()
+
+  const greeting = `Hi ${profile?.full_name ?? 'there'}! I'm your AI business assistant.\n\nAsk me anything — content ideas, pricing strategy, how to get your first client, what to post today. I'm here to help you build.`
+
   const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '0',
-      role: 'assistant',
-      content: `Hi ${profile?.full_name ?? 'there'}. I'm your AI business assistant.\n\nAsk me anything — content ideas, pricing strategy, how to get your first client, what to post today. I'm here to help you build.`,
-    },
+    { id: '0', role: 'assistant', content: greeting },
   ])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
+
+  // Update greeting once profile loads (profile is null on first render)
+  useEffect(() => {
+    if (profile?.full_name) {
+      setMessages(prev =>
+        prev.map(m =>
+          m.id === '0'
+            ? { ...m, content: `Hi ${profile.full_name}! I'm your AI business assistant.\n\nAsk me anything — content ideas, pricing strategy, how to get your first client, what to post today. I'm here to help you build.` }
+            : m
+        )
+      )
+    }
+  }, [profile?.full_name])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -126,30 +150,30 @@ export default function AIAssistantPage() {
   }
 
   return (
-    <div className="min-h-screen bg-cream-50">
+    <div className="min-h-screen bg-[#FAFAFA]">
       <Sidebar profile={profile} onSignOut={signOut} />
 
       <div className="lg:pl-64 flex flex-col h-screen">
         {/* Header */}
-        <div className="border-b border-ink-100 bg-white px-6 py-4 flex items-center gap-4 flex-shrink-0">
+        <div className="border-b border-[#E4E4E7] bg-white px-6 py-4 flex items-center gap-4 flex-shrink-0">
           <button
             onClick={() => router.push('/dashboard')}
-            className="w-8 h-8 rounded-lg border border-ink-100 flex items-center justify-center hover:bg-cream-100 transition-colors"
+            className="w-8 h-8 rounded-lg border border-[#E4E4E7] flex items-center justify-center hover:bg-[#F4F4F5] transition-colors"
           >
-            <ArrowLeft className="w-4 h-4 text-ink-500" />
+            <ArrowLeft className="w-4 h-4 text-[#71717A]" />
           </button>
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-ink-900 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-[#7C3AED] flex items-center justify-center">
               <Bot className="w-4 h-4 text-white" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-ink-900">AI Business Assistant</p>
-              <p className="text-xs text-ink-400">Powered by GPT-4</p>
+              <p className="text-sm font-semibold text-[#18181B]">AI Business Assistant</p>
+              <p className="text-xs text-[#A1A1AA]">Powered by GPT-4o</p>
             </div>
           </div>
           <div className="ml-auto flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-success" />
-            <span className="text-xs text-ink-400">Online</span>
+            <div className="w-2 h-2 rounded-full bg-[#16A34A]" />
+            <span className="text-xs text-[#A1A1AA]">Online</span>
           </div>
         </div>
 
@@ -167,7 +191,7 @@ export default function AIAssistantPage() {
                 {/* Avatar */}
                 <div className={cn(
                   'w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5',
-                  msg.role === 'assistant' ? 'bg-ink-900' : 'bg-brand-500'
+                  msg.role === 'assistant' ? 'bg-[#7C3AED]' : 'bg-[#18181B]'
                 )}>
                   {msg.role === 'assistant'
                     ? <Bot className="w-3.5 h-3.5 text-white" />
@@ -179,15 +203,12 @@ export default function AIAssistantPage() {
                 <div className={cn(
                   'max-w-[80%] px-4 py-3 rounded-2xl text-sm leading-relaxed',
                   msg.role === 'assistant'
-                    ? 'bg-white border border-ink-100 text-ink-800'
-                    : 'bg-ink-900 text-white'
+                    ? 'bg-white border border-[#E4E4E7] text-[#3F3F46]'
+                    : 'bg-[#18181B] text-white'
                 )}>
-                  {msg.content.split('\n').map((line, i) => {
-                    const bold = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                    return line ? (
-                      <p key={i} className="mb-1 last:mb-0" dangerouslySetInnerHTML={{ __html: bold }} />
-                    ) : <br key={i} />
-                  })}
+                  {msg.content.split('\n').map((line, i) =>
+                    line ? <MessageLine key={i} text={line} /> : <br key={i} />
+                  )}
                 </div>
               </motion.div>
             ))}
@@ -199,10 +220,10 @@ export default function AIAssistantPage() {
               animate={{ opacity: 1, y: 0 }}
               className="flex gap-3"
             >
-              <div className="w-7 h-7 rounded-full bg-ink-900 flex items-center justify-center flex-shrink-0">
+              <div className="w-7 h-7 rounded-full bg-[#7C3AED] flex items-center justify-center flex-shrink-0">
                 <Bot className="w-3.5 h-3.5 text-white" />
               </div>
-              <div className="bg-white border border-ink-100 rounded-2xl">
+              <div className="bg-white border border-[#E4E4E7] rounded-2xl">
                 <TypingIndicator />
               </div>
             </motion.div>
@@ -211,16 +232,16 @@ export default function AIAssistantPage() {
           <div ref={bottomRef} />
         </div>
 
-        {/* Suggestions (only show when few messages) */}
+        {/* Suggestions (only show when no user messages yet) */}
         {messages.length <= 1 && (
           <div className="px-4 pb-3 max-w-3xl w-full mx-auto">
-            <p className="text-xs text-ink-400 mb-2 px-1">Try asking:</p>
+            <p className="text-xs text-[#A1A1AA] mb-2 px-1">Try asking:</p>
             <div className="flex flex-wrap gap-2">
               {SUGGESTIONS.map(s => (
                 <button
                   key={s}
                   onClick={() => sendMessage(s)}
-                  className="text-xs px-3 py-1.5 bg-white border border-ink-100 text-ink-600 rounded-lg hover:border-brand-500 hover:text-brand-500 transition-colors"
+                  className="text-xs px-3 py-1.5 bg-white border border-[#E4E4E7] text-[#71717A] rounded-lg hover:border-[#7C3AED] hover:text-[#7C3AED] transition-colors"
                 >
                   {s}
                 </button>
@@ -230,10 +251,10 @@ export default function AIAssistantPage() {
         )}
 
         {/* Input */}
-        <div className="border-t border-ink-100 bg-white px-4 py-4 flex-shrink-0">
+        <div className="border-t border-[#E4E4E7] bg-white px-4 py-4 flex-shrink-0 pb-20 lg:pb-4">
           <div className="max-w-3xl mx-auto flex items-end gap-3">
             <textarea
-              className="flex-1 resize-none px-4 py-3 bg-cream-50 border border-ink-100 rounded-xl text-sm text-ink-900 placeholder:text-ink-300 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 transition-all max-h-32"
+              className="flex-1 resize-none px-4 py-3 bg-[#FAFAFA] border border-[#E4E4E7] rounded-xl text-sm text-[#18181B] placeholder:text-[#A1A1AA] focus:outline-none focus:border-[#7C3AED] focus:ring-2 focus:ring-[#7C3AED]/10 transition-all max-h-32"
               placeholder="Ask anything about your business..."
               rows={1}
               value={input}
@@ -243,16 +264,14 @@ export default function AIAssistantPage() {
             <button
               onClick={() => sendMessage()}
               disabled={!input.trim() || isLoading}
-              className="w-10 h-10 rounded-xl bg-ink-900 flex items-center justify-center flex-shrink-0 hover:bg-ink-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              className="w-10 h-10 rounded-xl bg-[#7C3AED] flex items-center justify-center flex-shrink-0 hover:bg-[#5B21B6] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <Send className="w-4 h-4 text-white" />
             </button>
           </div>
-          <p className="text-center text-[10px] text-ink-300 mt-2">Press Enter to send · Shift+Enter for new line</p>
+          <p className="text-center text-[10px] text-[#A1A1AA] mt-2">Press Enter to send · Shift+Enter for new line</p>
         </div>
       </div>
-
-      <MobileNav />
     </div>
   )
 }

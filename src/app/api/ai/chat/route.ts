@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
 
     // Stream the response
     const stream = await openai.chat.completions.create({
-      model: 'gpt-4-turbo-preview',
+      model: 'gpt-4o',
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
         ...messages.slice(-10), // Keep last 10 messages for context

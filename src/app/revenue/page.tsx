@@ -51,15 +51,16 @@ export default function RevenuePage() {
   const [period, setPeriod] = useState<Period>('month')
   const [showAdd, setShowAdd] = useState(false)
   const [newEntry, setNewEntry] = useState({ source: '', amount: '', category: 'product' })
+  const [revenueData, setRevenueData] = useState(MOCK_REVENUE)
 
-  const data = MOCK_REVENUE[period]
+  const data = revenueData[period]
   const progressPct = Math.min(100, Math.round((data.total / data.goal) * 100))
 
   return (
     <div className="flex min-h-screen bg-[#FAFAFA]">
       <Sidebar profile={profile} onSignOut={signOut} />
 
-      <main className="flex-1 md:ml-64 pb-20 md:pb-0">
+      <main className="flex-1 lg:pl-64 pb-20 lg:pb-0">
         <div className="max-w-3xl mx-auto px-4 py-8 md:px-8">
 
           {/* Header */}
@@ -169,7 +170,26 @@ export default function RevenuePage() {
                 <div className="flex gap-2 pt-1">
                   <button onClick={() => setShowAdd(false)} className="btn-outline flex-1 text-sm py-2">Cancel</button>
                   <button
-                    onClick={() => setShowAdd(false)}
+                    onClick={() => {
+                      if (!newEntry.source || !newEntry.amount) return
+                      const entry = {
+                        id: Date.now().toString(),
+                        source: newEntry.source,
+                        amount: parseFloat(newEntry.amount),
+                        date: 'Today',
+                        category: newEntry.category,
+                      }
+                      setRevenueData(prev => ({
+                        ...prev,
+                        [period]: {
+                          ...prev[period],
+                          total: prev[period].total + entry.amount,
+                          entries: [entry, ...prev[period].entries],
+                        },
+                      }))
+                      setNewEntry({ source: '', amount: '', category: 'product' })
+                      setShowAdd(false)
+                    }}
                     disabled={!newEntry.source || !newEntry.amount}
                     className="btn-primary flex-1 text-sm py-2"
                   >

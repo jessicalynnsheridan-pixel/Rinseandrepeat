@@ -146,7 +146,7 @@ export default function CommunityPage() {
     <div className="flex min-h-screen bg-[#FAFAFA]">
       <Sidebar profile={profile} onSignOut={signOut} />
 
-      <main className="flex-1 md:ml-64 pb-20 md:pb-0">
+      <main className="flex-1 lg:pl-64 pb-20 lg:pb-0">
         <div className="max-w-2xl mx-auto px-4 py-8 md:px-8">
 
           {/* Header */}
