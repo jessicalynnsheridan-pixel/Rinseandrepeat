@@ -65,7 +65,7 @@ const ROADMAP_DATA: Record<string, {
             description: 'Pick a profitable niche you can build a brand around.',
             xp: 50,
             locked: false,
-            completed: true,
+            completed: false,
             checklist: ['Research 5 potential niches', 'Check search volume on each', 'Validate with TikTok/Instagram', 'Choose your niche'],
             lesson: 'A good niche is specific, has buyers, and is something you can speak about authentically. Think: pet accessories for small dogs, women\'s fitness wear for curvy bodies, natural skincare for melanin-rich skin. The more specific, the less competition and the more loyal your customers.',
           },
@@ -75,7 +75,7 @@ const ROADMAP_DATA: Record<string, {
             description: 'Make it official — LLC, EIN, and business bank account.',
             xp: 75,
             locked: false,
-            completed: true,
+            completed: false,
             checklist: ['Register LLC on your state website', 'Get your EIN from IRS.gov (free)', 'Open a business bank account', 'Get a business email address'],
             lesson: 'You can register an LLC yourself for $50–150 — no lawyer needed yet. Go to your state\'s Secretary of State website. Your EIN is free and instant at IRS.gov. Keep business and personal money completely separate from day one.',
           },
@@ -921,7 +921,7 @@ export default function RoadmapDetailPage() {
 
       <div className="lg:pl-64 pb-20 lg:pb-8">
         {/* Sticky header */}
-        <div className="sticky top-0 z-30 bg-[#FAFAFA]/90 backdrop-blur-md border-b border-[#F4F4F5] px-4 md:px-6 py-3.5">
+        <div className="sticky top-0 z-30 bg-white border-b border-[#F4F4F5] px-4 md:px-6 py-3.5">
           <div className="max-w-3xl mx-auto flex items-center gap-3">
             <button
               onClick={() => router.push('/roadmaps')}

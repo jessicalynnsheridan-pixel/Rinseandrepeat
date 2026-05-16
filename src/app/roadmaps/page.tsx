@@ -43,11 +43,11 @@ const ROADMAPS: Roadmap[] = [
     weeks: 12,
     milestones: 48,
     difficulty: 'Beginner',
-    enrolled: true,
-    progress: 18,
-    current_phase: 'Foundation',
+    enrolled: false,
+    progress: 0,
+    current_phase: null,
     phases: [
-      { name: 'Foundation', milestones: 12, completed: 5 },
+      { name: 'Foundation', milestones: 12, completed: 0 },
       { name: 'Launch', milestones: 14, completed: 0 },
       { name: 'Growth', milestones: 12, completed: 0 },
       { name: 'Scale', milestones: 10, completed: 0 },
@@ -159,7 +159,7 @@ export default function RoadmapsPage() {
 
       <div className="lg:pl-64 pb-20 lg:pb-8">
         {/* Header */}
-        <div className="sticky top-0 z-30 bg-[#FAFAFA]/90 backdrop-blur-md border-b border-[#F4F4F5] px-6 py-4">
+        <div className="sticky top-0 z-30 bg-white border-b border-[#F4F4F5] px-6 py-4">
           <div className="max-w-6xl mx-auto">
             <h1 className="font-display text-lg font-semibold text-[#18181B]">Startup Roadmaps</h1>
             <p className="text-xs text-[#A1A1AA] mt-0.5">Step-by-step paths to your dream business</p>

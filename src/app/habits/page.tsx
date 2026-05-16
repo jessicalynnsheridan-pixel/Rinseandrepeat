@@ -1,15 +1,13 @@
 'use client'
 
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, Flame, Check, X, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Sidebar } from '@/components/navigation/Sidebar'
 import { MobileNav } from '@/components/navigation/MobileNav'
 import { useUser } from '@/components/providers/UserProvider'
-
-const TODAY_INDEX = (new Date().getDay() + 6) % 7
 
 interface Habit {
   id: string
@@ -42,6 +40,8 @@ function getWeekDates(): string[] {
 
 export default function HabitsPage() {
   const { profile, signOut } = useUser()
+  // Computed fresh on each render so it never goes stale if the user crosses midnight
+  const TODAY_INDEX = useMemo(() => (new Date().getDay() + 6) % 7, [])
   const [habits, setHabits] = useState<Habit[]>(INITIAL_HABITS)
   const [showAdd, setShowAdd] = useState(false)
   const [newHabitName, setNewHabitName] = useState('')
