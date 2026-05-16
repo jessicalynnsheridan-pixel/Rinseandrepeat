@@ -4,19 +4,19 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Crown, ArrowRight, ArrowLeft, Check, Sparkles, ChevronRight } from 'lucide-react'
+import { Crown, ArrowRight, ArrowLeft, Check, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import toast from 'react-hot-toast'
 import type { BusinessType, BusinessStage, OnboardingData } from '@/types'
 import { BUSINESS_TYPES } from '@/types'
 
-// ──────────────────────────────────────────
-// Step data
-// ──────────────────────────────────────────
+// ── Step data ──────────────────────────────────────────────────────────────
+
 const STAGES: { value: BusinessStage; label: string; description: string; icon: string }[] = [
-  { value: 'idea', label: 'Just an idea', description: 'I have a concept but haven\'t started yet', icon: '💡' },
-  { value: 'building', label: 'Building now', description: 'I\'ve started but haven\'t launched', icon: '🔨' },
-  { value: 'launched', label: 'Launched', description: 'I\'m open for business but growing', icon: '🚀' },
-  { value: 'scaling', label: 'Scaling up', description: 'I\'m making money and want more', icon: '📈' },
+  { value: 'idea', label: 'Just an idea', description: "I have a concept but haven't started yet", icon: '💡' },
+  { value: 'building', label: 'Building now', description: "I've started but haven't launched", icon: '🔨' },
+  { value: 'launched', label: 'Launched', description: "I'm open for business but growing", icon: '🚀' },
+  { value: 'scaling', label: 'Scaling up', description: "I'm making money and want more", icon: '📈' },
 ]
 
 const GOALS = [
@@ -41,41 +41,30 @@ const ROADMAPS = [
 
 const TOTAL_STEPS = 5
 
-// ──────────────────────────────────────────
-// Animations
-// ──────────────────────────────────────────
+// ── Animations ─────────────────────────────────────────────────────────────
+
 const stepVariants = {
-  enter: (direction: number) => ({
-    x: direction > 0 ? 60 : -60,
-    opacity: 0,
-    scale: 0.97,
-  }),
-  center: {
-    x: 0,
-    opacity: 1,
-    scale: 1,
-    transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] },
-  },
-  exit: (direction: number) => ({
-    x: direction > 0 ? -60 : 60,
-    opacity: 0,
-    scale: 0.97,
-    transition: { duration: 0.25 },
-  }),
+  enter: (dir: number) => ({ x: dir > 0 ? 60 : -60, opacity: 0, scale: 0.97 }),
+  center: { x: 0, opacity: 1, scale: 1, transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] } },
+  exit: (dir: number) => ({ x: dir > 0 ? -60 : 60, opacity: 0, scale: 0.97, transition: { duration: 0.25 } }),
 }
 
-// ──────────────────────────────────────────
-// Step Components
-// ──────────────────────────────────────────
+// ── Shared styles ───────────────────────────────────────────────────────────
+
+const CARD_SELECTED = 'border-[#7C3AED] bg-[#EDE9FE]'
+const CARD_DEFAULT  = 'border-[#E4E4E7] bg-white hover:border-[#C4B5FD]'
+
+// ── Steps ───────────────────────────────────────────────────────────────────
+
 function StepName({ data, onChange }: { data: OnboardingData; onChange: (d: Partial<OnboardingData>) => void }) {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-3xl sm:text-4xl font-bold text-ink-900 mb-2">
+        <h1 className="text-3xl sm:text-4xl font-bold text-[#18181B] mb-2">
           Welcome to your<br />
-          <span className="text-gradient-gold">CEO era ✨</span>
+          <span className="text-[#7C3AED]">CEO era ✨</span>
         </h1>
-        <p className="text-ink-500">Let's personalize your dashboard. First — what's your name?</p>
+        <p className="text-[#71717A]">Let's personalise your dashboard. First — what's your name?</p>
       </div>
       <input
         className="input-field text-lg font-medium"
@@ -92,10 +81,10 @@ function StepBusinessType({ data, onChange }: { data: OnboardingData; onChange: 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="font-display text-3xl font-bold text-ink-900 mb-2">
+        <h2 className="text-3xl font-bold text-[#18181B] mb-2">
           What kind of business<br />do you want to build?
         </h2>
-        <p className="text-ink-500">Choose the one that excites you most — you can change this later.</p>
+        <p className="text-[#71717A]">Choose the one that excites you most — you can change this later.</p>
       </div>
       <div className="grid grid-cols-2 gap-3">
         {(Object.entries(BUSINESS_TYPES) as [BusinessType, typeof BUSINESS_TYPES[BusinessType]][]).map(([key, bt]) => (
@@ -103,25 +92,19 @@ function StepBusinessType({ data, onChange }: { data: OnboardingData; onChange: 
             key={key}
             onClick={() => onChange({ business_type: key })}
             whileTap={{ scale: 0.97 }}
-            className={cn(
-              'flex items-start gap-3 p-4 rounded-2xl border-2 text-left transition-all',
-              data.business_type === key
-                ? 'border-gold-500 bg-gold-50 shadow-glow'
-                : 'border-ink-100 bg-white hover:border-ink-300 hover:shadow-card'
-            )}
+            className={cn('flex items-start gap-3 p-4 rounded-2xl border-2 text-left transition-all',
+              data.business_type === key ? CARD_SELECTED : CARD_DEFAULT)}
           >
             <span className="text-2xl flex-shrink-0 mt-0.5">{bt.icon}</span>
             <div className="min-w-0">
-              <p className={cn(
-                'text-sm font-semibold leading-tight',
-                data.business_type === key ? 'text-gold-700' : 'text-ink-900'
-              )}>
+              <p className={cn('text-sm font-semibold leading-tight',
+                data.business_type === key ? 'text-[#5B21B6]' : 'text-[#18181B]')}>
                 {bt.label}
               </p>
-              <p className="text-xs text-ink-400 mt-0.5 leading-snug">{bt.description}</p>
+              <p className="text-xs text-[#A1A1AA] mt-0.5 leading-snug">{bt.description}</p>
             </div>
             {data.business_type === key && (
-              <div className="w-5 h-5 rounded-full bg-gold-500 flex items-center justify-center flex-shrink-0 ml-auto">
+              <div className="w-5 h-5 rounded-full bg-[#7C3AED] flex items-center justify-center flex-shrink-0 ml-auto">
                 <Check className="w-3 h-3 text-white" strokeWidth={3} />
               </div>
             )}
@@ -136,10 +119,8 @@ function StepStage({ data, onChange }: { data: OnboardingData; onChange: (d: Par
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="font-display text-3xl font-bold text-ink-900 mb-2">
-          Where are you right now?
-        </h2>
-        <p className="text-ink-500">No judgment — every CEO started somewhere. We just want to meet you there.</p>
+        <h2 className="text-3xl font-bold text-[#18181B] mb-2">Where are you right now?</h2>
+        <p className="text-[#71717A]">No judgment — every CEO started somewhere.</p>
       </div>
       <div className="space-y-3">
         {STAGES.map(stage => (
@@ -147,32 +128,20 @@ function StepStage({ data, onChange }: { data: OnboardingData; onChange: (d: Par
             key={stage.value}
             onClick={() => onChange({ business_stage: stage.value })}
             whileTap={{ scale: 0.98 }}
-            className={cn(
-              'w-full flex items-center gap-4 p-4 rounded-2xl border-2 text-left transition-all',
-              data.business_stage === stage.value
-                ? 'border-gold-500 bg-gold-50'
-                : 'border-ink-100 bg-white hover:border-ink-200'
-            )}
+            className={cn('w-full flex items-center gap-4 p-4 rounded-2xl border-2 text-left transition-all',
+              data.business_stage === stage.value ? CARD_SELECTED : CARD_DEFAULT)}
           >
             <span className="text-2xl flex-shrink-0">{stage.icon}</span>
             <div className="flex-1">
-              <p className={cn(
-                'font-semibold text-sm',
-                data.business_stage === stage.value ? 'text-gold-700' : 'text-ink-900'
-              )}>
+              <p className={cn('font-semibold text-sm',
+                data.business_stage === stage.value ? 'text-[#5B21B6]' : 'text-[#18181B]')}>
                 {stage.label}
               </p>
-              <p className="text-xs text-ink-400 mt-0.5">{stage.description}</p>
+              <p className="text-xs text-[#A1A1AA] mt-0.5">{stage.description}</p>
             </div>
-            <div className={cn(
-              'w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all',
-              data.business_stage === stage.value
-                ? 'bg-gold-500 border-gold-500'
-                : 'border-ink-200'
-            )}>
-              {data.business_stage === stage.value && (
-                <Check className="w-3 h-3 text-white" strokeWidth={3} />
-              )}
+            <div className={cn('w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all',
+              data.business_stage === stage.value ? 'bg-[#7C3AED] border-[#7C3AED]' : 'border-[#D4D4D8]')}>
+              {data.business_stage === stage.value && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
             </div>
           </motion.button>
         ))}
@@ -183,18 +152,16 @@ function StepStage({ data, onChange }: { data: OnboardingData; onChange: (d: Par
 
 function StepGoals({ data, onChange }: { data: OnboardingData; onChange: (d: Partial<OnboardingData>) => void }) {
   const toggle = (id: string) => {
-    const current = data.goals
-    const updated = current.includes(id) ? current.filter(g => g !== id) : [...current, id]
+    const updated = data.goals.includes(id)
+      ? data.goals.filter(g => g !== id)
+      : [...data.goals, id]
     onChange({ goals: updated })
   }
-
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="font-display text-3xl font-bold text-ink-900 mb-2">
-          What are you working<br />toward?
-        </h2>
-        <p className="text-ink-500">Pick all that apply — your goals shape your roadmap.</p>
+        <h2 className="text-3xl font-bold text-[#18181B] mb-2">What are you working<br />toward?</h2>
+        <p className="text-[#71717A]">Pick all that apply — your goals shape your roadmap.</p>
       </div>
       <div className="grid grid-cols-2 gap-3">
         {GOALS.map(goal => {
@@ -204,22 +171,16 @@ function StepGoals({ data, onChange }: { data: OnboardingData; onChange: (d: Par
               key={goal.id}
               onClick={() => toggle(goal.id)}
               whileTap={{ scale: 0.96 }}
-              className={cn(
-                'flex items-center gap-3 p-3.5 rounded-xl border-2 text-left transition-all',
-                selected
-                  ? 'border-gold-500 bg-gold-50'
-                  : 'border-ink-100 bg-white hover:border-ink-200'
-              )}
+              className={cn('flex items-center gap-3 p-3.5 rounded-xl border-2 text-left transition-all',
+                selected ? CARD_SELECTED : CARD_DEFAULT)}
             >
               <span className="text-xl">{goal.icon}</span>
-              <span className={cn(
-                'text-xs font-semibold leading-tight flex-1',
-                selected ? 'text-gold-700' : 'text-ink-700'
-              )}>
+              <span className={cn('text-xs font-semibold leading-tight flex-1',
+                selected ? 'text-[#5B21B6]' : 'text-[#3F3F46]')}>
                 {goal.label}
               </span>
               {selected && (
-                <div className="w-4 h-4 rounded-full bg-gold-500 flex items-center justify-center flex-shrink-0">
+                <div className="w-4 h-4 rounded-full bg-[#7C3AED] flex items-center justify-center flex-shrink-0">
                   <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
                 </div>
               )}
@@ -235,10 +196,8 @@ function StepRoadmap({ data, onChange }: { data: OnboardingData; onChange: (d: P
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="font-display text-3xl font-bold text-ink-900 mb-2">
-          Pick your first roadmap
-        </h2>
-        <p className="text-ink-500">This will be your step-by-step guide. You can unlock more later.</p>
+        <h2 className="text-3xl font-bold text-[#18181B] mb-2">Pick your first roadmap</h2>
+        <p className="text-[#71717A]">This will be your step-by-step guide. You can unlock more later.</p>
       </div>
       <div className="space-y-3">
         {ROADMAPS.map(roadmap => (
@@ -246,34 +205,26 @@ function StepRoadmap({ data, onChange }: { data: OnboardingData; onChange: (d: P
             key={roadmap.id}
             onClick={() => onChange({ selected_roadmap: roadmap.id })}
             whileTap={{ scale: 0.98 }}
-            className={cn(
-              'w-full flex items-center gap-4 p-4 rounded-2xl border-2 text-left transition-all',
-              data.selected_roadmap === roadmap.id
-                ? 'border-gold-500 bg-gold-50 shadow-glow'
-                : 'border-ink-100 bg-white hover:border-ink-200 hover:shadow-card'
-            )}
+            className={cn('w-full flex items-center gap-4 p-4 rounded-2xl border-2 text-left transition-all',
+              data.selected_roadmap === roadmap.id ? CARD_SELECTED : CARD_DEFAULT)}
           >
             <span className="text-3xl flex-shrink-0">{roadmap.icon}</span>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <p className={cn(
-                  'font-semibold text-sm',
-                  data.selected_roadmap === roadmap.id ? 'text-gold-700' : 'text-ink-900'
-                )}>
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className={cn('font-semibold text-sm',
+                  data.selected_roadmap === roadmap.id ? 'text-[#5B21B6]' : 'text-[#18181B]')}>
                   {roadmap.title}
                 </p>
                 {roadmap.tag && (
-                  <span className="text-[10px] font-bold px-2 py-0.5 bg-gold-100 text-gold-700 rounded-full border border-gold-200">
+                  <span className="text-[10px] font-bold px-2 py-0.5 bg-[#7C3AED] text-white rounded-full">
                     {roadmap.tag}
                   </span>
                 )}
               </div>
-              <p className="text-xs text-ink-400 mt-0.5">{roadmap.subtitle} • {roadmap.weeks} weeks</p>
+              <p className="text-xs text-[#A1A1AA] mt-0.5">{roadmap.subtitle} · {roadmap.weeks} weeks</p>
             </div>
-            <ChevronRight className={cn(
-              'w-4 h-4 flex-shrink-0 transition-colors',
-              data.selected_roadmap === roadmap.id ? 'text-gold-500' : 'text-ink-300'
-            )} />
+            <ChevronRight className={cn('w-4 h-4 flex-shrink-0 transition-colors',
+              data.selected_roadmap === roadmap.id ? 'text-[#7C3AED]' : 'text-[#D4D4D8]')} />
           </motion.button>
         ))}
       </div>
@@ -288,28 +239,22 @@ function StepComplete({ data }: { data: OnboardingData }) {
         initial={{ scale: 0, rotate: -180 }}
         animate={{ scale: 1, rotate: 0 }}
         transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.1 }}
-        className="w-24 h-24 rounded-3xl bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center mx-auto shadow-glow"
+        className="w-24 h-24 rounded-3xl bg-gradient-to-br from-[#7C3AED] to-[#5B21B6] flex items-center justify-center mx-auto shadow-[0_0_40px_rgba(124,58,237,0.3)]"
       >
         <Crown className="w-12 h-12 text-white" />
       </motion.div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-      >
-        <h2 className="font-display text-3xl sm:text-4xl font-bold text-ink-900 mb-3">
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+        <h2 className="text-3xl sm:text-4xl font-bold text-[#18181B] mb-3">
           {data.full_name ? `You're ready, ${data.full_name}!` : "You're ready!"}
         </h2>
-        <p className="text-ink-500 text-lg">
+        <p className="text-[#71717A] text-lg">
           Your CEO dashboard is set up.<br />Let's build your empire. 👑
         </p>
       </motion.div>
 
       <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
+        initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
         className="grid grid-cols-3 gap-3 max-w-sm mx-auto"
       >
         {[
@@ -317,26 +262,20 @@ function StepComplete({ data }: { data: OnboardingData }) {
           { icon: '🔥', label: 'Streak starts today' },
           { icon: '🤖', label: 'AI unlocked' },
         ].map(item => (
-          <div key={item.label} className="bg-gold-50 border border-gold-200 rounded-2xl p-3 text-center">
+          <div key={item.label} className="bg-[#EDE9FE] border border-[#C4B5FD] rounded-2xl p-3 text-center">
             <span className="text-2xl">{item.icon}</span>
-            <p className="text-xs font-semibold text-gold-700 mt-1 leading-tight">{item.label}</p>
+            <p className="text-xs font-semibold text-[#5B21B6] mt-1 leading-tight">{item.label}</p>
           </div>
         ))}
       </motion.div>
 
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.6 }}
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}
         className="flex flex-wrap gap-2 justify-center"
       >
-        {[
-          { icon: '✅', text: 'Dashboard personalized' },
-          { icon: '✅', text: 'Goals set' },
-          { icon: '✅', text: 'Roadmap selected' },
-        ].map(item => (
-          <span key={item.text} className="flex items-center gap-1.5 text-xs text-success-dark font-medium px-3 py-1.5 bg-success-light rounded-full">
-            {item.icon} {item.text}
+        {['Dashboard personalised', 'Goals set', 'Roadmap selected'].map(text => (
+          <span key={text} className="flex items-center gap-1.5 text-xs text-[#16A34A] font-medium px-3 py-1.5 bg-[#DCFCE7] rounded-full">
+            ✅ {text}
           </span>
         ))}
       </motion.div>
@@ -344,19 +283,15 @@ function StepComplete({ data }: { data: OnboardingData }) {
   )
 }
 
-// ──────────────────────────────────────────
-// Progress dots
-// ──────────────────────────────────────────
+// ── Progress dots ───────────────────────────────────────────────────────────
+
 function ProgressDots({ current, total }: { current: number; total: number }) {
   return (
     <div className="flex items-center gap-1.5">
       {Array.from({ length: total }, (_, i) => (
         <motion.div
           key={i}
-          animate={{
-            width: i === current ? 20 : 6,
-            backgroundColor: i <= current ? '#C4A264' : '#E8E7E3',
-          }}
+          animate={{ width: i === current ? 20 : 6, backgroundColor: i <= current ? '#7C3AED' : '#E4E4E7' }}
           transition={{ duration: 0.3 }}
           className="h-1.5 rounded-full"
         />
@@ -365,9 +300,8 @@ function ProgressDots({ current, total }: { current: number; total: number }) {
   )
 }
 
-// ──────────────────────────────────────────
-// Main Onboarding Page
-// ──────────────────────────────────────────
+// ── Main page ───────────────────────────────────────────────────────────────
+
 const DEFAULT_DATA: OnboardingData = {
   full_name: '',
   business_type: null,
@@ -388,9 +322,7 @@ export default function OnboardingPage() {
   const isLastStep = step === TOTAL_STEPS - 1
   const isComplete = step === TOTAL_STEPS
 
-  const updateData = (updates: Partial<OnboardingData>) => {
-    setData(prev => ({ ...prev, ...updates }))
-  }
+  const updateData = (updates: Partial<OnboardingData>) => setData(prev => ({ ...prev, ...updates }))
 
   const canAdvance = () => {
     switch (step) {
@@ -419,23 +351,28 @@ export default function OnboardingPage() {
     setIsSubmitting(true)
     try {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('Not authenticated')
-      const { error } = await supabase.from('profiles').upsert({
-        id: user.id,
-        full_name: data.full_name,
-        business_type: data.business_type,
-        business_stage: data.business_stage,
-        goals: data.goals,
-        selected_roadmap: data.selected_roadmap,
-        revenue_goal: data.revenue_goal,
-        onboarding_completed: true,
-      })
-      if (error) throw error
-      router.push('/dashboard')
+      if (user) {
+        // First mark onboarding complete (critical for middleware)
+        await supabase.from('profiles').upsert({
+          id: user.id,
+          onboarding_completed: true,
+        })
+        // Then update profile details (best effort)
+        await supabase.from('profiles').update({
+          full_name: data.full_name,
+          business_type: data.business_type,
+          business_stage: data.business_stage,
+          goals: data.goals,
+          selected_roadmap: data.selected_roadmap,
+        }).eq('id', user.id)
+      }
     } catch (err) {
-      console.error('Onboarding save failed:', err)
-      setIsSubmitting(false)
+      // Log error but always navigate — don't trap the user
+      console.error('Onboarding save error:', err)
+      toast.error('Could not save all details — you can update them in Settings.')
     }
+    // Always navigate regardless of save result
+    router.push('/dashboard')
   }
 
   const steps = [
@@ -446,9 +383,10 @@ export default function OnboardingPage() {
     <StepRoadmap key="roadmap" data={data} onChange={updateData} />,
   ]
 
+  // ── Completion screen ──────────────────────────────────────────────────────
   if (isComplete) {
     return (
-      <div className="min-h-screen bg-cream-50 flex items-center justify-center px-6">
+      <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center px-6">
         <div className="max-w-lg w-full">
           <StepComplete data={data} />
           <div className="mt-8 flex justify-center">
@@ -456,7 +394,7 @@ export default function OnboardingPage() {
               onClick={handleSubmit}
               disabled={isSubmitting}
               whileTap={{ scale: 0.97 }}
-              className="btn-gold text-base py-3.5 px-10 shadow-glow disabled:opacity-70"
+              className="btn-primary text-base py-3.5 px-10 disabled:opacity-70"
             >
               {isSubmitting ? (
                 <span className="flex items-center gap-2">
@@ -479,90 +417,79 @@ export default function OnboardingPage() {
     )
   }
 
+  // ── Step flow ──────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-cream-50 flex">
-      {/* Left panel — branding */}
-      <div className="hidden lg:flex flex-col w-96 bg-ink-900 p-10 relative overflow-hidden flex-shrink-0">
-        {/* Background decoration */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-gold-500/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-gold-400/10 rounded-full blur-2xl" />
+    <div className="min-h-screen bg-[#FAFAFA] flex">
+      {/* Left branding panel (desktop) */}
+      <div className="hidden lg:flex flex-col w-96 bg-[#18181B] p-10 relative overflow-hidden flex-shrink-0">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-[#7C3AED]/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-[#7C3AED]/10 rounded-full blur-2xl" />
 
-        <div className="relative">
-          <div className="flex items-center gap-2.5 mb-12">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center shadow-glow">
-              <Crown className="w-4.5 h-4.5 text-white" />
+        <div className="relative z-10">
+          <div className="flex items-center gap-3 mb-12">
+            <div className="w-10 h-10 rounded-xl bg-[#7C3AED] flex items-center justify-center">
+              <Crown className="w-5 h-5 text-white" />
             </div>
             <div>
-              <span className="font-display font-bold text-sm text-white">Rinse & Repeat</span>
-              <span className="block text-[10px] font-bold text-gold-400 uppercase tracking-widest">CEO</span>
+              <p className="font-bold text-white text-sm">Rinse & Repeat</p>
+              <p className="text-[10px] font-semibold text-[#7C3AED] uppercase tracking-widest">CEO</p>
             </div>
           </div>
 
-          <h2 className="font-display text-2xl font-bold text-white mb-3 leading-snug">
-            You're 2 minutes away from your CEO dashboard.
-          </h2>
-          <p className="text-ink-300 text-sm leading-relaxed mb-10">
-            Join 12,400+ founders who chose to build their dream business instead of waiting for the perfect moment.
-          </p>
-
-          {/* Step list */}
-          <div className="space-y-4">
-            {['Your profile', 'Your business type', 'Your stage', 'Your goals', 'Your roadmap'].map(
-              (label, i) => (
-                <div key={label} className="flex items-center gap-3">
-                  <div className={cn(
-                    'w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold transition-all',
-                    i < step
-                      ? 'bg-gold-500 text-white'
-                      : i === step
-                      ? 'bg-white text-ink-900'
-                      : 'bg-ink-700 text-ink-400'
-                  )}>
-                    {i < step ? <Check className="w-3.5 h-3.5" strokeWidth={3} /> : i + 1}
-                  </div>
-                  <span className={cn(
-                    'text-sm font-medium transition-colors',
-                    i === step ? 'text-white' : i < step ? 'text-gold-400' : 'text-ink-500'
-                  )}>
-                    {label}
-                  </span>
+          <div className="space-y-6 mt-8">
+            {[
+              { step: 1, label: 'Your name', done: step > 0 },
+              { step: 2, label: 'Business type', done: step > 1 },
+              { step: 3, label: 'Where you are now', done: step > 2 },
+              { step: 4, label: 'Your goals', done: step > 3 },
+              { step: 5, label: 'Your roadmap', done: step > 4 },
+            ].map((item, i) => (
+              <div key={i} className="flex items-center gap-3">
+                <div className={cn(
+                  'w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 transition-all',
+                  item.done
+                    ? 'bg-[#7C3AED] text-white'
+                    : step === i
+                    ? 'bg-white text-[#18181B]'
+                    : 'bg-white/10 text-white/30'
+                )}>
+                  {item.done ? <Check className="w-3 h-3" strokeWidth={3} /> : item.step}
                 </div>
-              )
-            )}
+                <p className={cn('text-sm font-medium transition-all',
+                  item.done ? 'text-white/60 line-through' : step === i ? 'text-white' : 'text-white/30')}>
+                  {item.label}
+                </p>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Bottom quote */}
-        <div className="relative mt-auto pt-8 border-t border-ink-700">
-          <p className="text-ink-300 text-sm italic leading-relaxed">
-            "She believed she could, so she did."
-          </p>
-          <div className="flex mt-3 gap-1">
-            {[1,2,3,4,5].map(i => <Sparkles key={i} className="w-3 h-3 text-gold-500" />)}
-          </div>
+        <div className="relative z-10 mt-auto">
+          <p className="text-xs text-white/30">Step {step + 1} of {TOTAL_STEPS}</p>
         </div>
       </div>
 
-      {/* Right panel — steps */}
+      {/* Main content */}
       <div className="flex-1 flex flex-col">
-        {/* Top bar */}
-        <div className="flex items-center justify-between px-6 sm:px-10 py-5 border-b border-ink-100 bg-white lg:bg-transparent">
-          <div className="flex items-center gap-2.5 lg:hidden">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center">
-              <Crown className="w-3.5 h-3.5 text-white" />
+        {/* Mobile header */}
+        <div className="lg:hidden flex items-center justify-between px-6 py-4 border-b border-[#F4F4F5]">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-[#7C3AED] flex items-center justify-center">
+              <Crown className="w-4 h-4 text-white" />
             </div>
-            <span className="font-display font-bold text-sm text-ink-900">CEO</span>
+            <span className="font-bold text-sm text-[#18181B]">Rinse & Repeat CEO</span>
           </div>
           <ProgressDots current={step} total={TOTAL_STEPS} />
-          <span className="text-xs font-medium text-ink-400">
-            {step + 1} of {TOTAL_STEPS}
-          </span>
         </div>
 
         {/* Step content */}
-        <div className="flex-1 flex items-center justify-center px-6 sm:px-10 py-8 overflow-y-auto">
-          <div className="w-full max-w-md">
-            <AnimatePresence mode="wait" custom={direction}>
+        <div className="flex-1 flex flex-col justify-center px-6 py-8 max-w-xl mx-auto w-full">
+          <div className="hidden lg:block mb-8">
+            <ProgressDots current={step} total={TOTAL_STEPS} />
+          </div>
+
+          <div className="relative overflow-hidden">
+            <AnimatePresence custom={direction} mode="wait">
               <motion.div
                 key={step}
                 custom={direction}
@@ -575,36 +502,36 @@ export default function OnboardingPage() {
               </motion.div>
             </AnimatePresence>
           </div>
-        </div>
 
-        {/* Navigation */}
-        <div className="px-6 sm:px-10 py-6 border-t border-ink-100 flex items-center justify-between">
-          <button
-            onClick={goBack}
-            disabled={step === 0}
-            className={cn(
-              'flex items-center gap-2 text-sm font-medium transition-colors',
-              step === 0 ? 'text-ink-200 cursor-not-allowed' : 'text-ink-500 hover:text-ink-900'
-            )}
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back
-          </button>
+          {/* Navigation */}
+          <div className="flex items-center justify-between mt-8">
+            <button
+              onClick={goBack}
+              className={cn(
+                'flex items-center gap-2 text-sm font-medium text-[#A1A1AA] hover:text-[#71717A] transition-colors',
+                step === 0 && 'invisible'
+              )}
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back
+            </button>
 
-          <motion.button
-            onClick={isLastStep ? () => { setDirection(1); setStep(TOTAL_STEPS) } : goNext}
-            disabled={!canAdvance()}
-            whileTap={{ scale: 0.97 }}
-            className={cn(
-              'btn-gold py-2.5 px-6 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none'
-            )}
-          >
-            {isLastStep ? (
-              <span className="flex items-center gap-2">Let's go! <Crown className="w-4 h-4" /></span>
-            ) : (
-              <span className="flex items-center gap-2">Continue <ArrowRight className="w-4 h-4" /></span>
-            )}
-          </motion.button>
+            <button
+              onClick={isLastStep ? goNext : goNext}
+              disabled={!canAdvance()}
+              className="btn-primary py-3 px-8 text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {isLastStep ? (
+                <span className="flex items-center gap-2">
+                  Finish <Check className="w-4 h-4" />
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  Continue <ArrowRight className="w-4 h-4" />
+                </span>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -39,7 +39,9 @@ export async function middleware(req: NextRequest) {
       .eq('id', session.user.id)
       .single()
 
-    if (profile && !profile.onboarding_completed && path !== '/') {
+    // Only redirect if profile exists AND onboarding is explicitly false
+    // (null profile = brand-new user, trigger may not have run yet)
+    if (profile && profile.onboarding_completed === false && path !== '/') {
       return NextResponse.redirect(new URL('/onboarding', req.url))
     }
   }
