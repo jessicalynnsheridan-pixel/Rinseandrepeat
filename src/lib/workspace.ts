@@ -518,20 +518,25 @@ export const DEFAULT_WORKSPACE: WorkspaceField[] = [
 ]
 
 // ── localStorage hook with debounced auto-save ─────────────────
-export function useWorkspace(milestoneId: string) {
+// userId scopes notes per user — different accounts never share workspace data
+export function useWorkspace(milestoneId: string, userId?: string) {
   const [data, setData] = useState<WorkspaceData>({})
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved'>('idle')
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  // Build a user-scoped key. Falls back to legacy key if userId not available yet
+  // so existing notes aren't lost during the transition.
+  const storageKey = userId ? `${userId}_ws_${milestoneId}` : `ws_${milestoneId}`
+
   useEffect(() => {
     try {
-      const raw = localStorage.getItem(`ws_${milestoneId}`)
+      const raw = localStorage.getItem(storageKey)
       if (raw) setData(JSON.parse(raw))
     } catch {
-      // ignore
+      // Private mode or storage blocked — start fresh
     }
-  }, [milestoneId])
+  }, [storageKey])
 
   const update = useCallback((fieldId: string, value: string | string[]) => {
     setData(prev => {
@@ -541,7 +546,7 @@ export function useWorkspace(milestoneId: string) {
       setSaveState('saving')
       timerRef.current = setTimeout(() => {
         try {
-          localStorage.setItem(`ws_${milestoneId}`, JSON.stringify(next))
+          localStorage.setItem(storageKey, JSON.stringify(next))
         } catch {
           // storage full or private mode
         }

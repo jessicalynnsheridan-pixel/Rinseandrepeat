@@ -1,7 +1,7 @@
 'use client'
 
 
-import { useState, useRef, KeyboardEvent } from 'react'
+import { useState, useRef, useEffect, useCallback, KeyboardEvent } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -513,8 +513,8 @@ function WorkspaceFieldRenderer({
 // ──────────────────────────────────────────
 // Workspace section
 // ──────────────────────────────────────────
-function WorkspaceSection({ milestoneId }: { milestoneId: string }) {
-  const { data, update, saveState } = useWorkspace(milestoneId)
+function WorkspaceSection({ milestoneId, userId }: { milestoneId: string; userId?: string }) {
+  const { data, update, saveState } = useWorkspace(milestoneId, userId)
   const fields = WORKSPACE_TEMPLATES[milestoneId] ?? DEFAULT_WORKSPACE
 
   const hasContent = Object.values(data).some(v =>
@@ -602,17 +602,30 @@ function StepCard({
   milestone,
   index,
   phaseColor,
+  isCompleted,
+  savedChecklist,
+  onComplete,
+  onChecklistChange,
+  userId,
 }: {
   milestone: (typeof ROADMAP_DATA)['shopify']['phases'][0]['milestones'][0]
   index: number
   phaseColor: string
+  isCompleted: boolean
+  savedChecklist: Record<number, boolean>
+  onComplete: () => void
+  onChecklistChange: (itemIndex: number, value: boolean) => void
+  userId?: string
 }) {
   const [open, setOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<StepTab>('lesson')
-  const [checked, setChecked] = useState<Record<number, boolean>>(
-    Object.fromEntries(milestone.checklist.map((_, i) => [i, milestone.completed]))
-  )
-  const [completed, setCompleted] = useState(milestone.completed)
+  // Initialise from parent-provided persisted state
+  const [checked, setChecked] = useState<Record<number, boolean>>(savedChecklist)
+  const [completed, setCompleted] = useState(isCompleted)
+
+  // Sync if parent state changes (e.g. after localStorage loads)
+  useEffect(() => { setCompleted(isCompleted) }, [isCompleted])
+  useEffect(() => { setChecked(savedChecklist) }, [milestone.id]) // eslint-disable-line react-hooks/exhaustive-deps
   const [celebrating, setCelebrating] = useState(false)
 
   const completedCount = Object.values(checked).filter(Boolean).length
@@ -622,13 +635,16 @@ function StepCard({
 
   const toggleItem = (i: number) => {
     if (milestone.locked || completed) return
-    setChecked(prev => ({ ...prev, [i]: !prev[i] }))
+    const newValue = !checked[i]
+    setChecked(prev => ({ ...prev, [i]: newValue }))
+    onChecklistChange(i, newValue)
   }
 
   const markComplete = () => {
     setCompleted(true)
     setCelebrating(true)
     setOpen(false)
+    onComplete()
   }
 
   const TABS = [
@@ -867,7 +883,7 @@ function StepCard({
                         exit={{ opacity: 0, x: 8 }}
                         transition={{ duration: 0.15 }}
                       >
-                        <WorkspaceSection milestoneId={milestone.id} />
+                        <WorkspaceSection milestoneId={milestone.id} userId={userId} />
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -885,12 +901,55 @@ function StepCard({
 // Page
 // ──────────────────────────────────────────
 export default function RoadmapDetailPage() {
-  const { profile, signOut } = useUser()
+  const { user, profile, signOut } = useUser()
   const params = useParams()
   const router = useRouter()
   const slug = params.slug as string
 
   const [activePhase, setActivePhase] = useState(0)
+
+  // ── Per-user progress state, persisted in localStorage ─────────────
+  const [completedIds, setCompletedIds] = useState<Set<string>>(new Set())
+  const [checklists, setChecklists] = useState<Record<string, Record<number, boolean>>>({})
+
+  useEffect(() => {
+    if (!user?.id) return
+    try {
+      const raw = localStorage.getItem(`${user.id}_roadmap_${slug}_v1`)
+      if (raw) {
+        const saved = JSON.parse(raw)
+        setCompletedIds(new Set(saved.completed ?? []))
+        setChecklists(saved.checklists ?? {})
+      }
+    } catch { /* ignore */ }
+  }, [user?.id, slug])
+
+  const saveProgress = useCallback((ids: Set<string>, lists: Record<string, Record<number, boolean>>) => {
+    if (!user?.id) return
+    try {
+      localStorage.setItem(`${user.id}_roadmap_${slug}_v1`, JSON.stringify({
+        completed: Array.from(ids),
+        checklists: lists,
+      }))
+    } catch { /* ignore */ }
+  }, [user?.id, slug])
+
+  const handleComplete = useCallback((milestoneId: string) => {
+    setCompletedIds(prev => {
+      const next = new Set(prev)
+      next.add(milestoneId)
+      saveProgress(next, checklists)
+      return next
+    })
+  }, [checklists, saveProgress])
+
+  const handleChecklistChange = useCallback((milestoneId: string, itemIndex: number, value: boolean) => {
+    setChecklists(prev => {
+      const next = { ...prev, [milestoneId]: { ...prev[milestoneId], [itemIndex]: value } }
+      saveProgress(completedIds, next)
+      return next
+    })
+  }, [completedIds, saveProgress])
 
   const roadmap = ROADMAP_DATA[slug]
 
@@ -908,7 +967,8 @@ export default function RoadmapDetailPage() {
   }
 
   const allMilestones = roadmap.phases.flatMap(p => p.milestones)
-  const completedCount = allMilestones.filter(m => m.completed).length
+  // Use real per-user progress, not static mock data
+  const completedCount = allMilestones.filter(m => completedIds.has(m.id)).length
   const totalCount = allMilestones.length
   const progressPct = Math.round((completedCount / totalCount) * 100)
   const totalXP = allMilestones.reduce((sum, m) => sum + m.xp, 0)
@@ -983,7 +1043,7 @@ export default function RoadmapDetailPage() {
           {/* Phase tabs */}
           <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
             {roadmap.phases.map((phase, i) => {
-              const phaseDone = phase.milestones.filter(m => m.completed).length
+              const phaseDone = phase.milestones.filter(m => completedIds.has(m.id)).length
               const phaseTotal = phase.milestones.length
               return (
                 <button
@@ -1019,6 +1079,11 @@ export default function RoadmapDetailPage() {
                 milestone={milestone}
                 index={i}
                 phaseColor={currentPhase.color}
+                isCompleted={completedIds.has(milestone.id)}
+                savedChecklist={checklists[milestone.id] ?? {}}
+                onComplete={() => handleComplete(milestone.id)}
+                onChecklistChange={(idx, val) => handleChecklistChange(milestone.id, idx, val)}
+                userId={user?.id}
               />
             ))}
           </div>

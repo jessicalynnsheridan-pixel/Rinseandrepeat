@@ -33,6 +33,7 @@ export interface Profile {
   last_active_date: string | null
   onboarding_completed: boolean
   goals: string[]
+  selected_roadmap: string | null
   created_at: string
   updated_at: string
 }

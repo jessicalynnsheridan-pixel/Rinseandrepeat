@@ -19,6 +19,7 @@ export const MOCK_PROFILE: Profile = {
   streak_best: 12,
   last_active_date: new Date().toISOString(),
   onboarding_completed: true,
+  selected_roadmap: 'shopify',
   goals: ['income', 'brand', 'freedom'],
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString(),

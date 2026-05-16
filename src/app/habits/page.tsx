@@ -1,31 +1,25 @@
 'use client'
 
-
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, Flame, Check, X, Trash2 } from 'lucide-react'
+import { Plus, Flame, Check, X, Trash2, Target } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Sidebar } from '@/components/navigation/Sidebar'
 import { MobileNav } from '@/components/navigation/MobileNav'
 import { useUser } from '@/components/providers/UserProvider'
+
+const WEEK_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 interface Habit {
   id: string
   name: string
   streak: number
   completedToday: boolean
-  weekHistory: boolean[]
+  weekHistory: boolean[]  // 7 booleans, Mon–Sun
 }
 
-const INITIAL_HABITS: Habit[] = [
-  { id: '1', name: 'Post on Instagram', streak: 7, completedToday: false, weekHistory: [true, true, true, true, true, false, false] },
-  { id: '2', name: 'Learn for 30 min', streak: 12, completedToday: false, weekHistory: [true, true, false, true, true, false, false] },
-  { id: '3', name: 'Client outreach', streak: 5, completedToday: false, weekHistory: [true, false, true, true, true, false, false] },
-  { id: '4', name: 'Workout', streak: 3, completedToday: false, weekHistory: [false, true, true, false, true, false, false] },
-  { id: '5', name: 'Journal', streak: 9, completedToday: false, weekHistory: [true, true, true, true, false, false, false] },
-]
-
-const WEEK_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+// Storage key is scoped to the user — different users never share habit data
+const habitsKey = (userId: string) => `${userId}_habits_v1`
 
 function getWeekDates(): string[] {
   const today = new Date()
@@ -39,15 +33,41 @@ function getWeekDates(): string[] {
 }
 
 export default function HabitsPage() {
-  const { profile, signOut } = useUser()
-  // Computed fresh on each render so it never goes stale if the user crosses midnight
+  const { profile, signOut, user } = useUser()
   const TODAY_INDEX = useMemo(() => (new Date().getDay() + 6) % 7, [])
-  const [habits, setHabits] = useState<Habit[]>(INITIAL_HABITS)
+
+  // Start with empty — loaded from user-specific localStorage once userId is known
+  const [habits, setHabits] = useState<Habit[]>([])
+  const [hydrated, setHydrated] = useState(false)
   const [showAdd, setShowAdd] = useState(false)
   const [newHabitName, setNewHabitName] = useState('')
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
   const weekDates = getWeekDates()
+  const isSaving = useRef(false)
+
+  // Load saved habits once we have the user ID
+  useEffect(() => {
+    if (!user?.id) return
+    try {
+      const raw = localStorage.getItem(habitsKey(user.id))
+      if (raw) setHabits(JSON.parse(raw))
+    } catch {
+      // Private mode or storage blocked — start fresh, that's fine
+    }
+    setHydrated(true)
+  }, [user?.id])
+
+  // Persist any habit change back to user-specific localStorage
+  useEffect(() => {
+    if (!user?.id || !hydrated) return
+    try {
+      localStorage.setItem(habitsKey(user.id), JSON.stringify(habits))
+    } catch {
+      // ignore
+    }
+  }, [habits, user?.id, hydrated])
+
   const completedToday = habits.filter(h => h.completedToday).length
   const total = habits.length
   const pct = total > 0 ? Math.round((completedToday / total) * 100) : 0
@@ -88,47 +108,65 @@ export default function HabitsPage() {
             <p className="text-sm text-[#A1A1AA] mt-1">Small actions, compounded daily.</p>
           </motion.div>
 
-          {/* Progress ring card */}
-          <motion.div
-            initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
-            className="bg-white rounded-2xl border border-[#F4F4F5] p-5 mb-5"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-[#A1A1AA] mb-1">Today</p>
-                <p className="font-display text-2xl font-semibold text-[#18181B]">
-                  {completedToday}
-                  <span className="text-base font-normal text-[#A1A1AA]">/{total}</span>
-                </p>
-                <p className="text-xs text-[#A1A1AA] mt-0.5">habits completed</p>
+          {/* Progress ring — only shown once the user has habits */}
+          {habits.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
+              className="bg-white rounded-2xl border border-[#F4F4F5] p-5 mb-5"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-[#A1A1AA] mb-1">Today</p>
+                  <p className="font-display text-2xl font-semibold text-[#18181B]">
+                    {completedToday}
+                    <span className="text-base font-normal text-[#A1A1AA]">/{total}</span>
+                  </p>
+                  <p className="text-xs text-[#A1A1AA] mt-0.5">habits completed</p>
+                </div>
+                <div className="relative w-12 h-12">
+                  <svg className="w-full h-full -rotate-90" viewBox="0 0 40 40">
+                    <circle cx="20" cy="20" r="16" fill="none" stroke="#F4F4F5" strokeWidth="3" />
+                    <circle
+                      cx="20" cy="20" r="16" fill="none"
+                      stroke="#7C3AED" strokeWidth="3"
+                      strokeDasharray={`${2 * Math.PI * 16}`}
+                      strokeDashoffset={`${2 * Math.PI * 16 * (1 - pct / 100)}`}
+                      strokeLinecap="round"
+                      className="transition-all duration-700"
+                    />
+                  </svg>
+                  <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-[#7C3AED]">
+                    {pct}%
+                  </span>
+                </div>
               </div>
-              <div className="relative w-12 h-12">
-                <svg className="w-full h-full -rotate-90" viewBox="0 0 40 40">
-                  <circle cx="20" cy="20" r="16" fill="none" stroke="#F4F4F5" strokeWidth="3" />
-                  <circle
-                    cx="20" cy="20" r="16" fill="none"
-                    stroke="#7C3AED" strokeWidth="3"
-                    strokeDasharray={`${2 * Math.PI * 16}`}
-                    strokeDashoffset={`${2 * Math.PI * 16 * (1 - pct / 100)}`}
-                    strokeLinecap="round"
-                    className="transition-all duration-700"
-                  />
-                </svg>
-                <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-[#7C3AED]">
-                  {pct}%
-                </span>
-              </div>
-            </div>
 
-            <div className="mt-4 w-full h-px bg-[#F4F4F5] rounded-full overflow-hidden">
-              <motion.div
-                className="h-full bg-[#7C3AED] rounded-full"
-                initial={{ width: 0 }}
-                animate={{ width: `${pct}%` }}
-                transition={{ duration: 0.7, ease: 'easeOut' }}
-              />
-            </div>
-          </motion.div>
+              <div className="mt-4 w-full h-px bg-[#F4F4F5] rounded-full overflow-hidden">
+                <motion.div
+                  className="h-full bg-[#7C3AED] rounded-full"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${pct}%` }}
+                  transition={{ duration: 0.7, ease: 'easeOut' }}
+                />
+              </div>
+            </motion.div>
+          )}
+
+          {/* Empty state — shown to brand-new users with no habits yet */}
+          {habits.length === 0 && hydrated && (
+            <motion.div
+              initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
+              className="bg-white rounded-2xl border border-[#F4F4F5] p-8 mb-5 text-center"
+            >
+              <div className="w-12 h-12 rounded-2xl bg-[#EDE9FE] flex items-center justify-center mx-auto mb-3">
+                <Target className="w-6 h-6 text-[#7C3AED]" strokeWidth={1.5} />
+              </div>
+              <h3 className="text-sm font-semibold text-[#18181B] mb-1">No habits yet — let's change that.</h3>
+              <p className="text-xs text-[#A1A1AA] leading-relaxed max-w-xs mx-auto">
+                Add your first daily habit below. Consistency is the only strategy that never fails.
+              </p>
+            </motion.div>
+          )}
 
           {/* Habit list */}
           <div className="space-y-2 mb-4">
@@ -164,11 +202,11 @@ export default function HabitsPage() {
                       {habit.name}
                     </span>
 
-                    {/* Streak */}
+                    {/* Streak — only show once they've built one */}
                     {habit.streak > 1 && (
-                      <div className="flex items-center gap-1 text-[#A1A1AA]">
+                      <div className="flex items-center gap-1 text-[#E5974A]">
                         <Flame className="w-3 h-3" strokeWidth={1.5} />
-                        <span className="text-[10px] font-medium">{habit.streak}</span>
+                        <span className="text-[10px] font-semibold">{habit.streak}</span>
                       </div>
                     )}
 
@@ -220,7 +258,10 @@ export default function HabitsPage() {
                             Cancel
                           </button>
                           <button
-                            onClick={() => { setHabits(p => p.filter(h => h.id !== habit.id)); setDeletingId(null) }}
+                            onClick={() => {
+                              setHabits(p => p.filter(h => h.id !== habit.id))
+                              setDeletingId(null)
+                            }}
                             className="text-xs px-3 py-1 rounded-lg bg-[#18181B] text-white hover:bg-[#3F3F46] transition-all"
                           >
                             Remove
@@ -274,7 +315,7 @@ export default function HabitsPage() {
             )}
           </AnimatePresence>
 
-          {/* Weekly summary */}
+          {/* Weekly summary — only shown once habits exist */}
           {habits.length > 0 && (
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
@@ -299,6 +340,7 @@ export default function HabitsPage() {
               </div>
             </motion.div>
           )}
+
         </div>
       </main>
 
