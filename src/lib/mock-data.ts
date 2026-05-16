@@ -1,0 +1,25 @@
+import type { Profile } from '@/types'
+
+export const MOCK_PROFILE: Profile = {
+  id: '1',
+  full_name: 'Jessica',
+  username: 'jessica_ceo',
+  avatar_url: null,
+  bio: null,
+  business_type: 'shopify',
+  business_stage: 'building',
+  revenue_goal: 5000,
+  current_revenue: 2400,
+  subscription_tier: 'pro',
+  stripe_customer_id: null,
+  stripe_subscription_id: null,
+  xp_points: 1240,
+  level: 'founder',
+  streak_current: 7,
+  streak_best: 12,
+  last_active_date: new Date().toISOString(),
+  onboarding_completed: true,
+  goals: ['income', 'brand', 'freedom'],
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
+}
