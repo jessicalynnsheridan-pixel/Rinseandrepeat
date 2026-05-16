@@ -77,17 +77,36 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   }, [supabase, router])
 
   useEffect(() => {
-    // Get initial session immediately
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
-      if (session?.user) {
-        fetchProfile(session.user.id).finally(() => setLoading(false))
-      } else {
+    // Idempotent settle — once loading is cleared it stays cleared
+    let settled = false
+    function settle() {
+      if (!settled) {
+        settled = true
         setLoading(false)
       }
-    })
+    }
 
-    // Listen for auth state changes
+    // Safety net: Safari can silently stall getSession() or never fire
+    // INITIAL_SESSION — ensure loading always clears within 5 s
+    const safetyTimer = setTimeout(settle, 5000)
+
+    // Get initial session immediately (handles most browsers)
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
+        setUser(session?.user ?? null)
+        if (session?.user) {
+          fetchProfile(session.user.id).finally(settle)
+        } else {
+          settle()
+        }
+      })
+      .catch((err) => {
+        // Safari private-browsing / ITP can throw on storage access
+        console.warn('getSession error (non-fatal):', err)
+        settle()
+      })
+
+    // Also listen for auth state changes (sign-in, sign-out, token refresh)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         setUser(session?.user ?? null)
@@ -96,11 +115,14 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         } else {
           setProfile(null)
         }
-        setLoading(false)
+        settle()
       }
     )
 
-    return () => subscription.unsubscribe()
+    return () => {
+      clearTimeout(safetyTimer)
+      subscription.unsubscribe()
+    }
   }, [supabase, fetchProfile])
 
   return (
