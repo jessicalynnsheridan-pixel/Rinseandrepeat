@@ -53,6 +53,7 @@ export default function SignupPage() {
 
     // Auto-confirmed (e.g. Supabase email confirmation disabled)
     router.push('/onboarding')
+    router.refresh()
   }
 
   return (

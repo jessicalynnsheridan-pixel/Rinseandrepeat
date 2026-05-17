@@ -2,7 +2,7 @@ import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-const PUBLIC_PATHS = ['/', '/login', '/signup', '/pricing']
+const PUBLIC_PATHS = ['/', '/login', '/signup', '/pricing', '/quiz']
 const AUTH_PATHS = ['/login', '/signup']
 
 export async function middleware(req: NextRequest) {
@@ -31,18 +31,34 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL('/dashboard', req.url))
   }
 
-  // Logged in + onboarding not complete → force onboarding (except if already there)
+  // Logged in + onboarding check (skip for /onboarding and /auth/* paths)
   if (session && !path.startsWith('/onboarding') && !path.startsWith('/auth/')) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('onboarding_completed')
-      .eq('id', session.user.id)
-      .single()
+    // `rrc_ob` cookie is set after a confirmed onboarding completion.
+    // If it exists we skip the DB round-trip entirely - critical for mobile
+    // performance since this runs on every page navigation.
+    const onboardedCookie = req.cookies.get('rrc_ob')
 
-    // Only redirect if profile exists AND onboarding is explicitly false
-    // (null profile = brand-new user, trigger may not have run yet)
-    if (profile && profile.onboarding_completed === false && path !== '/') {
-      return NextResponse.redirect(new URL('/onboarding', req.url))
+    if (!onboardedCookie) {
+      // No cookie yet - need to check DB (happens only once per session/device)
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('onboarding_completed')
+        .eq('id', session.user.id)
+        .single()
+
+      if (profile && profile.onboarding_completed === false && path !== '/') {
+        return NextResponse.redirect(new URL('/onboarding', req.url))
+      }
+
+      // Onboarding is complete - write the cookie so future requests skip this
+      if (profile?.onboarding_completed === true) {
+        res.cookies.set('rrc_ob', '1', {
+          path: '/',
+          maxAge: 60 * 60 * 24 * 30, // 30 days
+          sameSite: 'lax',
+          httpOnly: false, // must be false so client JS can clear it on sign-out
+        })
+      }
     }
   }
 

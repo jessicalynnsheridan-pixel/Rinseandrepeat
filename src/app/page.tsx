@@ -230,8 +230,8 @@ function Hero() {
             <Link href="/signup" className="btn-gold text-sm py-3 px-7 inline-flex items-center gap-2">
               Start for free <ArrowRight className="w-4 h-4" />
             </Link>
-            <Link href="/dashboard" className="btn-outline text-sm py-3 px-7">
-              View dashboard
+            <Link href="/quiz" className="btn-outline text-sm py-3 px-7 inline-flex items-center gap-2">
+              Find my business match
             </Link>
           </motion.div>
 

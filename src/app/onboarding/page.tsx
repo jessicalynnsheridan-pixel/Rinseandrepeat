@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -420,10 +420,31 @@ const DEFAULT_DATA: OnboardingData = {
 export default function OnboardingPage() {
   const router = useRouter()
   const supabase = createClientComponentClient()
-  const [step, setStep] = useState(0)
+  // Restore progress from sessionStorage so a page refresh never resets the flow
+  const [step, setStep] = useState<number>(() => {
+    if (typeof window === 'undefined') return 0
+    try {
+      const saved = sessionStorage.getItem('onboarding_step')
+      return saved !== null ? parseInt(saved, 10) : 0
+    } catch { return 0 }
+  })
   const [direction, setDirection] = useState(1)
-  const [data, setData] = useState<OnboardingData>(DEFAULT_DATA)
+  const [data, setData] = useState<OnboardingData>(() => {
+    if (typeof window === 'undefined') return DEFAULT_DATA
+    try {
+      const saved = sessionStorage.getItem('onboarding_data')
+      return saved !== null ? (JSON.parse(saved) as OnboardingData) : DEFAULT_DATA
+    } catch { return DEFAULT_DATA }
+  })
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Persist progress to sessionStorage on every change
+  useEffect(() => {
+    try {
+      sessionStorage.setItem('onboarding_step', String(step))
+      sessionStorage.setItem('onboarding_data', JSON.stringify(data))
+    } catch { /* ignore - private browsing may block sessionStorage */ }
+  }, [step, data])
 
   const isLastStep = step === TOTAL_STEPS - 1
   const isComplete = step === TOTAL_STEPS
@@ -455,34 +476,41 @@ export default function OnboardingPage() {
 
   const handleSubmit = async () => {
     setIsSubmitting(true)
-
-    // Safety net: if any await hangs (Safari ITP / slow network),
-    // navigate after 4 s so the user is never permanently stuck
-    const safetyTimer = setTimeout(() => router.push('/dashboard'), 4000)
-
     try {
-      // getSession reads localStorage (no network)  -  avoids hanging on getUser()
+      // getSession reads localStorage (no network round-trip)
       const { data: { session } } = await supabase.auth.getSession()
       const userId = session?.user?.id
 
-      if (userId) {
-        // Single upsert: one round trip, marks onboarding complete + saves profile
-        await supabase.from('profiles').upsert({
-          id: userId,
-          onboarding_completed: true,
-          full_name: data.full_name,
-          business_type: data.business_type,
-          business_stage: data.business_stage,
-          goals: data.goals,
-          selected_roadmap: data.selected_roadmap,
-        })
+      if (!userId) {
+        toast.error('Your session has expired  -  please log in again.')
+        router.push('/login')
+        return
       }
-    } catch (err) {
-      console.error('Onboarding save error (non-fatal):', err)
-    } finally {
-      // Always navigate  -  finally runs even if the try block throws or hangs
-      clearTimeout(safetyTimer)
+
+      // Single upsert: one round trip, marks onboarding complete + saves profile
+      const { error } = await supabase.from('profiles').upsert({
+        id: userId,
+        onboarding_completed: true,
+        full_name: data.full_name,
+        business_type: data.business_type,
+        business_stage: data.business_stage,
+        goals: data.goals,
+        selected_roadmap: data.selected_roadmap,
+      })
+
+      if (error) throw error
+
+      // Only clear saved progress once we know the save succeeded
+      try {
+        sessionStorage.removeItem('onboarding_step')
+        sessionStorage.removeItem('onboarding_data')
+      } catch { /* ignore */ }
+
       router.push('/dashboard')
+    } catch (err) {
+      console.error('Onboarding save error:', err)
+      toast.error('Something went wrong saving your profile. Check your connection and try again.')
+      setIsSubmitting(false)
     }
   }
 

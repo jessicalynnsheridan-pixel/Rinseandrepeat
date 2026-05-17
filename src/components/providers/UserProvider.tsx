@@ -32,8 +32,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
   const router = useRouter()
 
-  // Stable supabase client  -  createClientComponentClient is a singleton internally,
-  // but wrapping in useMemo keeps the reference stable across renders
   const supabase = useMemo(() => createClientComponentClient(), [])
 
   const fetchProfile = useCallback(async (userId: string) => {
@@ -45,7 +43,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         .single()
 
       if (error) {
-        // PGRST116 = no rows found  -  profile may not exist yet (trigger delay)
+        // PGRST116 = no rows - profile may not exist yet (trigger delay)
         if (error.code !== 'PGRST116') {
           console.error('Profile fetch error:', error.message)
         }
@@ -70,6 +68,10 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     } catch (err) {
       console.error('Sign out error:', err)
     } finally {
+      // Clear the onboarding cache cookie so the next user gets a fresh check
+      if (typeof document !== 'undefined') {
+        document.cookie = 'rrc_ob=; path=/; max-age=0; SameSite=Lax'
+      }
       setUser(null)
       setProfile(null)
       router.push('/login')
@@ -77,7 +79,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   }, [supabase, router])
 
   useEffect(() => {
-    // Idempotent settle  -  once loading is cleared it stays cleared
+    // Idempotent settle - once loading is cleared it stays cleared
     let settled = false
     function settle() {
       if (!settled) {
@@ -86,36 +88,28 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    // Safety net: Safari can silently stall getSession() or never fire
-    // INITIAL_SESSION  -  ensure loading always clears within 5 s
-    const safetyTimer = setTimeout(settle, 5000)
+    // 2-second absolute fallback - covers any edge case where the listener
+    // never fires (private browsing, Safari ITP, network error)
+    const safetyTimer = setTimeout(settle, 2000)
 
-    // Get initial session immediately (handles most browsers)
-    supabase.auth.getSession()
-      .then(({ data: { session } }) => {
-        setUser(session?.user ?? null)
-        if (session?.user) {
-          fetchProfile(session.user.id).finally(settle)
-        } else {
-          settle()
-        }
-      })
-      .catch((err) => {
-        // Safari private-browsing / ITP can throw on storage access
-        console.warn('getSession error (non-fatal):', err)
-        settle()
-      })
-
-    // Also listen for auth state changes (sign-in, sign-out, token refresh)
+    // onAuthStateChange is the single source of truth for auth state.
+    // Supabase v2 fires it immediately with INITIAL_SESSION from localStorage -
+    // no need to also call getSession(), which would double the fetchProfile calls.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setUser(session?.user ?? null)
-        if (session?.user) {
-          await fetchProfile(session.user.id)
+      (event, session) => {
+        const currentUser = session?.user ?? null
+        setUser(currentUser)
+
+        if (currentUser) {
+          // Settle loading as soon as we know the user is signed in.
+          // Profile fetches in the background - the dashboard renders
+          // with safe null fallbacks while it arrives.
+          settle()
+          fetchProfile(currentUser.id)
         } else {
           setProfile(null)
+          settle()
         }
-        settle()
       }
     )
 
