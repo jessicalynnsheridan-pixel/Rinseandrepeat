@@ -48,13 +48,13 @@ export const WORKSPACE_TEMPLATES: Record<string, WorkspaceField[]> = {
       id: 'business_name',
       label: 'Business Name',
       type: 'text',
-      placeholder: 'The name you plan to register — check availability on Ownr.co',
+      placeholder: 'The name you plan to register  -  check availability on Ownr.co',
     },
     {
       id: 'province_structure',
       label: 'Province & Business Structure',
       type: 'text',
-      placeholder: 'e.g. Ontario — Sole Proprietor / BC — Federal Corporation',
+      placeholder: 'e.g. Ontario  -  Sole Proprietor / BC  -  Federal Corporation',
       hint: 'Not sure? Sole proprietorship is the simplest place to start.',
     },
     {
@@ -68,7 +68,7 @@ export const WORKSPACE_TEMPLATES: Record<string, WorkspaceField[]> = {
       id: 'legal_notes',
       label: 'Questions & Notes',
       type: 'textarea',
-      placeholder: "Anything you're unsure about — e.g. tax questions (ask a Canadian accountant), CRA Business Number, HST/GST registration...",
+      placeholder: "Anything you're unsure about  -  e.g. tax questions (ask a Canadian accountant), CRA Business Number, HST/GST registration...",
     },
   ],
   s3: [
@@ -82,7 +82,7 @@ export const WORKSPACE_TEMPLATES: Record<string, WorkspaceField[]> = {
       id: 'theme_inspiration',
       label: 'Theme & Design Inspiration',
       type: 'textarea',
-      placeholder: 'Describe the vibe — stores you love, colors, clean vs bold, minimal vs maximalist...',
+      placeholder: 'Describe the vibe  -  stores you love, colors, clean vs bold, minimal vs maximalist...',
     },
     {
       id: 'color_ideas',
@@ -130,7 +130,7 @@ export const WORKSPACE_TEMPLATES: Record<string, WorkspaceField[]> = {
       id: 'brand_adjectives',
       label: 'My 3 Brand Words',
       type: 'text',
-      placeholder: 'e.g. Bold, Feminine, Minimal — every design decision should match these',
+      placeholder: 'e.g. Bold, Feminine, Minimal  -  every design decision should match these',
       hint: 'Hold up any piece of content and ask: does this feel like these 3 words?',
     },
     {
@@ -199,7 +199,7 @@ export const WORKSPACE_TEMPLATES: Record<string, WorkspaceField[]> = {
       label: 'First 9 Content Ideas',
       type: 'brainstorm',
       placeholder: 'Add a post idea...',
-      hint: 'Your first 9 posts are your storefront — make them count',
+      hint: 'Your first 9 posts are your storefront  -  make them count',
     },
   ],
   l3: [
@@ -341,7 +341,7 @@ export const WORKSPACE_TEMPLATES: Record<string, WorkspaceField[]> = {
       label: 'My Stan Store URL',
       type: 'text',
       placeholder: 'stan.store/yourusername',
-      hint: 'Create your account at stan.store — choose a username that matches your Instagram handle',
+      hint: 'Create your account at stan.store  -  choose a username that matches your Instagram handle',
     },
     {
       id: 'freebie_idea',
@@ -516,13 +516,13 @@ export const WORKSPACE_TEMPLATES: Record<string, WorkspaceField[]> = {
       label: 'Licensing Requirements (My Province)',
       type: 'textarea',
       placeholder: 'What licenses do I need in my province? What courses or certifications? Costs and timelines?',
-      hint: 'Check your provincial regulatory body — rules vary by province and service type',
+      hint: 'Check your provincial regulatory body  -  rules vary by province and service type',
     },
     {
       id: 'insurance_notes',
       label: 'Insurance Notes',
       type: 'text',
-      placeholder: 'e.g. Professional liability + general liability — quotes from Intact, BFL Canada...',
+      placeholder: 'e.g. Professional liability + general liability  -  quotes from Intact, BFL Canada...',
     },
     {
       id: 'registration_plan',
@@ -556,7 +556,7 @@ export const DEFAULT_WORKSPACE: WorkspaceField[] = [
 ]
 
 // ── localStorage hook with debounced auto-save ─────────────────
-// userId scopes notes per user — different accounts never share workspace data
+// userId scopes notes per user  -  different accounts never share workspace data
 export function useWorkspace(milestoneId: string, userId?: string) {
   const [data, setData] = useState<WorkspaceData>({})
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved'>('idle')
@@ -572,7 +572,7 @@ export function useWorkspace(milestoneId: string, userId?: string) {
       const raw = localStorage.getItem(storageKey)
       if (raw) setData(JSON.parse(raw))
     } catch {
-      // Private mode or storage blocked — start fresh
+      // Private mode or storage blocked  -  start fresh
     }
   }, [storageKey])
 

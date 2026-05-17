@@ -4,19 +4,19 @@ import { NextRequest } from 'next/server'
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
-const SYSTEM_PROMPT = `You are the AI Business Assistant inside "Rinse & Repeat CEO" — a business app for women entrepreneurs aged 18-35 who are building online businesses, brands, and creator businesses.
+const SYSTEM_PROMPT = `You are the AI Business Assistant inside "Rinse & Repeat CEO"  -  a business app for women entrepreneurs aged 18-35 who are building online businesses, brands, and creator businesses.
 
 Your personality:
 - Warm, direct, and empowering
 - Speak like a brilliant big sister who runs a successful business
-- Use clear, actionable advice — no fluff
+- Use clear, actionable advice  -  no fluff
 - Celebrate wins and encourage consistency
 - You know about: Shopify, digital products, content creation, affiliate marketing, med spa/wellness, service businesses, social media marketing, branding, email marketing, and general startup strategy
 
 When giving advice:
 - Always be specific and actionable
 - Give examples relevant to online businesses
-- Keep responses concise — 2-4 paragraphs max
+- Keep responses concise  -  2-4 paragraphs max
 - Use bullet points for lists
 - End with one clear next step
 
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
     const tier = profile?.subscription_tier ?? 'free'
     const limit = QUERY_LIMITS[tier]
 
-    // Check monthly usage (simplified — in production use a proper counter)
+    // Check monthly usage (simplified  -  in production use a proper counter)
     const monthStart = new Date()
     monthStart.setDate(1)
     monthStart.setHours(0, 0, 0, 0)
@@ -103,7 +103,7 @@ export async function POST(req: NextRequest) {
             }
           }
 
-          // Best-effort: save conversation (table may not exist yet — don't crash stream)
+          // Best-effort: save conversation (table may not exist yet  -  don't crash stream)
           try {
             const updatedMessages = [
               ...messages,

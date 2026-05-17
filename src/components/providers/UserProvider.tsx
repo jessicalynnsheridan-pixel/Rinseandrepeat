@@ -32,7 +32,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
   const router = useRouter()
 
-  // Stable supabase client — createClientComponentClient is a singleton internally,
+  // Stable supabase client  -  createClientComponentClient is a singleton internally,
   // but wrapping in useMemo keeps the reference stable across renders
   const supabase = useMemo(() => createClientComponentClient(), [])
 
@@ -45,7 +45,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         .single()
 
       if (error) {
-        // PGRST116 = no rows found — profile may not exist yet (trigger delay)
+        // PGRST116 = no rows found  -  profile may not exist yet (trigger delay)
         if (error.code !== 'PGRST116') {
           console.error('Profile fetch error:', error.message)
         }
@@ -77,7 +77,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   }, [supabase, router])
 
   useEffect(() => {
-    // Idempotent settle — once loading is cleared it stays cleared
+    // Idempotent settle  -  once loading is cleared it stays cleared
     let settled = false
     function settle() {
       if (!settled) {
@@ -87,7 +87,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     }
 
     // Safety net: Safari can silently stall getSession() or never fire
-    // INITIAL_SESSION — ensure loading always clears within 5 s
+    // INITIAL_SESSION  -  ensure loading always clears within 5 s
     const safetyTimer = setTimeout(settle, 5000)
 
     // Get initial session immediately (handles most browsers)

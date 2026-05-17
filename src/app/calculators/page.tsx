@@ -267,7 +267,7 @@ function ProfitCalc({ onSave }: { onSave: (label: string, summary: string) => vo
     if (revenue === 0) return { text: '', type: 'neutral' as const }
     if (isLoss) return { text: 'You\'re operating at a loss. Identify your highest cost line and cut it before investing in growth.', type: 'warning' as const }
     if (margin < 15) return { text: 'Margins under 15% leave little room for error. Audit your expense categories or test a price increase.', type: 'warning' as const }
-    if (margin < 35) return { text: 'Solid margins for early stage. Hold costs steady and focus on growing revenue — your leverage is good.', type: 'neutral' as const }
+    if (margin < 35) return { text: 'Solid margins for early stage. Hold costs steady and focus on growing revenue  -  your leverage is good.', type: 'neutral' as const }
     return { text: 'Strong margins. You\'re positioned to reinvest in growth without sacrificing profitability.', type: 'positive' as const }
   })()
 
@@ -349,7 +349,7 @@ function BreakEvenCalc({ onSave }: { onSave: (label: string, summary: string) =>
     if (salesNeeded <= 10) return { text: 'Highly achievable. Even a modest audience can cover this. Focus on conversion rather than traffic.', type: 'positive' as const }
     if (salesNeeded <= 50) return { text: 'Realistic with consistent effort. Build a repeatable content or ad system that generates this volume monthly.', type: 'neutral' as const }
     if (salesNeeded <= 150) return { text: `${fmtNum(salesNeeded)} sales/month requires real traffic infrastructure. Prioritize building an audience before scaling ad spend.`, type: 'warning' as const }
-    return { text: 'Consider raising your price point. High transaction volume at low prices is operationally costly — focus on increasing your average order value.', type: 'warning' as const }
+    return { text: 'Consider raising your price point. High transaction volume at low prices is operationally costly  -  focus on increasing your average order value.', type: 'warning' as const }
   })()
 
   return (
@@ -386,7 +386,7 @@ function ContentROICalc({ onSave }: { onSave: (label: string, summary: string) =
     if (views === 0) return { text: '', type: 'neutral' as const }
     if (convRate < 0.5) return { text: 'Sub-0.5% conversion suggests a funnel or trust issue. Prioritize social proof, clearer CTAs, and reducing friction to purchase.', type: 'warning' as const }
     if (convRate < 2) return { text: `At ${fmtPct(convRate)} conversion, you earn ${fmt$(revenuePerView)} per view. Doubling your conversion rate doubles revenue without needing more traffic.`, type: 'neutral' as const }
-    if (convRate < 5) return { text: 'Strong conversion rate. Your content is working. Scale your reach — more eyes at this conversion rate means compounding returns.', type: 'positive' as const }
+    if (convRate < 5) return { text: 'Strong conversion rate. Your content is working. Scale your reach  -  more eyes at this conversion rate means compounding returns.', type: 'positive' as const }
     return { text: 'Exceptional conversion rate. Validate this is sustainable and consider paid amplification to scale what\'s working.', type: 'positive' as const }
   })()
 
@@ -424,10 +424,10 @@ function AffiliateCalc({ onSave }: { onSave: (label: string, summary: string) =>
 
   const insight = (() => {
     if (monthlyIncome === 0) return { text: '', type: 'neutral' as const }
-    if (monthlyIncome < 100) return { text: 'Build your audience first — even tripling your clicks changes the math dramatically. Audience > offers.', type: 'warning' as const }
+    if (monthlyIncome < 100) return { text: 'Build your audience first  -  even tripling your clicks changes the math dramatically. Audience > offers.', type: 'warning' as const }
     if (monthlyIncome < 500) return { text: `${fmt$(monthlyIncome)}/mo is a solid start. Growing your click volume to ${fmtNum(clicks * 3)} would generate ${fmt$(monthlyIncome * 3)}/mo with the same conversion.`, type: 'neutral' as const }
     if (monthlyIncome < 2000) return { text: 'Meaningful affiliate income. Consider stacking 2–3 high-commission programs in the same niche to compound this.', type: 'positive' as const }
-    return { text: `${fmt$(annualIncome)}/year in affiliate income. At this level, negotiate higher commission rates — most brands will accommodate proven affiliates.`, type: 'positive' as const }
+    return { text: `${fmt$(annualIncome)}/year in affiliate income. At this level, negotiate higher commission rates  -  most brands will accommodate proven affiliates.`, type: 'positive' as const }
   })()
 
   return (
@@ -471,8 +471,8 @@ function TimeValueCalc({ onSave }: { onSave: (label: string, summary: string) =>
   const insight = (() => {
     if (monthlyLoss === 0) return { text: '', type: 'neutral' as const }
     if (monthlyLoss < 500) return { text: 'Even small efficiency gains add up. Identify the 2–3 recurring tasks eating your time and eliminate or delegate them.', type: 'neutral' as const }
-    if (monthlyLoss < 2000) return { text: `You're losing ${fmt$(monthlyLoss)}/mo to low-leverage work. A VA at $15–25/hr could recover ${fmt$(netRecovery)}/mo net — making delegation an obvious ROI.`, type: 'warning' as const }
-    return { text: `${fmt$(annualLoss)}/year in time value lost. This is the hidden cost of staying in execution mode. Systemize, delegate, or automate — then direct your hours to high-leverage CEO activities.`, type: 'warning' as const }
+    if (monthlyLoss < 2000) return { text: `You're losing ${fmt$(monthlyLoss)}/mo to low-leverage work. A VA at $15–25/hr could recover ${fmt$(netRecovery)}/mo net  -  making delegation an obvious ROI.`, type: 'warning' as const }
+    return { text: `${fmt$(annualLoss)}/year in time value lost. This is the hidden cost of staying in execution mode. Systemize, delegate, or automate  -  then direct your hours to high-leverage CEO activities.`, type: 'warning' as const }
   })()
 
   return (

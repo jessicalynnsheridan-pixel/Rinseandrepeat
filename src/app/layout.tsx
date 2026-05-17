@@ -13,7 +13,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Rinse & Repeat CEO — Enter Your CEO Era',
+    default: 'Rinse & Repeat CEO  -  Enter Your CEO Era',
     template: '%s | Rinse & Repeat CEO',
   },
   description:
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    title: 'Rinse & Repeat CEO — Enter Your CEO Era',
+    title: 'Rinse & Repeat CEO  -  Enter Your CEO Era',
     description: 'The all-in-one business dashboard for ambitious women founders.',
     siteName: 'Rinse & Repeat CEO',
   },

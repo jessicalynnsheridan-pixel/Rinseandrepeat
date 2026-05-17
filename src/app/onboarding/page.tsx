@@ -64,7 +64,7 @@ function StepName({ data, onChange }: { data: OnboardingData; onChange: (d: Part
           Welcome to your<br />
           <span className="text-[#7C3AED]">CEO era ✨</span>
         </h1>
-        <p className="text-[#71717A]">Let's personalise your dashboard. First — what's your name?</p>
+        <p className="text-[#71717A]">Let's personalise your dashboard. First  -  what's your name?</p>
       </div>
       <input
         className="input-field text-lg font-medium"
@@ -84,7 +84,7 @@ function StepBusinessType({ data, onChange }: { data: OnboardingData; onChange: 
         <h2 className="text-3xl font-bold text-[#18181B] mb-2">
           What kind of business<br />do you want to build?
         </h2>
-        <p className="text-[#71717A]">Choose the one that excites you most — you can change this later.</p>
+        <p className="text-[#71717A]">Choose the one that excites you most  -  you can change this later.</p>
       </div>
       <div className="grid grid-cols-2 gap-3">
         {(Object.entries(BUSINESS_TYPES) as [BusinessType, typeof BUSINESS_TYPES[BusinessType]][]).map(([key, bt]) => (
@@ -120,7 +120,7 @@ function StepStage({ data, onChange }: { data: OnboardingData; onChange: (d: Par
     <div className="space-y-6">
       <div>
         <h2 className="text-3xl font-bold text-[#18181B] mb-2">Where are you right now?</h2>
-        <p className="text-[#71717A]">No judgment — every CEO started somewhere.</p>
+        <p className="text-[#71717A]">No judgment  -  every CEO started somewhere.</p>
       </div>
       <div className="space-y-3">
         {STAGES.map(stage => (
@@ -161,7 +161,7 @@ function StepGoals({ data, onChange }: { data: OnboardingData; onChange: (d: Par
     <div className="space-y-6">
       <div>
         <h2 className="text-3xl font-bold text-[#18181B] mb-2">What are you working<br />toward?</h2>
-        <p className="text-[#71717A]">Pick all that apply — your goals shape your roadmap.</p>
+        <p className="text-[#71717A]">Pick all that apply  -  your goals shape your roadmap.</p>
       </div>
       <div className="grid grid-cols-2 gap-3">
         {GOALS.map(goal => {
@@ -249,7 +249,7 @@ const DAY_ONE_MISSIONS: Record<string, { task: string; description: string; xp: 
   },
   creator: {
     task: 'Record your first piece of content',
-    description: 'Film a 60-second intro video — who you are, what you\'re building, and why. Don\'t edit. Post it raw. Authenticity beats perfection every single time.',
+    description: 'Film a 60-second intro video  -  who you are, what you\'re building, and why. Don\'t edit. Post it raw. Authenticity beats perfection every single time.',
     xp: 50,
     time: '~30 min',
   },
@@ -340,7 +340,7 @@ function StepComplete({ data }: { data: OnboardingData }) {
           className="text-sm text-[#71717A] mt-2"
         >
           Your dashboard is personalised. Your roadmap is loaded.<br />
-          Now — your first mission starts today.
+          Now  -  your first mission starts today.
         </motion.p>
       </motion.div>
 
@@ -461,7 +461,7 @@ export default function OnboardingPage() {
     const safetyTimer = setTimeout(() => router.push('/dashboard'), 4000)
 
     try {
-      // getSession reads localStorage (no network) — avoids hanging on getUser()
+      // getSession reads localStorage (no network)  -  avoids hanging on getUser()
       const { data: { session } } = await supabase.auth.getSession()
       const userId = session?.user?.id
 
@@ -480,7 +480,7 @@ export default function OnboardingPage() {
     } catch (err) {
       console.error('Onboarding save error (non-fatal):', err)
     } finally {
-      // Always navigate — finally runs even if the try block throws or hangs
+      // Always navigate  -  finally runs even if the try block throws or hangs
       clearTimeout(safetyTimer)
       router.push('/dashboard')
     }

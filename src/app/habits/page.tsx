@@ -82,7 +82,7 @@ interface Habit {
   graceUsed?: boolean     // true if grace day was used today
 }
 
-// Storage key is scoped to the user — different users never share habit data
+// Storage key is scoped to the user  -  different users never share habit data
 const habitsKey = (userId: string) => `${userId}_habits_v1`
 
 function getWeekDates(): string[] {
@@ -100,7 +100,7 @@ export default function HabitsPage() {
   const { profile, signOut, user } = useUser()
   const TODAY_INDEX = useMemo(() => (new Date().getDay() + 6) % 7, [])
 
-  // Start with empty — loaded from user-specific localStorage once userId is known
+  // Start with empty  -  loaded from user-specific localStorage once userId is known
   const [habits, setHabits] = useState<Habit[]>([])
   const [hydrated, setHydrated] = useState(false)
   const [showAdd, setShowAdd] = useState(false)
@@ -117,7 +117,7 @@ export default function HabitsPage() {
       const raw = localStorage.getItem(habitsKey(user.id))
       if (raw) setHabits(JSON.parse(raw))
     } catch {
-      // Private mode or storage blocked — start fresh, that's fine
+      // Private mode or storage blocked  -  start fresh, that's fine
     }
     setHydrated(true)
   }, [user?.id])
@@ -188,7 +188,7 @@ export default function HabitsPage() {
             <p className="text-sm text-[#A1A1AA] mt-1">Small actions, compounded daily.</p>
           </motion.div>
 
-          {/* Progress ring — only shown once the user has habits */}
+          {/* Progress ring  -  only shown once the user has habits */}
           {habits.length > 0 && (
             <motion.div
               initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
@@ -232,7 +232,7 @@ export default function HabitsPage() {
             </motion.div>
           )}
 
-          {/* Empty state — shown to brand-new users with no habits yet */}
+          {/* Empty state  -  shown to brand-new users with no habits yet */}
           {habits.length === 0 && hydrated && (
             <motion.div
               initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
@@ -241,7 +241,7 @@ export default function HabitsPage() {
               <div className="w-12 h-12 rounded-2xl bg-[#EDE9FE] flex items-center justify-center mx-auto mb-3">
                 <Target className="w-6 h-6 text-[#7C3AED]" strokeWidth={1.5} />
               </div>
-              <h3 className="text-sm font-semibold text-[#18181B] mb-1">No habits yet — let's change that.</h3>
+              <h3 className="text-sm font-semibold text-[#18181B] mb-1">No habits yet  -  let's change that.</h3>
               <p className="text-xs text-[#A1A1AA] leading-relaxed max-w-xs mx-auto">
                 Add your first daily habit below. Consistency is the only strategy that never fails.
               </p>
@@ -282,7 +282,7 @@ export default function HabitsPage() {
                       {habit.name}
                     </span>
 
-                    {/* Grace day button — shown when streak at risk */}
+                    {/* Grace day button  -  shown when streak at risk */}
                     {!habit.completedToday && habit.streak >= 3 && !habit.graceUsed && (
                       <button
                         onClick={() => useGraceDay(habit.id)}
@@ -294,7 +294,7 @@ export default function HabitsPage() {
                       </button>
                     )}
 
-                    {/* Streak — only show once they've built one */}
+                    {/* Streak  -  only show once they've built one */}
                     {habit.streak > 1 && (
                       <div className={cn(
                         'flex items-center gap-1',
@@ -432,7 +432,7 @@ export default function HabitsPage() {
             )}
           </AnimatePresence>
 
-          {/* Weekly summary — only shown once habits exist */}
+          {/* Weekly summary  -  only shown once habits exist */}
           {habits.length > 0 && (
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
@@ -449,7 +449,7 @@ export default function HabitsPage() {
                         {day.slice(0, 1)}
                       </p>
                       <p className={cn('text-xs font-semibold', isFuture ? 'text-[#E4E4E7]' : 'text-[#18181B]')}>
-                        {isFuture ? '—' : count}
+                        {isFuture ? ' - ' : count}
                       </p>
                     </div>
                   )

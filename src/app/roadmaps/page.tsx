@@ -132,7 +132,7 @@ const ROADMAPS: Roadmap[] = [
     id: 'medspa',
     icon: Leaf,
     title: 'Med Spa / Wellness Business',
-    description: 'Open and scale a beauty or wellness business — from licensing to a full client roster.',
+    description: 'Open and scale a beauty or wellness business  -  from licensing to a full client roster.',
     category: 'Wellness',
     tier: 'pro',
     weeks: 16,
@@ -169,7 +169,7 @@ export default function RoadmapsPage() {
         <div className="max-w-6xl mx-auto px-6 py-6">
           <div className="grid lg:grid-cols-5 gap-6">
 
-            {/* Left — roadmap list */}
+            {/* Left  -  roadmap list */}
             <div className="lg:col-span-2 space-y-2">
               {ROADMAPS.map((roadmap, i) => {
                 const locked = roadmap.tier === 'pro' && profile?.subscription_tier === 'free'
@@ -235,7 +235,7 @@ export default function RoadmapsPage() {
               })}
             </div>
 
-            {/* Right — detail panel */}
+            {/* Right  -  detail panel */}
             <motion.div
               key={selectedRoadmap.id}
               initial={{ opacity: 0, y: 10 }}

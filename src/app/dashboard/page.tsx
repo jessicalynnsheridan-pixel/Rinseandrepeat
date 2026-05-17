@@ -34,7 +34,7 @@ const ROADMAP_META: Record<string, {
   shopify: {
     label: 'Shopify Brand',
     firstStep: 'Choose your niche',
-    firstStepDesc: 'Research 5 potential niches, validate with TikTok/Instagram, and decide. This is your foundation — everything else builds on this.',
+    firstStepDesc: 'Research 5 potential niches, validate with TikTok/Instagram, and decide. This is your foundation  -  everything else builds on this.',
     xp: 50,
     steps: [
       { id: 's1', title: 'Choose your niche' },
@@ -46,7 +46,7 @@ const ROADMAP_META: Record<string, {
   digital: {
     label: 'Digital Products',
     firstStep: 'Define your core offer',
-    firstStepDesc: 'Decide what digital product to create — a course, ebook, template, or toolkit. Research what your audience already buys.',
+    firstStepDesc: 'Decide what digital product to create  -  a course, ebook, template, or toolkit. Research what your audience already buys.',
     xp: 50,
     steps: [
       { id: 'd1', title: 'Define your core offer' },
@@ -58,7 +58,7 @@ const ROADMAP_META: Record<string, {
   creator: {
     label: 'Content Creator',
     firstStep: 'Choose your content niche',
-    firstStepDesc: 'Pick the topic you can create content about consistently. Narrow beats broad — "skincare for Black women" beats "beauty tips".',
+    firstStepDesc: 'Pick the topic you can create content about consistently. Narrow beats broad  -  "skincare for Black women" beats "beauty tips".',
     xp: 50,
     steps: [
       { id: 'c1', title: 'Choose your content niche' },
@@ -94,7 +94,7 @@ const ROADMAP_META: Record<string, {
   medspa: {
     label: 'Med Spa / Wellness',
     firstStep: 'Research licensing requirements',
-    firstStepDesc: 'Find out exactly what licences and certifications you need in your state. This is non-negotiable — get clarity here first.',
+    firstStepDesc: 'Find out exactly what licences and certifications you need in your state. This is non-negotiable  -  get clarity here first.',
     xp: 50,
     steps: [
       { id: 'm1', title: 'Research licensing requirements' },
@@ -201,7 +201,7 @@ function RingStrip({ build, earn, grow }: { build: boolean; earn: boolean; grow:
           </span>
         </div>
       ))}
-      <span className="text-xs text-[#A1A1AA] ml-1">— {total}/3 today</span>
+      <span className="text-xs text-[#A1A1AA] ml-1"> -  {total}/3 today</span>
     </div>
   )
 }
@@ -635,7 +635,7 @@ function QuickHabits({ userId }: { userId?: string }) {
       </div>
       {hydrated && habits.length === 0 ? (
         <div className="py-4 text-center">
-          <p className="text-xs text-[#A1A1AA] mb-3">No habits yet — small daily actions compound into big results.</p>
+          <p className="text-xs text-[#A1A1AA] mb-3">No habits yet  -  small daily actions compound into big results.</p>
           <Link
             href="/habits"
             className="inline-flex items-center gap-1.5 text-xs text-[#7C3AED] font-semibold hover:underline"
@@ -839,14 +839,14 @@ export default function DashboardPage() {
           {/* ── Main 2-col grid ── */}
           <div className="grid lg:grid-cols-5 gap-4">
 
-            {/* Left col — primary focus */}
+            {/* Left col  -  primary focus */}
             <div className="lg:col-span-3 space-y-4">
               <TodayFocus roadmapSlug={roadmapSlug} userId={user?.id} />
               <RoadmapProgress roadmapSlug={roadmapSlug} userId={user?.id} />
               <QuickHabits userId={user?.id} />
             </div>
 
-            {/* Right col — supporting info */}
+            {/* Right col  -  supporting info */}
             <div className="lg:col-span-2 space-y-4">
 
               {/* Rings (desktop) */}

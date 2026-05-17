@@ -28,7 +28,7 @@ const MOCK_POSTS: Post[] = [
     id: '1',
     author: 'Maya T.',
     authorLevel: 'Visionary',
-    content: 'Just hit $10k in a single month with my Shopify store 🎉 The roadmap inside this app genuinely changed how I approached my launch strategy. If you\'re on the fence about going all-in — do it.',
+    content: 'Just hit $10k in a single month with my Shopify store 🎉 The roadmap inside this app genuinely changed how I approached my launch strategy. If you\'re on the fence about going all-in  -  do it.',
     category: 'win',
     likes: 48,
     comments: 12,

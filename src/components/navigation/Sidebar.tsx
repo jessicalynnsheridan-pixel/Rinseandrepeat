@@ -65,7 +65,7 @@ export function Sidebar({ profile, onSignOut }: SidebarProps) {
     ? Math.min(100, Math.round(((xpPoints - xpForCurrentLevel) / (xpForNextLevel - xpForCurrentLevel)) * 100))
     : 100
 
-  // Today's rings — loaded from localStorage
+  // Today's rings  -  loaded from localStorage
   const [rings, setRings] = useState({ build: false, earn: false, grow: false })
   useEffect(() => {
     if (!profile?.id) return

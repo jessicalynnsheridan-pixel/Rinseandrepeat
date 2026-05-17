@@ -36,7 +36,7 @@ const features = [
   {
     icon: Bot,
     title: 'AI Business Assistant',
-    description: 'Ask anything — content ideas, marketing strategy, startup advice, and more.',
+    description: 'Ask anything  -  content ideas, marketing strategy, startup advice, and more.',
     color: 'text-emerald-600',
     bg: 'bg-emerald-50',
   },
@@ -69,7 +69,7 @@ const testimonials = [
   {
     name: 'Amara J.',
     handle: '@amaraceo',
-    business: 'Shopify brand — $12K/mo',
+    business: 'Shopify brand  -  $12K/mo',
     avatar: 'AJ',
     content: 'I went from no clue to $12K/month in 7 months using the Shopify roadmap. The step-by-step format finally made it click for me.',
     stars: 5,
@@ -77,7 +77,7 @@ const testimonials = [
   {
     name: 'Priya S.',
     handle: '@priyabuilds',
-    business: 'Digital products — $4K/mo',
+    business: 'Digital products  -  $4K/mo',
     avatar: 'PS',
     content: 'The AI assistant alone is worth it. I use it daily for content ideas and it never runs out of angles. The habit tracker keeps me consistent.',
     stars: 5,
@@ -85,9 +85,9 @@ const testimonials = [
   {
     name: 'Destiny M.',
     handle: '@destinymakesmoney',
-    business: 'Service agency — $8K/mo',
+    business: 'Service agency  -  $8K/mo',
     avatar: 'DM',
-    content: 'Honestly this app made me take myself seriously as a CEO. The dashboard, the streaks, the community — it all works together to keep you moving.',
+    content: 'Honestly this app made me take myself seriously as a CEO. The dashboard, the streaks, the community  -  it all works together to keep you moving.',
     stars: 5,
   },
 ]
@@ -116,7 +116,7 @@ const pricingPlans = [
     features: [
       'All 6 Startup Roadmaps',
       'Full Resource Vault (200+)',
-      'AI Assistant — 100 queries/mo',
+      'AI Assistant  -  100 queries/mo',
       'Revenue Tracker',
       'Advanced Habit Tracker',
       'Weekly Goal Setting',
@@ -223,7 +223,7 @@ function Hero() {
           </motion.h1>
 
           <motion.p variants={fadeUp} className="text-lg text-ink-500 leading-relaxed max-w-md">
-            Step-by-step roadmaps, an AI business assistant, habit tracking, and a resource vault — everything you need to build a real business.
+            Step-by-step roadmaps, an AI business assistant, habit tracking, and a resource vault  -  everything you need to build a real business.
           </motion.p>
 
           <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-3">
@@ -407,7 +407,7 @@ function Features() {
             Everything you need to build.
           </h2>
           <p className="text-base text-ink-400 max-w-md leading-relaxed">
-            Six tools designed to take you from idea to income — all in one place.
+            Six tools designed to take you from idea to income  -  all in one place.
           </p>
         </motion.div>
 
@@ -626,7 +626,7 @@ const stanFeatures = [
   {
     icon: '🛍️',
     title: 'Sell anything instantly',
-    description: 'Digital products, courses, memberships, 1:1 bookings — all in one link.',
+    description: 'Digital products, courses, memberships, 1:1 bookings  -  all in one link.',
   },
   {
     icon: '🔗',
@@ -646,7 +646,7 @@ const stanFeatures = [
   {
     icon: '📧',
     title: 'Built-in email list',
-    description: 'Collect emails automatically from every customer and follower — no Mailchimp needed.',
+    description: 'Collect emails automatically from every customer and follower  -  no Mailchimp needed.',
   },
   {
     icon: '📱',
@@ -675,7 +675,7 @@ function StanSection() {
             Sell your first product with <span className="text-gradient-gold">Stan Store</span>
           </h2>
           <p className="text-lg text-ink-300 max-w-2xl mx-auto leading-relaxed">
-            Every CEO needs a place to sell. Stan is the easiest way to turn your knowledge and content into income — I use it myself and it's the first tool I recommend to every founder in this community.
+            Every CEO needs a place to sell. Stan is the easiest way to turn your knowledge and content into income  -  I use it myself and it's the first tool I recommend to every founder in this community.
           </p>
         </motion.div>
 
@@ -710,7 +710,7 @@ function StanSection() {
           <div className="inline-flex flex-col items-center gap-4 bg-white/5 border border-white/10 rounded-3xl px-10 py-8">
             <p className="text-white font-semibold text-lg">Ready to start selling?</p>
             <p className="text-ink-300 text-sm max-w-sm text-center">
-              Use my link to get started on Stan — it's free and takes less than 10 minutes to set up your storefront.
+              Use my link to get started on Stan  -  it's free and takes less than 10 minutes to set up your storefront.
             </p>
             <a
               href="https://join.stan.store/thedit"
@@ -834,7 +834,7 @@ function FinalCTA() {
           Ready to build?
         </h2>
         <p className="text-base text-ink-300 mb-8 leading-relaxed">
-          Join 12,400+ founders. Start free — no credit card required.
+          Join 12,400+ founders. Start free  -  no credit card required.
         </p>
         <Link href="/signup" className="btn-gold inline-flex items-center gap-2 text-sm py-3 px-8">
           Get started free <ArrowRight className="w-4 h-4" />

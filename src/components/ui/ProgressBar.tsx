@@ -21,7 +21,7 @@ const sizeMap = {
   lg: 'h-3',
 }
 
-// All hardcoded hex — no Tailwind token dependencies
+// All hardcoded hex  -  no Tailwind token dependencies
 const colorMap: Record<string, string> = {
   violet:  'bg-[#7C3AED]',
   gold:    'bg-[#7C3AED]',   // kept as alias so old code using color="gold" still works

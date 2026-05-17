@@ -73,7 +73,7 @@ export default function SettingsPage() {
       .eq('id', profile.id)
 
     if (error) {
-      toast.error('Failed to save — ' + error.message)
+      toast.error('Failed to save  -  ' + error.message)
     } else {
       await refreshProfile()
       toast.success('Profile saved!')
@@ -254,7 +254,7 @@ export default function SettingsPage() {
                       </h2>
                       <p className="text-xs text-[#71717A] mb-4">Unlock all roadmaps, unlimited AI, and the full resource vault.</p>
                       <button className="btn-primary text-sm w-full">
-                        {profile?.subscription_tier === 'free' ? 'Upgrade — $19/mo' : 'Upgrade — $49/mo'}
+                        {profile?.subscription_tier === 'free' ? 'Upgrade  -  $19/mo' : 'Upgrade  -  $49/mo'}
                       </button>
                     </div>
                   )}

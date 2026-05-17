@@ -64,9 +64,9 @@ const RESOURCES: Resource[] = [
   {
     id: '1',
     title: 'Shopify Brand Launch Checklist',
-    tagline: '78 steps from zero to first sale — nothing missed.',
+    tagline: '78 steps from zero to first sale  -  nothing missed.',
     preview: 'The most common mistake is skipping the marketing setup section. This checklist is sequenced so you never have to backtrack.',
-    creatorNote: 'We built this from 200+ successful Shopify launches. The marketing setup section is where most founders fall short — do not skip it.',
+    creatorNote: 'We built this from 200+ successful Shopify launches. The marketing setup section is where most founders fall short  -  do not skip it.',
     whyItWorks: 'Sequenced by dependencies, so every step is ready before the next one needs it. No backtracking, no forgotten passwords on launch day.',
     bestFor: ['First Shopify store', 'Launch week prep', 'Pre-launch audit'],
     estimatedTime: '3–4 hrs',
@@ -116,7 +116,7 @@ const RESOURCES: Resource[] = [
         title: 'Payment & Shipping',
         type: 'checklist',
         items: [
-          'Enable Shopify Payments (available in Canada — no third-party processor needed)',
+          'Enable Shopify Payments (available in Canada  -  no third-party processor needed)',
           'Enable PayPal express checkout',
           'Configure shipping rates and zones (set up Canada Post integration)',
           'Set free shipping threshold ($75 CAD+ converts well for Canadian stores)',
@@ -158,7 +158,7 @@ const RESOURCES: Resource[] = [
     id: '2',
     title: 'Instagram Bio Template Pack',
     tagline: '15 fill-in-the-blank bios that actually convert.',
-    preview: 'Your bio has 5 seconds to earn a follow. These templates are built on proven copywriting structures — not generic advice.',
+    preview: 'Your bio has 5 seconds to earn a follow. These templates are built on proven copywriting structures  -  not generic advice.',
     creatorNote: 'We tested 50+ bio formats. The ones that drive the most link-in-bio clicks all have one thing in common: they lead with the reader\'s outcome, not your credentials.',
     whyItWorks: 'Each template is built on a proven copywriting framework. Fill in the blanks, and the structure does the persuasion work for you.',
     bestFor: ['New accounts', 'Rebranding', 'Improving click-through'],
@@ -199,8 +199,8 @@ const RESOURCES: Resource[] = [
         title: 'Pro Tips for Better Bios',
         type: 'tips',
         items: [
-          'Keep it under 150 characters — bios get cut off on mobile',
-          'Use line breaks for scannability — short lines convert better',
+          'Keep it under 150 characters  -  bios get cut off on mobile',
+          'Use line breaks for scannability  -  short lines convert better',
           'Last line should always be a clear CTA with your link',
           'Update your link every time you launch something new',
           'Test different bios monthly and check your link-click analytics',
@@ -212,7 +212,7 @@ const RESOURCES: Resource[] = [
     id: '3',
     title: '100 AI Prompts for Business Owners',
     tagline: 'Stop starting from scratch. Steal these instead.',
-    preview: 'ChatGPT and Claude prompts for content, strategy, email, and ops — organized by the exact moment you need them.',
+    preview: 'ChatGPT and Claude prompts for content, strategy, email, and ops  -  organized by the exact moment you need them.',
     creatorNote: 'Generic prompts get generic output. Every prompt here is written to give AI enough context to actually be useful. The difference is specificity.',
     whyItWorks: 'Each prompt includes the who, what, and context variables that AI needs to generate results worth using. Most prompts fail because they\'re too vague.',
     bestFor: ['Content batching', 'Strategy sessions', 'Customer research'],
@@ -268,9 +268,9 @@ const RESOURCES: Resource[] = [
     id: '4',
     title: 'Cold DM Script Pack',
     tagline: '5 scripts that opened $50K+ in service contracts.',
-    preview: 'The first message is the hardest part. These scripts lead with the reader\'s situation — not your pitch — which is why they work.',
+    preview: 'The first message is the hardest part. These scripts lead with the reader\'s situation  -  not your pitch  -  which is why they work.',
     creatorNote: 'The #1 mistake in cold DMs: leading with yourself. Every script here leads with something specific about the recipient. That\'s the whole game.',
-    whyItWorks: 'Each script opens with genuine curiosity or a specific observation — not a pitch. People respond to people who notice them, not people who need something from them.',
+    whyItWorks: 'Each script opens with genuine curiosity or a specific observation  -  not a pitch. People respond to people who notice them, not people who need something from them.',
     bestFor: ['Service businesses', 'Freelancers', 'Getting first clients'],
     estimatedTime: '10 min to personalize',
     usedBy: 2900,
@@ -283,11 +283,11 @@ const RESOURCES: Resource[] = [
         title: 'The Genuine Compliment Open',
         type: 'template',
         intro: 'Best for: warm-ish leads who you\'ve actually followed for a while.',
-        body: `Hey [Name] — I've been following your content and genuinely love [specific thing]. The way you [specific detail] is something I rarely see in this space.
+        body: `Hey [Name]  -  I've been following your content and genuinely love [specific thing]. The way you [specific detail] is something I rarely see in this space.
 
 I work with [type of business] helping them [specific result]. I noticed [specific opportunity in their account].
 
-Would love to share a quick idea — would that be okay?`,
+Would love to share a quick idea  -  would that be okay?`,
       },
       {
         title: 'The Direct Value Offer',
@@ -295,17 +295,17 @@ Would love to share a quick idea — would that be okay?`,
         intro: 'Best for: cold outreach when you have a specific, demonstrable insight.',
         body: `Hi [Name],
 
-I help [target client type] achieve [specific result] — usually within [timeframe].
+I help [target client type] achieve [specific result]  -  usually within [timeframe].
 
-I looked at your [profile/website] and spotted 3 things that could [improvement]. I won't pitch you anything — I'd just love to share them in a voice note. Would that be helpful?`,
+I looked at your [profile/website] and spotted 3 things that could [improvement]. I won't pitch you anything  -  I'd just love to share them in a voice note. Would that be helpful?`,
       },
       {
         title: 'The Problem-First Opener',
         type: 'template',
         intro: 'Best for: when you know the exact pain point your ideal client has.',
-        body: `[Name] — quick question. Is [specific pain point] something you're currently dealing with?
+        body: `[Name]  -  quick question. Is [specific pain point] something you're currently dealing with?
 
-I ask because I work with [business type] on exactly this — and most tell me [common feeling/frustration].
+I ask because I work with [business type] on exactly this  -  and most tell me [common feeling/frustration].
 
 Not pitching anything. Just curious if it resonates.`,
       },
@@ -313,21 +313,21 @@ Not pitching anything. Just curious if it resonates.`,
         title: 'The Follow-Up (After No Reply)',
         type: 'template',
         intro: 'Send this 4–5 days after the first message. Then move on.',
-        body: `Hey [Name] — circling back on this. Totally understand if the timing isn't right.
+        body: `Hey [Name]  -  circling back on this. Totally understand if the timing isn't right.
 
 I just [new thing / recently helped a similar client] and thought of you.
 
-Even if you're not looking for [service] right now, happy to share the resource free — no strings.`,
+Even if you're not looking for [service] right now, happy to share the resource free  -  no strings.`,
       },
       {
         title: 'DM Rules That Actually Work',
         type: 'tips',
         items: [
-          'Never pitch in the first message — curiosity converts, selling repels',
+          'Never pitch in the first message  -  curiosity converts, selling repels',
           'Always reference something specific about them (shows you actually looked)',
           'Voice notes on Instagram convert 3× better than text',
           'Follow up once after 4–5 days, then move on gracefully',
-          'Warm > cold — engage with their content for a week first if possible',
+          'Warm > cold  -  engage with their content for a week first if possible',
         ],
       },
     ],
@@ -336,9 +336,9 @@ Even if you're not looking for [service] right now, happy to share the resource 
     id: '5',
     title: 'Brand Identity Workbook',
     tagline: 'Build a brand people feel before they read a single word.',
-    preview: 'Colors, fonts, voice, and visual style — structured as a 5-step exercise, not a boring design theory lecture.',
+    preview: 'Colors, fonts, voice, and visual style  -  structured as a 5-step exercise, not a boring design theory lecture.',
     creatorNote: 'Most brand guides overcomplicate this. A brand is just 3 adjectives, consistently applied. Everything in this guide helps you make those 3 words real across every touchpoint.',
-    whyItWorks: 'Constraints breed consistency. The 3-adjective rule gives you a filter for every design, copy, and business decision — so your brand compounds instead of drifting.',
+    whyItWorks: 'Constraints breed consistency. The 3-adjective rule gives you a filter for every design, copy, and business decision  -  so your brand compounds instead of drifting.',
     bestFor: ['Pre-launch brand building', 'Rebranding', 'Inconsistent brand feel'],
     estimatedTime: '2–3 hrs',
     usedBy: 5400,
@@ -348,7 +348,7 @@ Even if you're not looking for [service] right now, happy to share the resource 
     featured: true,
     sections: [
       {
-        title: 'Step 1 — Define Your 3 Adjectives',
+        title: 'Step 1  -  Define Your 3 Adjectives',
         type: 'template',
         intro: 'Every brand decision you make should pass this test: "Does this match these 3 words?"',
         body: `My brand is: __________, __________, __________
@@ -359,17 +359,17 @@ Examples that work well together:
 • Edgy, Confident, Raw
 • Clean, Expert, Accessible
 
-Test: Hold up any piece of content and ask — does this feel like those 3 words? If not, edit it.`,
+Test: Hold up any piece of content and ask  -  does this feel like those 3 words? If not, edit it.`,
       },
       {
-        title: 'Step 2 — Color Palette',
+        title: 'Step 2  -  Color Palette',
         type: 'list',
         intro: 'You need exactly 4 colors. Not 8. Not 2.',
         items: [
-          'Primary — dominant brand color. Used in logo, CTAs, key accents',
-          'Secondary — supports primary. Used in backgrounds and cards',
-          'Neutral — white, cream, or light gray for breathing room',
-          'Accent — used sparingly for highlights and callouts only',
+          'Primary  -  dominant brand color. Used in logo, CTAs, key accents',
+          'Secondary  -  supports primary. Used in backgrounds and cards',
+          'Neutral  -  white, cream, or light gray for breathing room',
+          'Accent  -  used sparingly for highlights and callouts only',
         ],
       },
       {
@@ -384,18 +384,18 @@ Test: Hold up any piece of content and ask — does this feel like those 3 words
         ],
       },
       {
-        title: 'Step 3 — Typography',
+        title: 'Step 3  -  Typography',
         type: 'tips',
         intro: 'Two fonts maximum. Always. Non-negotiable.',
         items: [
-          'Display font (headlines) — should feel distinctive. Options: Playfair Display, Space Grotesk, Cormorant Garamond',
-          'Body font (descriptions) — must be readable at 14px. Options: Inter, DM Sans, Lato',
-          'Never pair two serif fonts or two decorative fonts — it creates visual chaos',
-          'Test your fonts by writing a 3-word headline and a 50-word paragraph — both need to feel right',
+          'Display font (headlines)  -  should feel distinctive. Options: Playfair Display, Space Grotesk, Cormorant Garamond',
+          'Body font (descriptions)  -  must be readable at 14px. Options: Inter, DM Sans, Lato',
+          'Never pair two serif fonts or two decorative fonts  -  it creates visual chaos',
+          'Test your fonts by writing a 3-word headline and a 50-word paragraph  -  both need to feel right',
         ],
       },
       {
-        title: 'Step 4 — Brand Voice',
+        title: 'Step 4  -  Brand Voice',
         type: 'template',
         body: `Complete these sentences out loud (yes, out loud):
 
@@ -416,7 +416,7 @@ Test: Hold up any piece of content and ask — does this feel like those 3 words
     id: '6',
     title: 'Welcome Email Sequence',
     tagline: '5 emails that turn new subscribers into paying customers.',
-    preview: 'Most welcome sequences either dump information or go straight to a pitch. This one builds trust first — and that\'s why it converts.',
+    preview: 'Most welcome sequences either dump information or go straight to a pitch. This one builds trust first  -  and that\'s why it converts.',
     creatorNote: 'The magic is in the reply rate. Email 1 asks a real question. When people reply, respond personally. That single conversation can turn a subscriber into a customer immediately.',
     whyItWorks: 'The sequence mirrors the natural trust arc of a human relationship: deliver value → share your story → earn credibility → make the offer. Skipping steps kills conversion.',
     bestFor: ['Email list building', 'Product launches', 'Low-ticket offers'],
@@ -428,9 +428,9 @@ Test: Hold up any piece of content and ask — does this feel like those 3 words
     featured: false,
     sections: [
       {
-        title: 'Email 1 — Immediate: The Warm Welcome',
+        title: 'Email 1  -  Immediate: The Warm Welcome',
         type: 'template',
-        intro: 'Subject: You\'re in — here\'s what comes next',
+        intro: 'Subject: You\'re in  -  here\'s what comes next',
         body: `Hey [First Name],
 
 Welcome to the [Brand] community. I'm genuinely glad you're here.
@@ -439,14 +439,14 @@ Here's your [discount / resource / lead magnet]: [LINK or CODE]
 
 Over the next few days I'll share [brief description of email sequence value].
 
-Before that — one question: what's the #1 thing you're working on in your business right now?
+Before that  -  one question: what's the #1 thing you're working on in your business right now?
 
 Hit reply and tell me. I read every single one.
 
 [Your name]`,
       },
       {
-        title: 'Email 2 — Day 2: The Real Story',
+        title: 'Email 2  -  Day 2: The Real Story',
         type: 'template',
         intro: 'Subject: Why I actually started this (the honest version)',
         body: `[First Name],
@@ -457,21 +457,21 @@ I'm sharing this because [connect story to what you help people achieve].
 
 Here's something I wish I'd known earlier:
 
-[Genuine tip, resource, or insight — 100–200 words max]
+[Genuine tip, resource, or insight  -  100–200 words max]
 
 Try it this week and let me know how it goes.
 
 [Your name]`,
       },
       {
-        title: 'Email 3 — Day 4: The Mistake',
+        title: 'Email 3  -  Day 4: The Mistake',
         type: 'template',
         intro: 'Subject: The mistake that cost me [X] (don\'t do this)',
         body: `[First Name],
 
 This one's a little embarrassing to share. But if it saves you time or money, it's worth it.
 
-[Real mistake story — specific, relatable, 2–3 short paragraphs]
+[Real mistake story  -  specific, relatable, 2–3 short paragraphs]
 
 The lesson: [One clear takeaway]
 
@@ -480,7 +480,7 @@ How to avoid it: [2–3 actionable steps]
 [Your name]`,
       },
       {
-        title: 'Email 4 — Day 6: The Proof',
+        title: 'Email 4  -  Day 6: The Proof',
         type: 'template',
         intro: 'Subject: What happened when [client] tried this',
         body: `[First Name],
@@ -491,12 +491,12 @@ I want to share what happened with [client first name or "one of our customers"]
 
 They did it by: [2–3 simple steps]
 
-If you want [similar outcome], [soft CTA to product or next step — not a hard sell].
+If you want [similar outcome], [soft CTA to product or next step  -  not a hard sell].
 
 [Your name]`,
       },
       {
-        title: 'Email 5 — Day 8: The Offer',
+        title: 'Email 5  -  Day 8: The Offer',
         type: 'template',
         intro: 'Subject: Ready for [desired outcome]? Here\'s how I can help.',
         body: `[First Name],
@@ -512,7 +512,7 @@ What you get:
 • [Benefit 2]
 • [Benefit 3]
 
-[CTA Button: Get started — $XX]
+[CTA Button: Get started  -  $XX]
 
 This is the only time I'll offer this price in your welcome sequence.
 
@@ -522,9 +522,9 @@ This is the only time I'll offer this price in your welcome sequence.
         title: 'Sequence Tips',
         type: 'tips',
         items: [
-          'Keep every email under 300 words — people read on mobile',
-          'One CTA per email, maximum — more choices = fewer clicks',
-          'Reply to anyone who responds within 24 hours — that\'s your most engaged future customer',
+          'Keep every email under 300 words  -  people read on mobile',
+          'One CTA per email, maximum  -  more choices = fewer clicks',
+          'Reply to anyone who responds within 24 hours  -  that\'s your most engaged future customer',
           'Subject lines: curiosity or a specific number beat clever every time',
           'Resend Email 5 with a different subject line to non-openers 48 hours later',
         ],
@@ -535,7 +535,7 @@ This is the only time I'll offer this price in your welcome sequence.
     id: '7',
     title: 'Canadian-Friendly Supplier Guide',
     tagline: 'Find suppliers that actually ship to Canada without the customs headache.',
-    preview: 'The best print-on-demand, white-label, and dropshipping platforms that work for Canadian Shopify brands — with Canada-specific shipping tips built in.',
+    preview: 'The best print-on-demand, white-label, and dropshipping platforms that work for Canadian Shopify brands  -  with Canada-specific shipping tips built in.',
     creatorNote: 'Sourcing as a Canadian is different. Customs fees, longer shipping windows, and US-centric platforms are real friction. These are the platforms that actually work north of the border.',
     whyItWorks: 'Every platform here either has Canadian warehousing, integrates with Shopify natively, or ships internationally with predictable timelines. No customs surprises, no lost packages.',
     bestFor: ['Canadian Shopify brands', 'Print-on-demand products', 'Reducing shipping times'],
@@ -550,22 +550,22 @@ This is the only time I'll offer this price in your welcome sequence.
         title: 'Best Platforms for Canadian Sellers',
         type: 'list',
         items: [
-          'Blanka — Canadian white-label beauty brand. Ships from Canada. No customs headaches.',
-          'Printify — Print-on-demand. Has Canadian print providers. Good for apparel and accessories.',
-          'Spocket — Dropshipping with US and EU suppliers. Filter for fast international shipping.',
-          'Syncee — Broad dropshipping catalogue. Has Canadian-based supplier filtering.',
-          'Faire — Canadian and US wholesale. Great for boutique-style product brands.',
-          'Alibaba / CJdropshipping — For bulk and custom orders. Budget extra time for customs and duties.',
+          'Blanka  -  Canadian white-label beauty brand. Ships from Canada. No customs headaches.',
+          'Printify  -  Print-on-demand. Has Canadian print providers. Good for apparel and accessories.',
+          'Spocket  -  Dropshipping with US and EU suppliers. Filter for fast international shipping.',
+          'Syncee  -  Broad dropshipping catalogue. Has Canadian-based supplier filtering.',
+          'Faire  -  Canadian and US wholesale. Great for boutique-style product brands.',
+          'Alibaba / CJdropshipping  -  For bulk and custom orders. Budget extra time for customs and duties.',
         ],
       },
       {
         title: 'Canadian Shipping Tips',
         type: 'tips',
         items: [
-          'Always confirm whether a supplier charges DDP (Delivered Duty Paid) — this means no surprise customs fees for your customers',
+          'Always confirm whether a supplier charges DDP (Delivered Duty Paid)  -  this means no surprise customs fees for your customers',
           'For orders under $20 CAD: typically duty-free. For $20+: expect customs fees on US imports',
-          'Shopify Shipping integrates with Canada Post, UPS, and FedEx — compare rates before committing to one carrier',
-          'Offer free shipping at a threshold (e.g. $75 CAD) to improve conversion — test this early',
+          'Shopify Shipping integrates with Canada Post, UPS, and FedEx  -  compare rates before committing to one carrier',
+          'Offer free shipping at a threshold (e.g. $75 CAD) to improve conversion  -  test this early',
           'Set customer expectations clearly: 5–12 business days for international suppliers is normal',
         ],
       },
@@ -575,7 +575,7 @@ This is the only time I'll offer this price in your welcome sequence.
         intro: 'Run every new supplier through this before committing.',
         items: [
           'Response time under 24 hours (send a test question before ordering)',
-          'Order a sample — confirm quality and packaging personally',
+          'Order a sample  -  confirm quality and packaging personally',
           'Verify actual delivery time to a Canadian address',
           'Confirm whether duties/customs are included (DDP) or charged to customer',
           'Pricing allows 40%+ margin after all landed costs',
@@ -589,7 +589,7 @@ This is the only time I'll offer this price in your welcome sequence.
     id: '8',
     title: 'Digital Product Pricing Guide',
     tagline: 'Price too low and you work twice as hard. This fixes that.',
-    preview: 'A framework for pricing your courses, ebooks, and templates — with the math, the psychology, and the validation steps most founders skip.',
+    preview: 'A framework for pricing your courses, ebooks, and templates  -  with the math, the psychology, and the validation steps most founders skip.',
     creatorNote: 'The most common mistake is pricing based on how long something took to create. Price based on the value of the outcome you deliver. A guide that saves someone $10K is worth $497, not $27.',
     whyItWorks: 'Pricing is positioning. The price you choose signals the quality of your offer before anyone reads a word of your sales page. This guide helps you choose the right signal.',
     bestFor: ['Digital product creators', 'Course launches', 'Ebook pricing'],
@@ -604,9 +604,9 @@ This is the only time I'll offer this price in your welcome sequence.
         title: 'The 3 Proven Price Tiers',
         type: 'list',
         items: [
-          '$9–$37 — Entry: ebooks, checklists, template packs, mini-courses. Best for building a buyer list.',
-          '$47–$197 — Mid: comprehensive courses, bundle packs, workshops. Your main revenue driver.',
-          '$297–$997+ — Premium: signature courses with community, done-for-you systems, coaching add-ons.',
+          '$9–$37  -  Entry: ebooks, checklists, template packs, mini-courses. Best for building a buyer list.',
+          '$47–$197  -  Mid: comprehensive courses, bundle packs, workshops. Your main revenue driver.',
+          '$297–$997+  -  Premium: signature courses with community, done-for-you systems, coaching add-ons.',
         ],
       },
       {
@@ -627,7 +627,7 @@ This is the only time I'll offer this price in your welcome sequence.
         items: [
           'Charm pricing: $47 outperforms $50. $197 outperforms $200. Always end in 7.',
           'The anchor effect: always show a "was $97" crossed-out price. It frames everything below it as a deal.',
-          'Three tiers with a "Most Popular" label — the labeled option gets 20–35% more clicks.',
+          'Three tiers with a "Most Popular" label  -  the labeled option gets 20–35% more clicks.',
           'Odd numbers feel calculated, not arbitrary. $73 feels more considered than $70.',
           'Your price is a signal. A $27 course signals low stakes. A $297 course signals transformation.',
         ],
@@ -636,9 +636,9 @@ This is the only time I'll offer this price in your welcome sequence.
         title: 'Validate Before You Price',
         type: 'checklist',
         items: [
-          'Poll your audience: "Would you pay $X for Y?" — anything over 30% yes is a green light',
+          'Poll your audience: "Would you pay $X for Y?"  -  anything over 30% yes is a green light',
           'Pre-sell at a launch discount before creating the product',
-          'Research 3 competitors — price in the same range unless you can justify premium',
+          'Research 3 competitors  -  price in the same range unless you can justify premium',
           'A/B test two price points with split traffic if your audience is large enough',
         ],
       },
@@ -648,9 +648,9 @@ This is the only time I'll offer this price in your welcome sequence.
     id: '9',
     title: 'Content Calendar Template',
     tagline: 'Batch your whole month in one afternoon.',
-    preview: 'A weekly posting structure with 30 ready-to-use hook starters — so you spend your creative energy on content, not figuring out what to post.',
+    preview: 'A weekly posting structure with 30 ready-to-use hook starters  -  so you spend your creative energy on content, not figuring out what to post.',
     creatorNote: 'Consistency beats creativity in the first 6 months. This template removes the daily "what do I post" decision that kills most creators\' momentum.',
-    whyItWorks: 'The 3-post-per-week structure is proven — enough presence to build momentum, not so much that quality drops. The hook starters reduce blank-page paralysis to zero.',
+    whyItWorks: 'The 3-post-per-week structure is proven  -  enough presence to build momentum, not so much that quality drops. The hook starters reduce blank-page paralysis to zero.',
     bestFor: ['New content creators', 'Content batching', 'Consistency building'],
     estimatedTime: '2 hrs/month',
     usedBy: 4100,
@@ -664,29 +664,29 @@ This is the only time I'll offer this price in your welcome sequence.
         type: 'list',
         intro: 'Post 3 times per week. Rotate these formats.',
         items: [
-          'Monday — Educational: Carousel or talking-head video. Goal: establish expertise. Hook: "Most people don\'t know [surprising fact]"',
-          'Wednesday — Personal/Story: Single image or B-roll reel. Goal: build connection. Hook: "The thing nobody tells you about [relatable situation]"',
-          'Friday — Product/Offer: Demo, testimonial, or feature. Goal: drive sales. Hook: "If you want [outcome], you need to see this"',
+          'Monday  -  Educational: Carousel or talking-head video. Goal: establish expertise. Hook: "Most people don\'t know [surprising fact]"',
+          'Wednesday  -  Personal/Story: Single image or B-roll reel. Goal: build connection. Hook: "The thing nobody tells you about [relatable situation]"',
+          'Friday  -  Product/Offer: Demo, testimonial, or feature. Goal: drive sales. Hook: "If you want [outcome], you need to see this"',
         ],
       },
       {
         title: 'Caption Formula',
         type: 'template',
-        body: `HOOK (line 1 — stops the scroll)
-[Bold statement, open question, or surprising fact — under 12 words]
+        body: `HOOK (line 1  -  stops the scroll)
+[Bold statement, open question, or surprising fact  -  under 12 words]
 
 BODY (2–4 short paragraphs)
 Point 1: [Teaching moment or story beat]
 Point 2: [Supporting detail or example]
 Point 3: [The insight or takeaway]
 
-CTA (last line — always)
+CTA (last line  -  always)
 [What do you want them to do?]
 
 Examples:
 "Save this for your next launch. Which tip are you trying first? ↓"
 "Follow for more. New post every Monday, Wednesday, Friday."
-"Drop your biggest struggle below — I read every reply."`,
+"Drop your biggest struggle below  -  I read every reply."`,
       },
       {
         title: '30 Hook Starters',
@@ -711,9 +711,9 @@ Examples:
     id: '10',
     title: 'Client Proposal Template',
     tagline: 'The doc that closes premium clients without a sales call.',
-    preview: 'A professional proposal template structured around the client\'s situation first — which is why it commands premium rates without pushback.',
+    preview: 'A professional proposal template structured around the client\'s situation first  -  which is why it commands premium rates without pushback.',
     creatorNote: 'Most proposals lead with you: your services, your packages, your prices. This one leads with them. That single reframe is why it closes at rates 2–3× higher than the industry average.',
-    whyItWorks: 'Clients pay premium prices when they feel deeply understood. The proposal starts by mirroring their situation back to them — which creates the "this person gets it" moment before a price is mentioned.',
+    whyItWorks: 'Clients pay premium prices when they feel deeply understood. The proposal starts by mirroring their situation back to them  -  which creates the "this person gets it" moment before a price is mentioned.',
     bestFor: ['Service businesses', 'Freelancers', 'Agency owners'],
     estimatedTime: '30 min to customize',
     usedBy: 1900,
@@ -733,7 +733,7 @@ Prepared by: [Your Name / Brand]
 ─── The Situation ───────────────────
 [2–3 sentences describing their challenge in your own words. Show that you listened.]
 
-Example: "Based on our call, [Client] is generating strong organic reach but struggling to convert that attention into consistent revenue. The funnel is there — the offer-to-content connection isn't optimized yet."
+Example: "Based on our call, [Client] is generating strong organic reach but struggling to convert that attention into consistent revenue. The funnel is there  -  the offer-to-content connection isn't optimized yet."
 
 ─── The Opportunity ─────────────────
 [What's possible if this is solved? Be specific with numbers.]
@@ -741,14 +741,14 @@ Example: "Based on our call, [Client] is generating strong organic reach but str
 "Brands in your position typically see a 3–5× return within 90 days when the content-to-offer pipeline is corrected. For [Client], that's an estimated $[X]K/month in additional revenue."
 
 ─── My Approach ─────────────────────
-Phase 1 — Discovery (Week 1–2): [Deliverables]
-Phase 2 — Strategy (Week 2–4): [Deliverables]
-Phase 3 — Execution (Month 2–3): [Deliverables]
+Phase 1  -  Discovery (Week 1–2): [Deliverables]
+Phase 2  -  Strategy (Week 2–4): [Deliverables]
+Phase 3  -  Execution (Month 2–3): [Deliverables]
 
 ─── Investment ──────────────────────
-Starter: [Deliverables] — $[X]/mo
-★ Growth (recommended): [Deliverables] — $[X]/mo
-Scale: [Deliverables] — $[X]/mo
+Starter: [Deliverables]  -  $[X]/mo
+★ Growth (recommended): [Deliverables]  -  $[X]/mo
+Scale: [Deliverables]  -  $[X]/mo
 
 ─── Next Steps ──────────────────────
 1. Reply to confirm scope
@@ -761,11 +761,11 @@ Scale: [Deliverables] — $[X]/mo
         title: 'Proposal Tips',
         type: 'tips',
         items: [
-          'Mirror their exact words from the discovery call — it signals deep listening',
-          'Use real numbers in the Opportunity section — vague potential doesn\'t close deals',
-          'Always include 3 tiers — most clients choose the middle. Label it "Most Popular".',
-          'Send as a PDF, not a Google Doc — it feels more considered and professional',
-          'Follow up after 48 hours if you don\'t hear back — one follow-up is expected, not pushy',
+          'Mirror their exact words from the discovery call  -  it signals deep listening',
+          'Use real numbers in the Opportunity section  -  vague potential doesn\'t close deals',
+          'Always include 3 tiers  -  most clients choose the middle. Label it "Most Popular".',
+          'Send as a PDF, not a Google Doc  -  it feels more considered and professional',
+          'Follow up after 48 hours if you don\'t hear back  -  one follow-up is expected, not pushy',
         ],
       },
     ],
@@ -774,9 +774,9 @@ Scale: [Deliverables] — $[X]/mo
     id: '12',
     title: 'Affiliate Marketing Starter Kit',
     tagline: 'Your first affiliate income stream in 30 days.',
-    preview: 'Everything you need to choose programs, create content, and earn your first commission — structured as a real 4-week plan, not a vague guide.',
-    creatorNote: 'Most people start affiliate marketing backwards — they sign up for programs, then figure out what to post. Start with content topics you already care about, then find the programs. The order matters.',
-    whyItWorks: 'Authenticity is the only moat in affiliate marketing. This kit is built around products you genuinely use — which means your recommendations actually convert instead of feeling like ads.',
+    preview: 'Everything you need to choose programs, create content, and earn your first commission  -  structured as a real 4-week plan, not a vague guide.',
+    creatorNote: 'Most people start affiliate marketing backwards  -  they sign up for programs, then figure out what to post. Start with content topics you already care about, then find the programs. The order matters.',
+    whyItWorks: 'Authenticity is the only moat in affiliate marketing. This kit is built around products you genuinely use  -  which means your recommendations actually convert instead of feeling like ads.',
     bestFor: ['Content creators', 'Passive income beginners', 'Audience monetization'],
     estimatedTime: '4 weeks',
     usedBy: 3300,
@@ -786,7 +786,7 @@ Scale: [Deliverables] — $[X]/mo
     featured: false,
     sections: [
       {
-        title: 'Week 1 — Foundation',
+        title: 'Week 1  -  Foundation',
         type: 'checklist',
         items: [
           'List 5 products you use every day and would recommend without a commission',
@@ -797,21 +797,21 @@ Scale: [Deliverables] — $[X]/mo
         ],
       },
       {
-        title: 'Week 2 — First Content',
+        title: 'Week 2  -  First Content',
         type: 'list',
         intro: 'Create these 5 pieces before worrying about anything else.',
         items: [
-          '"My current favorites" roundup — honest, specific, useful',
+          '"My current favorites" roundup  -  honest, specific, useful',
           'Product comparison: this vs. that (pick one you actually prefer)',
-          '"How I use [product] in my daily routine" — real lifestyle content',
-          '"What I bought vs. what I actually use" — high-trust, high-conversion format',
-          'Honest review of one product (include a con — it builds credibility)',
+          '"How I use [product] in my daily routine"  -  real lifestyle content',
+          '"What I bought vs. what I actually use"  -  high-trust, high-conversion format',
+          'Honest review of one product (include a con  -  it builds credibility)',
         ],
       },
       {
         title: 'Income Benchmarks',
         type: 'list',
-        intro: 'The math — so you know what to expect and what to optimize.',
+        intro: 'The math  -  so you know what to expect and what to optimize.',
         items: [
           '500 clicks/mo · 2% conv · $50 AOV → ~$50/mo',
           '2,000 clicks/mo · 2% conv · $75 AOV → $60–$150/mo',
@@ -825,8 +825,8 @@ Scale: [Deliverables] — $[X]/mo
         items: [
           'Always disclose: #ad or #affiliate is legally required and builds trust, not erodes it',
           'Never promote something you wouldn\'t buy with your own money',
-          'Integrate links naturally into content — don\'t dump links in captions',
-          'Track which content drives clicks — double down on what works',
+          'Integrate links naturally into content  -  don\'t dump links in captions',
+          'Track which content drives clicks  -  double down on what works',
           'Negotiate commission rates after you\'ve driven consistent sales to a brand',
         ],
       },
@@ -836,7 +836,7 @@ Scale: [Deliverables] — $[X]/mo
     id: '11',
     title: 'Ownr: Canadian Business Registration Guide',
     tagline: 'Register or incorporate your Canadian business online in under an hour.',
-    preview: 'A plain-English walkthrough of registering or incorporating a business in Canada — using Ownr.co, no lawyer required.',
+    preview: 'A plain-English walkthrough of registering or incorporating a business in Canada  -  using Ownr.co, no lawyer required.',
     creatorNote: 'A lot of Canadian entrepreneurs delay getting registered because they think it\'s complicated. It\'s not. Ownr makes it fast, affordable, and fully online.',
     whyItWorks: 'Ownr is built specifically for Canadian founders. It handles provincial and federal registration online, generates your documents automatically, and walks you through every step.',
     bestFor: ['New Canadian entrepreneurs', 'First-time business registration', 'Solo founders ready to go official'],
@@ -848,14 +848,14 @@ Scale: [Deliverables] — $[X]/mo
     featured: true,
     sections: [
       {
-        title: 'Sole Proprietorship vs Corporation — Which Is Right for You?',
+        title: 'Sole Proprietorship vs Corporation  -  Which Is Right for You?',
         type: 'list',
         intro: 'Neither is permanent. Start where it makes sense.',
         items: [
-          'Sole Proprietorship — Fast, cheap, minimal paperwork. You and the business are legally the same. Best for: freelancers, service providers, testing a business idea.',
-          'Corporation — More legal protection, lower corporate tax rate, better for investors. Best for: scaling brands, hiring, or if you\'re making $50K+ net.',
+          'Sole Proprietorship  -  Fast, cheap, minimal paperwork. You and the business are legally the same. Best for: freelancers, service providers, testing a business idea.',
+          'Corporation  -  More legal protection, lower corporate tax rate, better for investors. Best for: scaling brands, hiring, or if you\'re making $50K+ net.',
           'Rule of thumb: Start as a sole proprietor. Incorporate when revenue or risk justifies it.',
-          'Not sure? Talk to a Canadian accountant before deciding — it affects your taxes.',
+          'Not sure? Talk to a Canadian accountant before deciding  -  it affects your taxes.',
         ],
       },
       {
@@ -863,25 +863,25 @@ Scale: [Deliverables] — $[X]/mo
         type: 'checklist',
         intro: 'Go to Ownr.co to follow along.',
         items: [
-          'Step 1 — Create your Ownr account at ownr.co',
-          'Step 2 — Choose your registration type (sole prop or incorporation)',
-          'Step 3 — Search and reserve your business name',
-          'Step 4 — Select your province (or federal incorporation)',
-          'Step 5 — Fill in your business details and owner information',
-          'Step 6 — Complete payment (sole prop starts at ~$49, incorporation is higher)',
-          'Step 7 — Receive and download your official registration documents',
-          'Step 8 — Apply for your Business Number (BN) at canada.ca/cra — free',
-          'Step 9 — Open a business bank account using your registration documents',
-          'Step 10 — Register for HST/GST if you expect to earn over $30,000 CAD',
+          'Step 1  -  Create your Ownr account at ownr.co',
+          'Step 2  -  Choose your registration type (sole prop or incorporation)',
+          'Step 3  -  Search and reserve your business name',
+          'Step 4  -  Select your province (or federal incorporation)',
+          'Step 5  -  Fill in your business details and owner information',
+          'Step 6  -  Complete payment (sole prop starts at ~$49, incorporation is higher)',
+          'Step 7  -  Receive and download your official registration documents',
+          'Step 8  -  Apply for your Business Number (BN) at canada.ca/cra  -  free',
+          'Step 9  -  Open a business bank account using your registration documents',
+          'Step 10  -  Register for HST/GST if you expect to earn over $30,000 CAD',
         ],
       },
       {
-        title: 'After You Register — What Comes Next',
+        title: 'After You Register  -  What Comes Next',
         type: 'tips',
         items: [
           'Business Number (BN): Get yours from the CRA at canada.ca. You\'ll need this for taxes, suppliers, and banking.',
           'HST/GST: You must register for HST if your revenue exceeds $30,000 CAD in a calendar year. You can also register voluntarily before that.',
-          'Business bank account: Keep personal and business money 100% separate from day one — it makes taxes dramatically simpler.',
+          'Business bank account: Keep personal and business money 100% separate from day one  -  it makes taxes dramatically simpler.',
           'Bookkeeping: Use Wave (free), QuickBooks, or FreshBooks. Start tracking expenses immediately.',
           'Accountant: Find a Canadian accountant who works with small businesses before your first tax season. It\'s worth it.',
           'Tax note: Canadian corporate tax rates and rules are different from US. Never use US business tax advice for your Canadian business.',
@@ -892,9 +892,9 @@ Scale: [Deliverables] — $[X]/mo
   {
     id: '12',
     title: 'Stan Store Setup Guide',
-    tagline: 'Your bio link, your storefront, your email funnel — all in one place.',
-    preview: 'A step-by-step guide to setting up your Stan Store, building your first freebie funnel, and driving Instagram traffic to sales — without ads.',
-    creatorNote: 'Stan Store is the tool I recommend to every creator and digital product seller. It handles payments, delivery, email capture, and your bio link — and it\'s free to start.',
+    tagline: 'Your bio link, your storefront, your email funnel  -  all in one place.',
+    preview: 'A step-by-step guide to setting up your Stan Store, building your first freebie funnel, and driving Instagram traffic to sales  -  without ads.',
+    creatorNote: 'Stan Store is the tool I recommend to every creator and digital product seller. It handles payments, delivery, email capture, and your bio link  -  and it\'s free to start.',
     whyItWorks: 'Stan Store removes every friction point between your Instagram audience and your offer. Freebie → email capture → paid product is the entire funnel, built in one afternoon.',
     bestFor: ['Digital product creators', 'Service providers', 'Coaches and creators'],
     estimatedTime: '2–3 hrs (first setup)',
@@ -905,19 +905,19 @@ Scale: [Deliverables] — $[X]/mo
     featured: true,
     sections: [
       {
-        title: 'Step 1 — Create Your Stan Store',
+        title: 'Step 1  -  Create Your Stan Store',
         type: 'checklist',
         items: [
           'Go to stan.store and click "Get Started"',
           'Create your account with your email',
           'Choose your username (this becomes stan.store/yourusername)',
           'Upload a profile photo and write a short bio',
-          'Connect your payment method (Stripe — available to Canadians)',
-          'Your store is live — now add products',
+          'Connect your payment method (Stripe  -  available to Canadians)',
+          'Your store is live  -  now add products',
         ],
       },
       {
-        title: 'Step 2 — Add a Freebie (Lead Magnet)',
+        title: 'Step 2  -  Add a Freebie (Lead Magnet)',
         type: 'checklist',
         intro: 'A freebie builds your email list and earns trust before anyone spends money.',
         items: [
@@ -925,45 +925,45 @@ Scale: [Deliverables] — $[X]/mo
           'In Stan Store: click "Add Product" → choose "Digital Download" → set price to $0',
           'Upload your file (PDF or link to Canva template)',
           'Write a compelling title and description (what will they learn or get?)',
-          'Turn on email capture — this automatically adds downloaders to your email list',
-          'Copy your freebie link — you\'ll use this in your bio and DM automations',
+          'Turn on email capture  -  this automatically adds downloaders to your email list',
+          'Copy your freebie link  -  you\'ll use this in your bio and DM automations',
         ],
       },
       {
-        title: 'Step 3 — Add Your Paid Product',
+        title: 'Step 3  -  Add Your Paid Product',
         type: 'checklist',
         items: [
           'Click "Add Product" → choose the right type (digital download, course, or booking)',
           'Set your price in CAD (Stan handles currency)',
           'Upload your product file or add your course content',
           'Write your product description: who is it for, what do they get, what outcome does it create?',
-          'Design a cover image in Canva — use your brand colors',
+          'Design a cover image in Canva  -  use your brand colors',
           'Publish and test checkout with a dummy purchase',
         ],
       },
       {
-        title: 'Step 4 — Build Your Funnel',
+        title: 'Step 4  -  Build Your Funnel',
         type: 'list',
         intro: 'The goal is to move someone from Instagram stranger → email list → buyer. Here\'s how.',
         items: [
-          'Funnel step 1 — Instagram content: post valuable, consistent content in your niche',
-          'Funnel step 2 — Bio link: replace your link-in-bio with your Stan Store link',
-          'Funnel step 3 — Freebie: your bio points to the freebie first, not the paid product',
-          'Funnel step 4 — Email capture: stan.store automatically captures their email when they download',
-          'Funnel step 5 — Email sequence: follow up with 2–3 value emails, then introduce your paid offer',
-          'Funnel step 6 — DM automation: use Instagram DM automations to send the freebie link automatically',
+          'Funnel step 1  -  Instagram content: post valuable, consistent content in your niche',
+          'Funnel step 2  -  Bio link: replace your link-in-bio with your Stan Store link',
+          'Funnel step 3  -  Freebie: your bio points to the freebie first, not the paid product',
+          'Funnel step 4  -  Email capture: stan.store automatically captures their email when they download',
+          'Funnel step 5  -  Email sequence: follow up with 2–3 value emails, then introduce your paid offer',
+          'Funnel step 6  -  DM automation: use Instagram DM automations to send the freebie link automatically',
         ],
       },
       {
-        title: 'Instagram DM Automations — How to Use Them',
+        title: 'Instagram DM Automations  -  How to Use Them',
         type: 'tips',
         intro: 'These turn your Instagram content into an automated sales machine.',
         items: [
-          '"Comment GUIDE below and I\'ll send it to your DMs" — post this in your caption, set up auto-DM with your Stan freebie link',
-          '"DM me the word START" — works the same way, but reaches people already in your DMs',
+          '"Comment GUIDE below and I\'ll send it to your DMs"  -  post this in your caption, set up auto-DM with your Stan freebie link',
+          '"DM me the word START"  -  works the same way, but reaches people already in your DMs',
           'Use tools like ManyChat or Instagram\'s built-in auto-reply for DM automation',
           'When someone DMs for the freebie: send the link + a friendly note + ask what they\'re working on',
-          'Personal replies convert — if someone downloads your freebie, reply to say "hope it helps!" The conversation that follows is where sales happen',
+          'Personal replies convert  -  if someone downloads your freebie, reply to say "hope it helps!" The conversation that follows is where sales happen',
           'After 3–5 pieces of value content, post your paid offer directly. Your audience will be ready.',
         ],
       },
@@ -972,10 +972,10 @@ Scale: [Deliverables] — $[X]/mo
   {
     id: '13',
     title: 'Canva Brand Kit Quick-Start',
-    tagline: 'Build a professional logo and brand in one afternoon — no design experience needed.',
+    tagline: 'Build a professional logo and brand in one afternoon  -  no design experience needed.',
     preview: 'A step-by-step Canva guide for creating your logo, setting up your brand kit, and building reusable templates for Instagram, digital products, and your Stan Store.',
-    creatorNote: 'Canva is the tool I use for everything — logos, Instagram posts, product covers, PDFs, and Stan Store thumbnails. You don\'t need Photoshop. You just need a Canva account and this guide.',
-    whyItWorks: 'A brand kit in Canva means your logo, colors, and fonts are saved and auto-apply to every design — so you can batch a week of content in 30 minutes instead of starting from scratch.',
+    creatorNote: 'Canva is the tool I use for everything  -  logos, Instagram posts, product covers, PDFs, and Stan Store thumbnails. You don\'t need Photoshop. You just need a Canva account and this guide.',
+    whyItWorks: 'A brand kit in Canva means your logo, colors, and fonts are saved and auto-apply to every design  -  so you can batch a week of content in 30 minutes instead of starting from scratch.',
     bestFor: ['New entrepreneurs', 'Building a brand on a budget', 'Creating content faster'],
     estimatedTime: '2–3 hrs (first setup)',
     usedBy: 4600,
@@ -985,23 +985,23 @@ Scale: [Deliverables] — $[X]/mo
     featured: true,
     sections: [
       {
-        title: 'Step 1 — Create Your Logo',
+        title: 'Step 1  -  Create Your Logo',
         type: 'checklist',
         items: [
-          'Go to Canva.com — create a free account if you don\'t have one',
+          'Go to Canva.com  -  create a free account if you don\'t have one',
           'Click "Create a Design" → search "Logo" (use the 500x500 px canvas)',
-          'Search templates: type "minimalist logo" — pick a clean, simple design',
+          'Search templates: type "minimalist logo"  -  pick a clean, simple design',
           'Click on the template to edit it',
           'Replace the template text with your business name',
           'Change colors to match your brand palette (have your hex codes ready)',
           'Swap or remove any icons that don\'t fit your brand',
-          'Keep it simple — your logo should look good as a small profile photo',
+          'Keep it simple  -  your logo should look good as a small profile photo',
           'Download as PNG with transparent background (Canva Pro) for most uses',
           'Download as SVG for scalable/print uses (also Canva Pro)',
         ],
       },
       {
-        title: 'Step 2 — Set Up Your Canva Brand Kit',
+        title: 'Step 2  -  Set Up Your Canva Brand Kit',
         type: 'checklist',
         intro: 'Brand Kit is a Canva Pro feature (~$17 CAD/month). Worth it if you\'re creating content regularly.',
         items: [
@@ -1010,39 +1010,39 @@ Scale: [Deliverables] — $[X]/mo
           'Upload your logo files (PNG and SVG)',
           'Add your brand colors: enter your hex codes',
           'Set your brand fonts: one display font and one body font',
-          'Now every new design auto-suggests your brand elements — fast and consistent',
+          'Now every new design auto-suggests your brand elements  -  fast and consistent',
         ],
       },
       {
-        title: 'Step 3 — Create Reusable Instagram Templates',
+        title: 'Step 3  -  Create Reusable Instagram Templates',
         type: 'checklist',
         items: [
-          'Create a new design → choose "Instagram Post (Square)" — 1080x1080 px',
+          'Create a new design → choose "Instagram Post (Square)"  -  1080x1080 px',
           'Design a simple template using your brand colors and fonts',
           'Create 3 versions: one for educational posts, one for personal/story posts, one for product/offer posts',
-          'Right-click each design → "Make a copy" when you want to post — never overwrite the original template',
+          'Right-click each design → "Make a copy" when you want to post  -  never overwrite the original template',
           'Batch your content: create 8–10 posts in one sitting using your templates',
         ],
       },
       {
-        title: 'Step 4 — Create Product Covers and Freebie PDFs',
+        title: 'Step 4  -  Create Product Covers and Freebie PDFs',
         type: 'tips',
         items: [
           'Stan Store product covers: use "Presentation (16:9)" canvas size in Canva for the best fit',
           'Freebie PDF guides: use "Letter" or "A4" document size, one page per section, keep it clean and scannable',
-          'Digital product workbooks: use landscape orientation with wide margins — easier to read on screen',
-          'Instagram Story covers for Highlights: use 1080x1920 canvas — create a matching set for consistency',
+          'Digital product workbooks: use landscape orientation with wide margins  -  easier to read on screen',
+          'Instagram Story covers for Highlights: use 1080x1920 canvas  -  create a matching set for consistency',
           'Export all PDFs at "PDF - Print" quality for crisp, professional delivery',
           'Save everything in a Canva folder named "Brand Assets" so you can find it fast',
         ],
       },
       {
-        title: 'Free vs Pro — What You Actually Need',
+        title: 'Free vs Pro  -  What You Actually Need',
         type: 'list',
         items: [
           'Free (always): basic design, logo creation, Instagram templates, PDF export, team sharing',
           'Pro (~$17 CAD/month): Brand Kit (logo, colors, fonts saved), transparent background downloads, Magic Resize, 100M+ premium elements',
-          'Start free. Upgrade to Pro when you\'re creating content consistently — it pays for itself in time saved.',
+          'Start free. Upgrade to Pro when you\'re creating content consistently  -  it pays for itself in time saved.',
           'Pro tip: Canva often runs 30–40% off promotions. Check before paying full price.',
         ],
       },

@@ -40,7 +40,7 @@ function TypingIndicator() {
   )
 }
 
-// Safe markdown-ish renderer — no dangerouslySetInnerHTML
+// Safe markdown-ish renderer  -  no dangerouslySetInnerHTML
 function MessageLine({ text }: { text: string }) {
   const parts = text.split(/(\*\*[^*]+\*\*)/)
   return (
@@ -58,7 +58,7 @@ export default function AIAssistantPage() {
   const { profile, signOut } = useUser()
   const router = useRouter()
 
-  const greeting = `Hi ${profile?.full_name ?? 'there'}! I'm your AI business assistant.\n\nAsk me anything — content ideas, pricing strategy, how to get your first client, what to post today. I'm here to help you build.`
+  const greeting = `Hi ${profile?.full_name ?? 'there'}! I'm your AI business assistant.\n\nAsk me anything  -  content ideas, pricing strategy, how to get your first client, what to post today. I'm here to help you build.`
 
   const [messages, setMessages] = useState<Message[]>([
     { id: '0', role: 'assistant', content: greeting },
@@ -73,7 +73,7 @@ export default function AIAssistantPage() {
       setMessages(prev =>
         prev.map(m =>
           m.id === '0'
-            ? { ...m, content: `Hi ${profile.full_name}! I'm your AI business assistant.\n\nAsk me anything — content ideas, pricing strategy, how to get your first client, what to post today. I'm here to help you build.` }
+            ? { ...m, content: `Hi ${profile.full_name}! I'm your AI business assistant.\n\nAsk me anything  -  content ideas, pricing strategy, how to get your first client, what to post today. I'm here to help you build.` }
             : m
         )
       )

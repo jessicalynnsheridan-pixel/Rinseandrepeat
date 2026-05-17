@@ -334,7 +334,7 @@ export default function RevenuePage() {
             <p className="text-xs font-semibold uppercase tracking-widest text-[#A1A1AA] mb-4">Income Breakdown</p>
 
             {!hasEntries ? (
-              /* Empty state — new users always start here */
+              /* Empty state  -  new users always start here */
               <div className="py-8 text-center">
                 <div className="w-10 h-10 rounded-2xl bg-[#F4F4F5] flex items-center justify-center mx-auto mb-3">
                   <ReceiptText className="w-5 h-5 text-[#A1A1AA]" strokeWidth={1.5} />

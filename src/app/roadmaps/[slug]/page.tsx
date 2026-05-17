@@ -51,7 +51,7 @@ const ROADMAP_DATA: Record<string, {
   shopify: {
     icon: ShoppingBag,
     title: 'Start a Shopify Brand',
-    description: 'Build a profitable e-commerce brand from scratch — from product research to your first $10K month.',
+    description: 'Build a profitable e-commerce brand from scratch  -  from product research to your first $10K month.',
     weeks: 12,
     difficulty: 'Beginner',
     phases: [
@@ -72,7 +72,7 @@ const ROADMAP_DATA: Record<string, {
           {
             id: 's2',
             title: 'Register your Canadian business',
-            description: 'Make it official — register or incorporate through Ownr in under an hour.',
+            description: 'Make it official  -  register or incorporate through Ownr in under an hour.',
             xp: 75,
             locked: false,
             completed: false,
@@ -85,7 +85,7 @@ const ROADMAP_DATA: Record<string, {
               'Open a dedicated business bank account',
               'Set up a professional business email',
             ],
-            lesson: 'In Canada, you have two main options: sole proprietorship (fast, low cost, minimal paperwork — great to start) or incorporation (more legal protection, better for growth and investors). For most beginners, starting as a sole proprietor is totally fine. Use Ownr.co — it walks you through the entire registration or incorporation process online in under an hour, no lawyer required. Once registered, get your Business Number (BN) from the CRA — you\'ll need it for taxes and business banking. Keep business and personal money completely separate from day one. For tax questions, speak with a Canadian accountant — rules vary by province.',
+            lesson: 'In Canada, you have two main options: sole proprietorship (fast, low cost, minimal paperwork  -  great to start) or incorporation (more legal protection, better for growth and investors). For most beginners, starting as a sole proprietor is totally fine. Use Ownr.co  -  it walks you through the entire registration or incorporation process online in under an hour, no lawyer required. Once registered, get your Business Number (BN) from the CRA  -  you\'ll need it for taxes and business banking. Keep business and personal money completely separate from day one. For tax questions, speak with a Canadian accountant  -  rules vary by province.',
           },
           {
             id: 's3',
@@ -95,7 +95,7 @@ const ROADMAP_DATA: Record<string, {
             locked: false,
             completed: false,
             checklist: ['Start Shopify free trial', 'Choose and customize a theme', 'Add your brand colors and logo', 'Set up payment processing', 'Configure shipping settings', 'Add your return policy'],
-            lesson: 'Use the Dawn or Debut theme to start — they\'re clean, fast, and convert well. Don\'t overthink the design. A simple, fast store beats a beautiful slow one every time. Your settings matter more than your aesthetics early on.',
+            lesson: 'Use the Dawn or Debut theme to start  -  they\'re clean, fast, and convert well. Don\'t overthink the design. A simple, fast store beats a beautiful slow one every time. Your settings matter more than your aesthetics early on.',
           },
           {
             id: 's4',
@@ -105,12 +105,12 @@ const ROADMAP_DATA: Record<string, {
             locked: false,
             completed: false,
             checklist: ['Research 3+ suppliers on Alibaba or CJ Dropshipping', 'Order samples from top 2', 'Evaluate quality and packaging', 'Negotiate pricing and MOQ', 'Place your first order'],
-            lesson: 'Always order samples before bulk. Check supplier response time, reviews, and product photos. The quality of your packaging matters almost as much as the product — your unboxing is your first impression.',
+            lesson: 'Always order samples before bulk. Check supplier response time, reviews, and product photos. The quality of your packaging matters almost as much as the product  -  your unboxing is your first impression.',
           },
           {
             id: 's5',
             title: 'Build your brand identity with Canva',
-            description: 'Logo, colors, fonts, and visuals — built in Canva for free.',
+            description: 'Logo, colors, fonts, and visuals  -  built in Canva for free.',
             xp: 75,
             locked: false,
             completed: false,
@@ -124,7 +124,7 @@ const ROADMAP_DATA: Record<string, {
               'Export your logo as PNG (for web) and SVG (for print)',
               'Write your brand story in 3–5 sentences',
             ],
-            lesson: 'Canva is the tool to start with — it\'s free, beginner-friendly, and everything you need is in one place. Start with a simple logo using their free templates. Search "minimalist logo" for clean, professional options. Once your logo is done, set up a Brand Kit in Canva so your colors and fonts auto-apply to every new design. Create a few Instagram post templates while you\'re in there — this lets you batch your content in 30 minutes instead of starting from scratch each time. Your Canva Brand Kit will also be the source for your Stan Store cover images, product covers, and any PDFs or freebies you create.',
+            lesson: 'Canva is the tool to start with  -  it\'s free, beginner-friendly, and everything you need is in one place. Start with a simple logo using their free templates. Search "minimalist logo" for clean, professional options. Once your logo is done, set up a Brand Kit in Canva so your colors and fonts auto-apply to every new design. Create a few Instagram post templates while you\'re in there  -  this lets you batch your content in 30 minutes instead of starting from scratch each time. Your Canva Brand Kit will also be the source for your Stan Store cover images, product covers, and any PDFs or freebies you create.',
           },
         ],
       },
@@ -140,7 +140,7 @@ const ROADMAP_DATA: Record<string, {
             locked: true,
             completed: false,
             checklist: ['Write SEO product titles', 'Write benefit-focused descriptions', 'Take/edit professional product photos', 'Set pricing strategy', 'Add size guides if needed'],
-            lesson: 'Your product title should include: what it is, who it\'s for, and a key benefit. Example: "Moisturizing Body Butter for Dry Skin — Shea & Vitamin E, Women\'s Daily Skincare". Lead with the benefit, not the feature.',
+            lesson: 'Your product title should include: what it is, who it\'s for, and a key benefit. Example: "Moisturizing Body Butter for Dry Skin  -  Shea & Vitamin E, Women\'s Daily Skincare". Lead with the benefit, not the feature.',
           },
           {
             id: 'l2',
@@ -160,7 +160,7 @@ const ROADMAP_DATA: Record<string, {
             locked: true,
             completed: false,
             checklist: ['Remove Shopify password page', 'Announce on all social platforms', 'Email your personal network', 'Run a launch discount (10-15%)', 'Post launch content every day for 7 days'],
-            lesson: 'Your first sale will not come from strangers. It will come from someone who knows, likes, and trusts you. Tell everyone. Post about it everywhere. Text people directly. There is no shame in a public launch — only in staying hidden.',
+            lesson: 'Your first sale will not come from strangers. It will come from someone who knows, likes, and trusts you. Tell everyone. Post about it everywhere. Text people directly. There is no shame in a public launch  -  only in staying hidden.',
           },
         ],
       },
@@ -176,7 +176,7 @@ const ROADMAP_DATA: Record<string, {
             locked: true,
             completed: false,
             checklist: ['Set up Meta Business Manager', 'Install Shopify Facebook Pixel', 'Create your first ad creative', 'Set $10/day test budget', 'Analyze results after 7 days'],
-            lesson: 'Start with a $10/day budget on a single ad set. Test one variable at a time — image, copy, or audience. Never change multiple things at once or you won\'t know what moved the needle. Data after 7 days, then iterate.',
+            lesson: 'Start with a $10/day budget on a single ad set. Test one variable at a time  -  image, copy, or audience. Never change multiple things at once or you won\'t know what moved the needle. Data after 7 days, then iterate.',
           },
           {
             id: 'g2',
@@ -186,7 +186,7 @@ const ROADMAP_DATA: Record<string, {
             locked: true,
             completed: false,
             checklist: ['Set up Klaviyo (free up to 500)', 'Create a welcome popup with 10% discount', 'Write 3-email welcome sequence', 'Set up abandoned cart emails', 'Send weekly broadcast emails'],
-            lesson: 'Email converts 3–5× better than social media. Every follower you earn should eventually land on your email list. Social platforms own your audience — your email list is yours forever.',
+            lesson: 'Email converts 3–5× better than social media. Every follower you earn should eventually land on your email list. Social platforms own your audience  -  your email list is yours forever.',
           },
         ],
       },
@@ -202,7 +202,7 @@ const ROADMAP_DATA: Record<string, {
             locked: true,
             completed: false,
             checklist: ['Optimize top 3 products', 'Scale winning ads to $50/day', 'Launch an upsell or bundle', 'Reach out to micro-influencers', 'Review and cut underperforming SKUs'],
-            lesson: 'The jump from $1K to $5K is about doubling down on what works. Look at your data — what product has the best margin and conversion rate? Pour your energy and budget into that. Cut what isn\'t working without emotional attachment.',
+            lesson: 'The jump from $1K to $5K is about doubling down on what works. Look at your data  -  what product has the best margin and conversion rate? Pour your energy and budget into that. Cut what isn\'t working without emotional attachment.',
           },
         ],
       },
@@ -227,7 +227,7 @@ const ROADMAP_DATA: Record<string, {
             locked: false,
             completed: false,
             checklist: ['List your top 5 skills or knowledge areas', 'Research what sells in your niche', 'Choose: ebook, course, template, or toolkit', 'Validate with a poll or question box'],
-            lesson: 'The fastest digital product to create is a PDF guide or template pack. Courses take longer but earn more. Done is better than perfect — start simple and upgrade later. You can always expand a guide into a course once you have buyers.',
+            lesson: 'The fastest digital product to create is a PDF guide or template pack. Courses take longer but earn more. Done is better than perfect  -  start simple and upgrade later. You can always expand a guide into a course once you have buyers.',
           },
           {
             id: 'd2',
@@ -237,12 +237,12 @@ const ROADMAP_DATA: Record<string, {
             locked: false,
             completed: false,
             checklist: ['Outline your product content', 'Create in Canva, Notion, or Google Docs', 'Design a professional cover', 'Export as PDF', 'Set your price ($27-$97 for beginners)'],
-            lesson: 'Your first product doesn\'t need to be a masterpiece — it needs to solve one specific problem for one specific person. Outline first, then write, then design. In that order. The cover matters more than you think; it\'s your first impression.',
+            lesson: 'Your first product doesn\'t need to be a masterpiece  -  it needs to solve one specific problem for one specific person. Outline first, then write, then design. In that order. The cover matters more than you think; it\'s your first impression.',
           },
           {
             id: 'd3',
             title: 'Set up your Stan Store',
-            description: 'Your entire storefront, freebie funnel, and bio link — all in one place.',
+            description: 'Your entire storefront, freebie funnel, and bio link  -  all in one place.',
             xp: 75,
             locked: false,
             completed: false,
@@ -255,7 +255,7 @@ const ROADMAP_DATA: Record<string, {
               'Post a DM call-to-action: "comment GUIDE to get this free"',
               'Set up your payment info to receive payouts',
             ],
-            lesson: 'Stan Store is the tool for Canadian creators and online business owners — free to start, and it handles payments, product delivery, email capture, and your bio link all in one place. Here\'s how the funnel works: someone finds you on Instagram → they see your content → they click your bio link → they download your free resource → they join your email list → eventually they buy your paid product. Always create a freebie first (a checklist, PDF guide, or Canva template). Then use Instagram DM automations like "comment GUIDE below" or "DM me the word START" to drive traffic into your Stan Store without paying for ads. This is the exact system that moves someone from a stranger seeing your Reel to a paying customer.',
+            lesson: 'Stan Store is the tool for Canadian creators and online business owners  -  free to start, and it handles payments, product delivery, email capture, and your bio link all in one place. Here\'s how the funnel works: someone finds you on Instagram → they see your content → they click your bio link → they download your free resource → they join your email list → eventually they buy your paid product. Always create a freebie first (a checklist, PDF guide, or Canva template). Then use Instagram DM automations like "comment GUIDE below" or "DM me the word START" to drive traffic into your Stan Store without paying for ads. This is the exact system that moves someone from a stranger seeing your Reel to a paying customer.',
           },
         ],
       },
@@ -291,12 +291,12 @@ const ROADMAP_DATA: Record<string, {
           {
             id: 'c1',
             title: 'Define your content niche',
-            description: 'The riches are in the niches — get specific.',
+            description: 'The riches are in the niches  -  get specific.',
             xp: 50,
             locked: false,
             completed: false,
             checklist: ['List what you could talk about for hours', 'Research 3 creators in your niche', 'Define your unique angle', 'Write your content mission statement'],
-            lesson: 'You don\'t need to be the most expert person — you need to be the most relatable. "Business tips from a 23-year-old building her first brand" is more compelling than "business tips". Your perspective is your product.',
+            lesson: 'You don\'t need to be the most expert person  -  you need to be the most relatable. "Business tips from a 23-year-old building her first brand" is more compelling than "business tips". Your perspective is your product.',
           },
           {
             id: 'c2',
@@ -336,7 +336,7 @@ const ROADMAP_DATA: Record<string, {
           {
             id: 'sv2',
             title: 'Get your first client',
-            description: 'Your network is your net worth — start there.',
+            description: 'Your network is your net worth  -  start there.',
             xp: 200,
             locked: false,
             completed: false,
@@ -366,7 +366,7 @@ const ROADMAP_DATA: Record<string, {
             locked: false,
             completed: false,
             checklist: ['List products you use daily and love', 'Check if each has an affiliate program', 'Apply to 3–5 programs (Amazon.ca, LTK, ShareASale, brand-direct programs)', 'Choose your primary content platform', 'Create a content plan built around your products'],
-            lesson: 'The most successful affiliates recommend products they actually use. Your audience can tell when you\'re chasing a commission. Authenticity converts — a genuine recommendation from a trusted voice outperforms any polished ad. For Canadians: Amazon.ca affiliate program, LTK (formerly Like to Know It), and direct brand affiliate programs all work in Canada. Always disclose affiliate relationships clearly — it\'s required by the Canadian Competition Bureau.',
+            lesson: 'The most successful affiliates recommend products they actually use. Your audience can tell when you\'re chasing a commission. Authenticity converts  -  a genuine recommendation from a trusted voice outperforms any polished ad. For Canadians: Amazon.ca affiliate program, LTK (formerly Like to Know It), and direct brand affiliate programs all work in Canada. Always disclose affiliate relationships clearly  -  it\'s required by the Canadian Competition Bureau.',
           },
         ],
       },
@@ -399,7 +399,7 @@ const ROADMAP_DATA: Record<string, {
               'Register your business through Ownr.co (sole prop or corporation)',
               'Speak with a Canadian accountant about your business structure',
             ],
-            lesson: 'Licensing for beauty and wellness businesses in Canada is governed provincially — the rules in Ontario, BC, and Alberta are all different. Check your provincial regulatory body (e.g. College of Nurses for medical aesthetics, provincial cosmetology board for esthetics). For medical treatments like injectables, a medical director or RN may be required regardless of province. For insurance, look at Intact Insurance, BFL Canada, or specialty wellness coverage providers. Register your business through Ownr.co — it handles provincial and federal incorporation online with no lawyer needed. Do not rely on US-based advice for Canadian licensing — always verify with your province directly.',
+            lesson: 'Licensing for beauty and wellness businesses in Canada is governed provincially  -  the rules in Ontario, BC, and Alberta are all different. Check your provincial regulatory body (e.g. College of Nurses for medical aesthetics, provincial cosmetology board for esthetics). For medical treatments like injectables, a medical director or RN may be required regardless of province. For insurance, look at Intact Insurance, BFL Canada, or specialty wellness coverage providers. Register your business through Ownr.co  -  it handles provincial and federal incorporation online with no lawyer needed. Do not rely on US-based advice for Canadian licensing  -  always verify with your province directly.',
           },
         ],
       },
@@ -585,7 +585,7 @@ function WorkspaceSection({ milestoneId, userId }: { milestoneId: string; userId
       {!hasContent && (
         <div className="mb-5 px-4 py-3 rounded-xl bg-[#FAFAFA] border border-dashed border-[#E4E4E7]">
           <p className="text-xs text-[#A1A1AA] leading-relaxed">
-            This is your founder workspace. Capture ideas, decisions, and notes as you work through this step — it auto-saves and stays with your roadmap.
+            This is your founder workspace. Capture ideas, decisions, and notes as you work through this step  -  it auto-saves and stays with your roadmap.
           </p>
         </div>
       )}

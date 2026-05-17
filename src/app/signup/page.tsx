@@ -93,7 +93,7 @@ export default function SignupPage() {
         ) : (
           <>
             <h1 className="text-2xl font-bold text-[#18181B] mb-1">Start your CEO era</h1>
-            <p className="text-sm text-[#71717A] mb-8">Free account — no credit card needed</p>
+            <p className="text-sm text-[#71717A] mb-8">Free account  -  no credit card needed</p>
 
             <form onSubmit={handleSignUp} className="space-y-4">
               {error && (
