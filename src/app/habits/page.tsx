@@ -78,12 +78,48 @@ interface Habit {
   name: string
   streak: number
   completedToday: boolean
-  weekHistory: boolean[]  // 7 booleans, Mon–Sun
+  lastCompletedDate: string | null  // 'YYYY-MM-DD' - used to detect new day & streak
+  weekHistory: boolean[]  // 7 booleans, Mon–Sun for current week
   graceUsed?: boolean     // true if grace day was used today
 }
 
 // Storage key is scoped to the user  -  different users never share habit data
 const habitsKey = (userId: string) => `${userId}_habits_v1`
+
+function todayDateStr(): string {
+  return new Date().toISOString().split('T')[0]
+}
+
+// Called on load: reset completedToday for any habit whose lastCompletedDate
+// is not today, and fix streaks for habits where a day was missed.
+function resetHabitsForNewDay(habits: Habit[]): Habit[] {
+  const today = todayDateStr()
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0]
+
+  return habits.map(h => {
+    // Already up to date
+    if (h.lastCompletedDate === today) return h
+
+    // If never completed or completed more than 1 day ago — streak broken
+    const streakBroken = h.lastCompletedDate !== yesterday
+
+    const todayIndex = (new Date().getDay() + 6) % 7
+    const newWeekHistory = [...h.weekHistory]
+
+    // If it's a new week (Mon), reset the full week history
+    if (todayIndex === 0) {
+      newWeekHistory.fill(false)
+    }
+
+    return {
+      ...h,
+      completedToday: false,
+      graceUsed: false,
+      weekHistory: newWeekHistory,
+      streak: streakBroken && h.lastCompletedDate !== null ? 0 : h.streak,
+    }
+  })
+}
 
 function getWeekDates(): string[] {
   const today = new Date()
@@ -110,12 +146,16 @@ export default function HabitsPage() {
   const weekDates = getWeekDates()
   const isSaving = useRef(false)
 
-  // Load saved habits once we have the user ID
+  // Load saved habits once we have the user ID, then reset for new day
   useEffect(() => {
     if (!user?.id) return
     try {
       const raw = localStorage.getItem(habitsKey(user.id))
-      if (raw) setHabits(JSON.parse(raw))
+      if (raw) {
+        const loaded = JSON.parse(raw) as Habit[]
+        // Reset completedToday / streaks for habits not touched today
+        setHabits(resetHabitsForNewDay(loaded))
+      }
     } catch {
       // Private mode or storage blocked  -  start fresh, that's fine
     }
@@ -137,12 +177,33 @@ export default function HabitsPage() {
   const pct = total > 0 ? Math.round((completedToday / total) * 100) : 0
 
   function toggleHabit(id: string) {
+    const today = todayDateStr()
     setHabits(prev => prev.map(h => {
       if (h.id !== id) return h
       const next = !h.completedToday
       const history = [...h.weekHistory]
       history[TODAY_INDEX] = next
-      return { ...h, completedToday: next, streak: next ? h.streak + 1 : Math.max(0, h.streak - 1), weekHistory: history }
+
+      let newStreak = h.streak
+      if (next) {
+        // Completing today: only increment streak once per day
+        if (h.lastCompletedDate !== today) {
+          newStreak = h.streak + 1
+        }
+      } else {
+        // Unchecking: undo the streak increment for today only
+        if (h.lastCompletedDate === today) {
+          newStreak = Math.max(0, h.streak - 1)
+        }
+      }
+
+      return {
+        ...h,
+        completedToday: next,
+        lastCompletedDate: next ? today : h.lastCompletedDate,
+        streak: newStreak,
+        weekHistory: history,
+      }
     }))
   }
 
@@ -154,6 +215,7 @@ export default function HabitsPage() {
       name: habitName,
       streak: 0,
       completedToday: false,
+      lastCompletedDate: null,
       weekHistory: Array(7).fill(false),
     }])
     setNewHabitName('')
@@ -161,11 +223,12 @@ export default function HabitsPage() {
   }
 
   function useGraceDay(id: string) {
+    const today = todayDateStr()
     setHabits(prev => prev.map(h => {
       if (h.id !== id || h.completedToday || !h.streak) return h
       const history = [...h.weekHistory]
       history[TODAY_INDEX] = true
-      return { ...h, completedToday: true, graceUsed: true, weekHistory: history }
+      return { ...h, completedToday: true, graceUsed: true, lastCompletedDate: today, weekHistory: history }
     }))
   }
 

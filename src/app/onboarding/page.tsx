@@ -477,11 +477,12 @@ export default function OnboardingPage() {
   const handleSubmit = async () => {
     setIsSubmitting(true)
     try {
-      // getSession reads localStorage (no network round-trip)
-      const { data: { session } } = await supabase.auth.getSession()
-      const userId = session?.user?.id
+      // getUser makes a server round-trip to verify the token — required
+      // before any write operation so expired/tampered tokens are rejected.
+      const { data: { user }, error: userError } = await supabase.auth.getUser()
+      const userId = user?.id
 
-      if (!userId) {
+      if (!userId || userError) {
         toast.error('Your session has expired  -  please log in again.')
         router.push('/login')
         return

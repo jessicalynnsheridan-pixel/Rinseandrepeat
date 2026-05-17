@@ -33,12 +33,13 @@ export default function SettingsPage() {
   const supabase = createClientComponentClient()
   const [activeSection, setActiveSection] = useState<Section>('profile')
   const [saving, setSaving] = useState(false)
+  const notifStorageKey = profile?.id ? `${profile.id}_notif_prefs_v1` : null
+
   const [notifications, setNotifications] = useState<Record<string, boolean>>(
     Object.fromEntries(NOTIFICATION_OPTIONS.map(o => [o.id, o.default]))
   )
   const [profileForm, setProfileForm] = useState({
     full_name: '',
-    business_name: '',
     business_type: '',
     email: '',
   })
@@ -56,6 +57,16 @@ export default function SettingsPage() {
           business_type: profile.business_type ?? '',
           email: user?.email ?? '',
         }))
+
+        // Load saved notification preferences from localStorage
+        try {
+          const key = `${profile.id}_notif_prefs_v1`
+          const raw = localStorage.getItem(key)
+          if (raw) {
+            const saved = JSON.parse(raw)
+            setNotifications(prev => ({ ...prev, ...saved }))
+          }
+        } catch { /* ignore */ }
       }
     }
     load()
@@ -226,7 +237,16 @@ export default function SettingsPage() {
                     ))}
                   </div>
                   <button
-                    onClick={() => toast.success('Preferences saved!')}
+                    onClick={() => {
+                      try {
+                        if (notifStorageKey) {
+                          localStorage.setItem(notifStorageKey, JSON.stringify(notifications))
+                        }
+                        toast.success('Preferences saved!')
+                      } catch {
+                        toast.error('Could not save preferences')
+                      }
+                    }}
                     className="btn-primary text-sm mt-4"
                   >
                     Save Preferences

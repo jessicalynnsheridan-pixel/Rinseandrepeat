@@ -680,10 +680,11 @@ function QuickHabits({ userId }: { userId?: string }) {
 
 // ─── REVENUE SNAPSHOT ──────────────────────────────────────────────────────
 
-function RevenueSnapshot({ profile }: {
+function RevenueSnapshot({ profile, localRevenue }: {
   profile: { current_revenue?: number | null; revenue_goal?: number | null } | null
+  localRevenue: number
 }) {
-  const current = profile?.current_revenue ?? 0
+  const current = localRevenue  // use localStorage value - DB column is never updated
   const goal = profile?.revenue_goal ?? 5000
   const pct = Math.min(Math.round((current / goal) * 100), 100)
 
@@ -742,6 +743,20 @@ export default function DashboardPage() {
   const firstName = profile?.full_name?.split(' ')[0]
   const streak = profile?.streak_current ?? 0
   const roadmapSlug = (profile?.selected_roadmap ?? DEFAULT_ROADMAP) as string
+
+  // Revenue this month - read from localStorage (same source as /revenue page)
+  const [localRevenue, setLocalRevenue] = useState(0)
+  useEffect(() => {
+    if (!user?.id) return
+    try {
+      const raw = localStorage.getItem(`${user.id}_revenue_v1`)
+      if (raw) {
+        const data = JSON.parse(raw)
+        const monthEntries: { amount: number }[] = data.month?.entries ?? []
+        setLocalRevenue(monthEntries.reduce((s, e) => s + (e.amount ?? 0), 0))
+      }
+    } catch { /* ignore */ }
+  }, [user?.id])
 
   // Rings state
   const [rings, setRings] = useState({ build: false, earn: false, grow: false })
@@ -828,7 +843,7 @@ export default function DashboardPage() {
           >
             <StreakDisplay streak={streak} />
             <StatChip icon={Zap} value={(profile?.xp_points ?? 0).toLocaleString()} label="XP" color="#7C3AED" />
-            <StatChip icon={TrendingUp} value={formatCurrency(profile?.current_revenue ?? 0)} label="this month" color="#16A34A" />
+            <StatChip icon={TrendingUp} value={formatCurrency(localRevenue)} label="this month" color="#16A34A" />
           </motion.div>
 
           {/* ── Rings mobile strip ── */}
@@ -854,7 +869,7 @@ export default function DashboardPage() {
                 <RingsCard rings={rings} />
               </div>
 
-              <RevenueSnapshot profile={profile} />
+              <RevenueSnapshot profile={profile} localRevenue={localRevenue} />
 
               {/* Motivation card */}
               <motion.div

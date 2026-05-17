@@ -35,6 +35,7 @@ export async function POST(req: NextRequest) {
       if (userId && planId) {
         await supabase.from('profiles').update({
           subscription_tier: planId,
+          stripe_customer_id: session.customer as string,        // FIX: was missing
           stripe_subscription_id: session.subscription as string,
         }).eq('id', userId)
 
@@ -43,7 +44,7 @@ export async function POST(req: NextRequest) {
           stripe_subscription_id: session.subscription as string,
           stripe_customer_id: session.customer as string,
           plan_id: planId,
-          status: 'trialing',
+          status: 'active',  // FIX: was hardcoded 'trialing' for all subs
         })
 
         // Award XP for upgrading
