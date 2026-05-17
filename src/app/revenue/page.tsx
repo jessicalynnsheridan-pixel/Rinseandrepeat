@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { TrendingUp, TrendingDown, DollarSign, Plus, ReceiptText } from 'lucide-react'
 import { cn, formatCurrency } from '@/lib/utils'
 import { Sidebar } from '@/components/navigation/Sidebar'
@@ -22,6 +22,94 @@ interface PeriodData {
   entries: Entry[]
   goal: number
 }
+
+// ── Revenue Celebration Modal ────────────────────────────────────────────────
+
+function RevenueCelebration({ amount, onDone }: { amount: number; onDone: () => void }) {
+  const particles = [
+    { x: 10, color: '#7C3AED', delay: 0 },
+    { x: 25, color: '#16A34A', delay: 0.08 },
+    { x: 40, color: '#F97316', delay: 0.04 },
+    { x: 55, color: '#FFD700', delay: 0.12 },
+    { x: 70, color: '#E8B4B8', delay: 0.06 },
+    { x: 85, color: '#7C3AED', delay: 0.15 },
+    { x: 18, color: '#F97316', delay: 0.2 },
+    { x: 48, color: '#16A34A', delay: 0.1 },
+    { x: 75, color: '#FFD700', delay: 0.18 },
+    { x: 92, color: '#7C3AED', delay: 0.22 },
+  ]
+
+  // Auto-dismiss after 3 seconds
+  useEffect(() => {
+    const t = setTimeout(onDone, 3000)
+    return () => clearTimeout(t)
+  }, [onDone])
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+      onClick={onDone}
+    >
+      {/* Confetti */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        {particles.map((p, i) => (
+          <motion.div
+            key={i}
+            initial={{ y: '-5vh', x: `${p.x}vw`, opacity: 1 }}
+            animate={{ y: '110vh', opacity: 0 }}
+            transition={{ duration: 2.5, delay: p.delay, ease: [0.2, 0.8, 0.9, 1] }}
+            className="absolute w-2 h-1 rounded-sm"
+            style={{ backgroundColor: p.color }}
+          />
+        ))}
+      </div>
+
+      {/* Card */}
+      <motion.div
+        initial={{ scale: 0.7, opacity: 0, y: 30 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.8, opacity: 0 }}
+        transition={{ type: 'spring', stiffness: 240, damping: 20 }}
+        className="relative bg-white rounded-3xl shadow-2xl p-8 text-center max-w-xs w-full mx-4"
+        onClick={e => e.stopPropagation()}
+      >
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: [0, 1.3, 1] }}
+          transition={{ delay: 0.1, duration: 0.5, times: [0, 0.6, 1] }}
+          className="w-16 h-16 rounded-2xl bg-[#DCFCE7] flex items-center justify-center mx-auto mb-4"
+        >
+          <span className="text-3xl">💰</span>
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+        >
+          <p className="text-xs font-bold uppercase tracking-widest text-[#16A34A] mb-1">Money In 🎉</p>
+          <p className="text-4xl font-bold text-[#18181B] mb-2">
+            +{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(amount)}
+          </p>
+          <p className="text-sm text-[#71717A]">Every dollar counts. Keep stacking.</p>
+        </motion.div>
+        <motion.button
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          onClick={onDone}
+          className="mt-5 text-xs text-[#A1A1AA] hover:text-[#71717A] transition-colors"
+        >
+          Tap to dismiss
+        </motion.button>
+      </motion.div>
+    </motion.div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 const CATEGORY_COLORS: Record<string, string> = {
   product: '#7C3AED',
@@ -61,6 +149,7 @@ export default function RevenuePage() {
     year: { ...EMPTY_PERIOD(), goal: 50000 },
   })
   const [hydrated, setHydrated] = useState(false)
+  const [celebrationAmount, setCelebrationAmount] = useState<number | null>(null)
 
   // Load user's real revenue data from localStorage
   useEffect(() => {
@@ -102,10 +191,22 @@ export default function RevenuePage() {
     }))
     setNewEntry({ source: '', amount: '', category: 'service' })
     setShowAdd(false)
+    // Trigger celebration after a brief delay so the form close animation plays first
+    setTimeout(() => setCelebrationAmount(parseFloat(newEntry.amount)), 200)
   }
 
   return (
     <div className="flex min-h-screen bg-[#FAFAFA]">
+      {/* Revenue celebration overlay */}
+      <AnimatePresence>
+        {celebrationAmount !== null && (
+          <RevenueCelebration
+            amount={celebrationAmount}
+            onDone={() => setCelebrationAmount(null)}
+          />
+        )}
+      </AnimatePresence>
+
       <Sidebar profile={profile} onSignOut={signOut} />
 
       <main className="flex-1 lg:pl-64 pb-20 lg:pb-0">

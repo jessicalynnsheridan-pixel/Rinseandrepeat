@@ -2,16 +2,16 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Map, Bot, Flame, DollarSign } from 'lucide-react'
+import { LayoutDashboard, Map, Bot, Flame, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { motion } from 'framer-motion'
 
 const navItems = [
-  { href: '/dashboard', label: 'Home', icon: LayoutDashboard },
-  { href: '/roadmaps', label: 'Roadmaps', icon: Map },
-  { href: '/ai-assistant', label: 'AI', icon: Bot },
-  { href: '/revenue', label: 'Revenue', icon: DollarSign },
-  { href: '/habits', label: 'Habits', icon: Flame },
+  { href: '/dashboard', label: 'Home',    icon: LayoutDashboard },
+  { href: '/roadmaps',  label: 'Roadmap', icon: Map },
+  { href: '/habits',    label: 'Habits',  icon: Flame },
+  { href: '/ai-assistant', label: 'AI',   icon: Bot },
+  { href: '/profile',   label: 'Profile', icon: User },
 ]
 
 export function MobileNav() {

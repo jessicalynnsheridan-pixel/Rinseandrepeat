@@ -232,51 +232,157 @@ function StepRoadmap({ data, onChange }: { data: OnboardingData; onChange: (d: P
   )
 }
 
-function StepComplete({ data }: { data: OnboardingData }) {
+// ── Day One Mission data ────────────────────────────────────────────────────
+
+const DAY_ONE_MISSIONS: Record<string, { task: string; description: string; xp: number; time: string }> = {
+  shopify: {
+    task: 'Choose your niche',
+    description: 'Research 5 potential niches using TikTok/Instagram. Validate demand, check competition, and commit to one. This single decision unlocks everything else.',
+    xp: 50,
+    time: '~2 hours',
+  },
+  digital: {
+    task: 'Define your core offer in one sentence',
+    description: 'Write exactly who your product is for, what transformation it delivers, and why they should buy from you. Clarity here = every marketing decision made easier.',
+    xp: 50,
+    time: '~1 hour',
+  },
+  creator: {
+    task: 'Record your first piece of content',
+    description: 'Film a 60-second intro video — who you are, what you\'re building, and why. Don\'t edit. Post it raw. Authenticity beats perfection every single time.',
+    xp: 50,
+    time: '~30 min',
+  },
+  service: {
+    task: 'Write your service offer',
+    description: 'Define what you do, who it\'s for, and your starting price. If you can\'t describe it in two sentences, you can\'t sell it. Start here.',
+    xp: 50,
+    time: '~1 hour',
+  },
+  affiliate: {
+    task: 'Choose your niche & first product',
+    description: 'Pick a niche you genuinely know. Find one product you\'d recommend to a friend. Apply to its affiliate program today. Real recommenders always outperform fake ones.',
+    xp: 50,
+    time: '~2 hours',
+  },
+  medspa: {
+    task: 'Draft your service menu',
+    description: 'List your top 3–5 services with prices. Research 3 competitors nearby. Validate your pricing against local market rates. Done in an afternoon.',
+    xp: 50,
+    time: '~2 hours',
+  },
+}
+
+// Confetti burst for the completion screen
+function Confetti() {
+  const particles = [
+    { x: 12, color: '#7C3AED', delay: 0, size: 8 },
+    { x: 25, color: '#F97316', delay: 0.1, size: 6 },
+    { x: 38, color: '#16A34A', delay: 0.05, size: 10 },
+    { x: 50, color: '#E8B4B8', delay: 0.15, size: 7 },
+    { x: 62, color: '#FFD700', delay: 0.08, size: 9 },
+    { x: 75, color: '#7C3AED', delay: 0.2, size: 6 },
+    { x: 88, color: '#F97316', delay: 0.12, size: 8 },
+    { x: 20, color: '#16A34A', delay: 0.25, size: 5 },
+    { x: 45, color: '#7C3AED', delay: 0.18, size: 11 },
+    { x: 70, color: '#FFD700', delay: 0.22, size: 7 },
+    { x: 8,  color: '#E8B4B8', delay: 0.3, size: 6 },
+    { x: 92, color: '#16A34A', delay: 0.28, size: 9 },
+  ]
   return (
-    <div className="text-center space-y-6 py-4">
+    <div className="fixed inset-0 pointer-events-none overflow-hidden z-50">
+      {particles.map((p, i) => (
+        <motion.div
+          key={i}
+          initial={{ y: '-5vh', x: `${p.x}vw`, opacity: 1, rotate: 0, scale: 1 }}
+          animate={{ y: '110vh', opacity: 0, rotate: 360, scale: 0.5 }}
+          transition={{ duration: 2.5 + Math.random(), delay: p.delay, ease: [0.2, 0.8, 0.9, 1] }}
+          className="absolute rounded-sm"
+          style={{ width: p.size, height: p.size * 0.6, backgroundColor: p.color }}
+        />
+      ))}
+    </div>
+  )
+}
+
+function StepComplete({ data }: { data: OnboardingData }) {
+  const firstName = data.full_name?.split(' ')[0] || 'CEO'
+  const roadmapId = data.selected_roadmap ?? 'shopify'
+  const mission = DAY_ONE_MISSIONS[roadmapId] ?? DAY_ONE_MISSIONS.shopify
+
+  return (
+    <div className="space-y-6 py-2">
+      <Confetti />
+
+      {/* Identity reveal */}
       <motion.div
-        initial={{ scale: 0, rotate: -180 }}
-        animate={{ scale: 1, rotate: 0 }}
-        transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.1 }}
-        className="w-24 h-24 rounded-3xl bg-gradient-to-br from-[#7C3AED] to-[#5B21B6] flex items-center justify-center mx-auto shadow-[0_0_40px_rgba(124,58,237,0.3)]"
+        initial={{ scale: 0.5, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: 'spring', stiffness: 220, damping: 14, delay: 0.05 }}
+        className="flex flex-col items-center text-center"
       >
-        <Crown className="w-12 h-12 text-white" />
+        <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-[#7C3AED] to-[#5B21B6] flex items-center justify-center shadow-[0_0_48px_rgba(124,58,237,0.35)] mb-4">
+          <Crown className="w-10 h-10 text-white" />
+        </div>
+        <motion.h2
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+          className="text-2xl sm:text-3xl font-bold text-[#18181B] leading-tight"
+        >
+          Welcome to your CEO era,<br />
+          <span className="text-[#7C3AED]">{firstName}.</span>
+        </motion.h2>
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className="text-sm text-[#71717A] mt-2"
+        >
+          Your dashboard is personalised. Your roadmap is loaded.<br />
+          Now — your first mission starts today.
+        </motion.p>
       </motion.div>
 
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-        <h2 className="text-3xl sm:text-4xl font-bold text-[#18181B] mb-3">
-          {data.full_name ? `You're ready, ${data.full_name}!` : "You're ready!"}
-        </h2>
-        <p className="text-[#71717A] text-lg">
-          Your CEO dashboard is set up.<br />Let's build your empire. 👑
-        </p>
-      </motion.div>
-
+      {/* Day One Mission card */}
       <motion.div
-        initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
-        className="grid grid-cols-3 gap-3 max-w-sm mx-auto"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+        className="relative bg-[#18181B] rounded-2xl p-5 overflow-hidden"
+      >
+        <div className="absolute inset-0 bg-gradient-to-br from-[#7C3AED]/20 to-transparent" />
+        <div className="relative">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-[#7C3AED]">Day One Mission</span>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] text-[#52525B]">{mission.time}</span>
+              <span className="text-[10px] font-bold px-2 py-0.5 bg-[#7C3AED]/20 text-[#A78BFA] rounded-full">
+                +{mission.xp} XP
+              </span>
+            </div>
+          </div>
+          <h3 className="text-base font-semibold text-white mb-2 leading-snug">{mission.task}</h3>
+          <p className="text-xs text-[#A1A1AA] leading-relaxed">{mission.description}</p>
+        </div>
+      </motion.div>
+
+      {/* Quick wins */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.65 }}
+        className="grid grid-cols-3 gap-2"
       >
         {[
-          { icon: '🗺️', label: 'Roadmap ready' },
-          { icon: '🔥', label: 'Streak starts today' },
-          { icon: '🤖', label: 'AI unlocked' },
+          { icon: '🗺️', label: 'Roadmap\nready' },
+          { icon: '🔥', label: 'Streak\nstarts today' },
+          { icon: '🤖', label: 'AI assistant\nunlocked' },
         ].map(item => (
-          <div key={item.label} className="bg-[#EDE9FE] border border-[#C4B5FD] rounded-2xl p-3 text-center">
-            <span className="text-2xl">{item.icon}</span>
-            <p className="text-xs font-semibold text-[#5B21B6] mt-1 leading-tight">{item.label}</p>
+          <div key={item.label} className="bg-[#EDE9FE] border border-[#C4B5FD] rounded-xl p-3 text-center">
+            <span className="text-xl">{item.icon}</span>
+            <p className="text-[10px] font-semibold text-[#5B21B6] mt-1 leading-tight whitespace-pre-line">{item.label}</p>
           </div>
-        ))}
-      </motion.div>
-
-      <motion.div
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}
-        className="flex flex-wrap gap-2 justify-center"
-      >
-        {['Dashboard personalised', 'Goals set', 'Roadmap selected'].map(text => (
-          <span key={text} className="flex items-center gap-1.5 text-xs text-[#16A34A] font-medium px-3 py-1.5 bg-[#DCFCE7] rounded-full">
-            ✅ {text}
-          </span>
         ))}
       </motion.div>
     </div>
@@ -412,7 +518,7 @@ export default function OnboardingPage() {
                 </span>
               ) : (
                 <span className="flex items-center gap-2">
-                  Enter your dashboard <ArrowRight className="w-4 h-4" />
+                  Start my Day One Mission <ArrowRight className="w-4 h-4" />
                 </span>
               )}
             </motion.button>

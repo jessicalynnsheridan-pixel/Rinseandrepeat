@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, Flame, Check, X, Trash2, Target } from 'lucide-react'
+import { Plus, Flame, Check, X, Trash2, Target, ShieldCheck } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Sidebar } from '@/components/navigation/Sidebar'
 import { MobileNav } from '@/components/navigation/MobileNav'
@@ -10,12 +10,76 @@ import { useUser } from '@/components/providers/UserProvider'
 
 const WEEK_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
+// ── Business-type habit suggestions ────────────────────────────────────────
+
+const HABIT_SUGGESTIONS: Record<string, string[]> = {
+  shopify: [
+    'Post one product photo to Instagram',
+    'Check store analytics for 10 minutes',
+    'Research one competitor product',
+    'Reply to all customer DMs/emails',
+    'List or update one product',
+    'Write one product description',
+  ],
+  digital: [
+    'Write 500 words of course content',
+    'Post one piece of value content',
+    'Engage with 10 target followers',
+    'Review email list metrics',
+    'Record one short video lesson',
+    'Respond to one comment or DM',
+  ],
+  creator: [
+    'Film one short-form video',
+    'Write 3 content ideas',
+    'Engage for 20 minutes on platform',
+    'Post one piece of content',
+    'Respond to all comments',
+    'Research trending sounds or formats',
+  ],
+  service: [
+    'Reach out to one potential client',
+    'Update portfolio with recent work',
+    'Write one case study paragraph',
+    'Post one testimonial or result',
+    'Follow up with past clients',
+    'Send one cold DM or email',
+  ],
+  affiliate: [
+    'Write one product review paragraph',
+    'Post one affiliate recommendation',
+    'Check commission dashboard',
+    'Find one new product to promote',
+    'Engage with niche community',
+    'Update one old post with affiliate link',
+  ],
+  medspa: [
+    'Post a before/after or treatment photo',
+    'Respond to all booking inquiries',
+    'Research one new treatment trend',
+    'Follow up with past clients',
+    'Update Google Business profile',
+    'Post one educational health tip',
+  ],
+  default: [
+    'Review daily goals for 5 minutes',
+    'Read business content for 15 minutes',
+    'Send one outreach message',
+    'Review and update task list',
+    'Post one piece of content',
+    'Learn one new skill for 30 minutes',
+  ],
+}
+
+// ── Habit interface ─────────────────────────────────────────────────────────
+
 interface Habit {
   id: string
   name: string
   streak: number
   completedToday: boolean
   weekHistory: boolean[]  // 7 booleans, Mon–Sun
+  graceUsed?: boolean     // true if grace day was used today
 }
 
 // Storage key is scoped to the user — different users never share habit data
@@ -82,11 +146,12 @@ export default function HabitsPage() {
     }))
   }
 
-  function addHabit() {
-    if (!newHabitName.trim()) return
+  function addHabit(name?: string) {
+    const habitName = (name ?? newHabitName).trim()
+    if (!habitName) return
     setHabits(prev => [...prev, {
       id: Date.now().toString(),
-      name: newHabitName.trim(),
+      name: habitName,
       streak: 0,
       completedToday: false,
       weekHistory: Array(7).fill(false),
@@ -94,6 +159,21 @@ export default function HabitsPage() {
     setNewHabitName('')
     setShowAdd(false)
   }
+
+  function useGraceDay(id: string) {
+    setHabits(prev => prev.map(h => {
+      if (h.id !== id || h.completedToday || !h.streak) return h
+      const history = [...h.weekHistory]
+      history[TODAY_INDEX] = true
+      return { ...h, completedToday: true, graceUsed: true, weekHistory: history }
+    }))
+  }
+
+  // Suggestions for this user's business type (falls back to default)
+  const businessType = profile?.business_type ?? 'default'
+  const suggestions = (HABIT_SUGGESTIONS[businessType] ?? HABIT_SUGGESTIONS.default).filter(
+    s => !habits.some(h => h.name.toLowerCase() === s.toLowerCase())
+  )
 
   return (
     <div className="flex min-h-screen bg-[#FAFAFA]">
@@ -202,11 +282,27 @@ export default function HabitsPage() {
                       {habit.name}
                     </span>
 
+                    {/* Grace day button — shown when streak at risk */}
+                    {!habit.completedToday && habit.streak >= 3 && !habit.graceUsed && (
+                      <button
+                        onClick={() => useGraceDay(habit.id)}
+                        title="Use a grace day to protect your streak"
+                        className="flex items-center gap-1 px-2 py-1 rounded-lg bg-[#FEF3C7] text-[#D97706] text-[10px] font-bold hover:bg-[#FDE68A] transition-colors flex-shrink-0"
+                      >
+                        <ShieldCheck className="w-2.5 h-2.5" strokeWidth={2.5} />
+                        Grace
+                      </button>
+                    )}
+
                     {/* Streak — only show once they've built one */}
                     {habit.streak > 1 && (
-                      <div className="flex items-center gap-1 text-[#E5974A]">
+                      <div className={cn(
+                        'flex items-center gap-1',
+                        habit.graceUsed ? 'text-[#D97706]' : 'text-[#E5974A]'
+                      )}>
                         <Flame className="w-3 h-3" strokeWidth={1.5} />
                         <span className="text-[10px] font-semibold">{habit.streak}</span>
+                        {habit.graceUsed && <span className="text-[8px] opacity-60">🛡️</span>}
                       </div>
                     )}
 
@@ -282,18 +378,19 @@ export default function HabitsPage() {
                 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}
                 className="bg-white rounded-2xl border border-[#F4F4F5] p-4 mb-4"
               >
-                <div className="flex items-center gap-2">
+                {/* Input row */}
+                <div className="flex items-center gap-2 mb-3">
                   <input
                     type="text"
                     value={newHabitName}
                     onChange={e => setNewHabitName(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && addHabit()}
-                    placeholder="New habit name..."
+                    placeholder="Name your habit..."
                     className="flex-1 text-sm text-[#18181B] placeholder:text-[#A1A1AA] bg-transparent outline-none"
                     autoFocus
                   />
                   <button
-                    onClick={addHabit}
+                    onClick={() => addHabit()}
                     disabled={!newHabitName.trim()}
                     className="px-3 py-1.5 bg-[#18181B] text-white text-xs font-medium rounded-lg disabled:opacity-30 hover:bg-[#3F3F46] transition-all"
                   >
@@ -303,6 +400,26 @@ export default function HabitsPage() {
                     <X className="w-4 h-4" />
                   </button>
                 </div>
+
+                {/* Quick suggestions */}
+                {suggestions.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-widest text-[#A1A1AA] mb-2">
+                      Suggested for you
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {suggestions.slice(0, 5).map(s => (
+                        <button
+                          key={s}
+                          onClick={() => addHabit(s)}
+                          className="text-[11px] font-medium px-2.5 py-1 rounded-lg bg-[#EDE9FE] text-[#5B21B6] hover:bg-[#DDD6FE] transition-colors"
+                        >
+                          + {s}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </motion.div>
             ) : (
               <button

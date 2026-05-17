@@ -2,15 +2,29 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import {
   LayoutDashboard, Map, BookOpen, Bot, Flame, Users,
-  Crown, Settings, LogOut, Sparkles, TrendingUp, Calculator,
+  Crown, Settings, LogOut, Sparkles, TrendingUp, Calculator, User,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import type { Profile } from '@/types'
-import { LEVEL_METADATA } from '@/types'
+import type { Profile, UserLevel } from '@/types'
+import { LEVEL_METADATA, LEVEL_THRESHOLDS } from '@/types'
 import { ProgressBar } from '@/components/ui/ProgressBar'
+
+function todayKey() {
+  return new Date().toISOString().split('T')[0]
+}
+
+type StreakTier = 'cold' | 'warm' | 'hot' | 'blazing' | 'legendary'
+function getStreakTier(streak: number): StreakTier {
+  if (streak === 0) return 'cold'
+  if (streak < 7) return 'warm'
+  if (streak < 30) return 'hot'
+  if (streak < 100) return 'blazing'
+  return 'legendary'
+}
 
 interface SidebarProps {
   profile: Profile | null
@@ -26,6 +40,7 @@ const navItems = [
   { href: '/revenue',      label: 'Revenue',          icon: TrendingUp },
   { href: '/calculators',  label: 'Calculators',      icon: Calculator },
   { href: '/community',    label: 'Community',        icon: Users },
+  { href: '/profile',      label: 'My Profile',       icon: User },
 ]
 
 export function Sidebar({ profile, onSignOut }: SidebarProps) {
@@ -38,7 +53,28 @@ export function Sidebar({ profile, onSignOut }: SidebarProps) {
   const levelMeta = LEVEL_METADATA[safeLevel]
 
   const xpPoints = profile?.xp_points ?? 0
-  const xpPct = Math.min(Math.round((xpPoints % 500) / 5), 100)
+  const streak = profile?.streak_current ?? 0
+  const streakTier = getStreakTier(streak)
+
+  // Exact XP progress between current and next level
+  const nextLevelKey = LEVEL_METADATA[safeLevel].nextLevel as UserLevel | null
+  const xpForCurrentLevel = LEVEL_THRESHOLDS[safeLevel]
+  const xpForNextLevel = nextLevelKey ? LEVEL_THRESHOLDS[nextLevelKey] : null
+  const xpToNext = xpForNextLevel !== null ? xpForNextLevel - xpPoints : null
+  const xpProgress = xpForNextLevel !== null && xpForNextLevel > xpForCurrentLevel
+    ? Math.min(100, Math.round(((xpPoints - xpForCurrentLevel) / (xpForNextLevel - xpForCurrentLevel)) * 100))
+    : 100
+
+  // Today's rings — loaded from localStorage
+  const [rings, setRings] = useState({ build: false, earn: false, grow: false })
+  useEffect(() => {
+    if (!profile?.id) return
+    try {
+      const raw = localStorage.getItem(`${profile.id}_rings_${todayKey()}`)
+      if (raw) setRings(JSON.parse(raw))
+    } catch { /* ignore */ }
+  }, [profile?.id])
+  const ringsTotal = [rings.build, rings.earn, rings.grow].filter(Boolean).length
 
   return (
     <aside className="fixed top-0 left-0 h-screen w-64 bg-white border-r border-[#F4F4F5] flex-col z-40 hidden lg:flex">
@@ -91,21 +127,61 @@ export function Sidebar({ profile, onSignOut }: SidebarProps) {
         })}
       </nav>
 
-      {/* Level / XP */}
+      {/* Level / XP / Streak / Rings card */}
       {profile && (
         <div className="px-4 py-3 mx-3 mb-3 rounded-2xl bg-[#EDE9FE] border border-[#DDD6FE]">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-base">{levelMeta.icon}</span>
-            <div>
-              <p className="text-xs font-semibold text-[#3F3F46]">{levelMeta.label}</p>
-              <p className="text-[10px] text-[#A1A1AA]">{xpPoints.toLocaleString()} XP</p>
+          {/* Level + Streak row */}
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <span className="text-base">{levelMeta.icon}</span>
+              <div>
+                <p className="text-xs font-semibold text-[#3F3F46]">{levelMeta.label}</p>
+                <p className="text-[10px] text-[#A1A1AA]">{xpPoints.toLocaleString()} XP</p>
+              </div>
             </div>
-            <div className="ml-auto">
-              <Sparkles className="w-3.5 h-3.5 text-[#7C3AED]" />
+            {/* Streak tier pill */}
+            <div className={cn(
+              'flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold leading-none',
+              streakTier === 'cold' ? 'bg-white text-[#A1A1AA]' :
+              streakTier === 'warm' ? 'bg-[#FEF3C7] text-[#D97706]' :
+              streakTier === 'hot' ? 'bg-[#FFEDD5] text-[#EA580C]' :
+              streakTier === 'blazing' ? 'bg-white text-[#7C3AED]' :
+              'bg-[#18181B] text-white'
+            )}>
+              <span>{streakTier === 'cold' ? '○' : streakTier === 'legendary' ? '👑' : '🔥'}</span>
+              <span>{streak > 0 ? `${streak}d` : 'Start'}</span>
             </div>
           </div>
-          <ProgressBar value={xpPct} size="xs" color="violet" animated={false} />
-          <p className="text-[10px] text-[#A1A1AA] mt-1">{xpPct}% to next level</p>
+
+          {/* XP progress bar */}
+          <ProgressBar value={xpProgress} size="xs" color="violet" animated={false} />
+          <p className="text-[10px] text-[#A1A1AA] mt-1">
+            {xpToNext !== null
+              ? `${xpToNext.toLocaleString()} XP to ${LEVEL_METADATA[nextLevelKey!].label}`
+              : 'Max level reached 👑'}
+          </p>
+
+          {/* Today's rings mini strip */}
+          <div className="flex items-center gap-2.5 mt-2.5 pt-2.5 border-t border-[#C4B5FD]/40">
+            {[
+              { key: 'build', color: '#7C3AED', label: 'B', done: rings.build },
+              { key: 'earn', color: '#16A34A', label: 'E', done: rings.earn },
+              { key: 'grow', color: '#F97316', label: 'G', done: rings.grow },
+            ].map(ring => (
+              <div key={ring.key} className="flex items-center gap-1">
+                <div
+                  className="w-2.5 h-2.5 rounded-full border-2 transition-all"
+                  style={ring.done
+                    ? { backgroundColor: ring.color, borderColor: ring.color }
+                    : { backgroundColor: 'transparent', borderColor: '#C4B5FD' }}
+                />
+                <span className="text-[9px] font-bold" style={{ color: ring.done ? ring.color : '#A1A1AA' }}>
+                  {ring.label}
+                </span>
+              </div>
+            ))}
+            <span className="text-[9px] text-[#A1A1AA] ml-auto">{ringsTotal}/3 today</span>
+          </div>
         </div>
       )}
 
