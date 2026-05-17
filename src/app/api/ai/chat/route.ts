@@ -2,7 +2,10 @@ import { OpenAI } from 'openai'
 import { createRouteClient } from '@/lib/supabase-server'
 import { NextRequest } from 'next/server'
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+// Lazy init - avoids Vercel build crash when OPENAI_API_KEY isn't set at build time
+function getOpenAI() {
+  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+}
 
 const SYSTEM_PROMPT = `You are the AI Business Assistant inside "Rinse & Repeat CEO"  -  a business app for women entrepreneurs aged 18-35 who are building online businesses, brands, and creator businesses.
 
@@ -78,7 +81,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Stream the response
-    const stream = await openai.chat.completions.create({
+    const stream = await getOpenAI().chat.completions.create({
       model: 'gpt-4o',
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
