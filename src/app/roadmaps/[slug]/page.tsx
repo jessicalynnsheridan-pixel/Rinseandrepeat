@@ -5,14 +5,13 @@ import { useState, useRef, useEffect, useCallback, KeyboardEvent } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  ArrowLeft, Check, Lock, ChevronDown, ChevronUp,
-  Trophy, Clock, Zap, BookOpen, CheckSquare, PenLine,
+  ArrowLeft, Check, Lock, ChevronDown,
+  Trophy, Zap, PenLine,
   Plus, X, CheckCircle2,
   ShoppingBag, Monitor, Video, Briefcase, Link2, Leaf,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { ProgressBar } from '@/components/ui/ProgressBar'
 import { Sidebar } from '@/components/navigation/Sidebar'
 import { MobileNav } from '@/components/navigation/MobileNav'
 import { useUser } from '@/components/providers/UserProvider'
@@ -606,325 +605,408 @@ function WorkspaceSection({ milestoneId, userId }: { milestoneId: string; userId
 }
 
 // ──────────────────────────────────────────
-// XP celebration toast
+// XPBurst
 // ──────────────────────────────────────────
-function XPToast({ xp, onDone }: { xp: number; onDone: () => void }) {
+function XPBurst({ xp, onDone }: { xp: number; onDone: () => void }) {
+  useEffect(() => {
+    const t = setTimeout(onDone, 2200)
+    return () => clearTimeout(t)
+  }, [onDone])
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 40, scale: 0.85 }}
+      initial={{ opacity: 0, y: 60, scale: 0.8 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -20, scale: 0.9 }}
-      transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-      onAnimationComplete={() => setTimeout(onDone, 1800)}
-      className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 px-5 py-3 rounded-2xl shadow-elevated"
-      style={{ background: 'linear-gradient(135deg, #7C3AED 0%, #8B5CF6 100%)' }}
+      transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+      className="fixed bottom-28 left-1/2 -translate-x-1/2 z-50 pointer-events-none"
     >
-      <Check className="w-3.5 h-3.5 text-[#EDE9FE]" strokeWidth={2.5} />
-      <span className="text-white font-medium text-sm">Step complete</span>
-      <span className="text-[#A1A1AA] text-xs">+{xp} XP</span>
+      <div
+        className="flex items-center gap-2 px-5 py-3 rounded-2xl text-white font-bold text-sm shadow-xl"
+        style={{ background: 'linear-gradient(135deg, #7C3AED, #8B5CF6)' }}
+      >
+        <motion.span
+          animate={{ rotate: [0, -10, 10, -10, 0] }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >⚡</motion.span>
+        +{xp} XP earned
+      </div>
     </motion.div>
   )
 }
 
 // ──────────────────────────────────────────
-// Step card
+// PhaseCompleteOverlay
 // ──────────────────────────────────────────
-type StepTab = 'lesson' | 'tasks' | 'workspace'
+function PhaseCompleteOverlay({
+  phaseName, xpEarned, hasNextPhase, onNextPhase, onDashboard
+}: {
+  phaseName: string; xpEarned: number; hasNextPhase: boolean
+  onNextPhase: () => void; onDashboard: () => void
+}) {
+  const particles = Array.from({ length: 18 }, (_, i) => ({
+    id: i,
+    left: Math.random() * 100,
+    delay: Math.random() * 0.6,
+    color: ['#7C3AED','#A78BFA','#F9A8D4','#FCD34D','#6EE7B7'][i % 5],
+  }))
+  return (
+    <motion.div
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#18181B] px-8"
+    >
+      {particles.map(p => (
+        <motion.div key={p.id}
+          initial={{ y: '110vh', opacity: 1 }}
+          animate={{ y: '-20vh', opacity: 0 }}
+          transition={{ duration: 1.4 + Math.random() * 0.8, delay: p.delay, ease: 'easeOut' }}
+          className="absolute w-2 h-2 rounded-full"
+          style={{ background: p.color, left: `${p.left}%` }}
+        />
+      ))}
+      <motion.div
+        initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+        transition={{ delay: 0.25, type: 'spring', stiffness: 300 }}
+        className="text-center z-10"
+      >
+        <div className="text-6xl mb-4">👑</div>
+        <p className="text-[#A78BFA] text-xs font-bold uppercase tracking-widest mb-2">Phase Complete</p>
+        <h2 className="text-3xl font-bold text-white mb-1">{phaseName}</h2>
+        <p className="text-[#71717A] text-sm mb-8">+{xpEarned} XP earned this phase</p>
+        <div className="space-y-3 w-full max-w-xs mx-auto">
+          {hasNextPhase && (
+            <button onClick={onNextPhase}
+              className="w-full py-4 rounded-2xl text-white font-bold text-base"
+              style={{ background: 'linear-gradient(135deg, #7C3AED, #8B5CF6)' }}>
+              Continue to Next Phase →
+            </button>
+          )}
+          <button onClick={onDashboard}
+            className="w-full py-3 rounded-2xl text-[#71717A] text-sm font-medium hover:text-white transition-colors">
+            Back to Dashboard
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  )
+}
 
-function StepCard({
-  milestone,
-  index,
-  phaseColor,
-  isCompleted,
-  savedChecklist,
-  onComplete,
-  onChecklistChange,
-  userId,
+// ──────────────────────────────────────────
+// StepTrail
+// ──────────────────────────────────────────
+function StepTrail({
+  milestones, completedIds, activeIndex, onSelect
+}: {
+  milestones: (typeof ROADMAP_DATA)['shopify']['phases'][0]['milestones']
+  completedIds: Set<string>; activeIndex: number; onSelect: (i: number) => void
+}) {
+  const activeRef = useRef<HTMLButtonElement>(null)
+  useEffect(() => {
+    activeRef.current?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' })
+  }, [activeIndex])
+
+  return (
+    <div className="flex items-center overflow-x-auto scrollbar-hide px-1 py-2 gap-0">
+      {milestones.map((m, i) => {
+        const done = completedIds.has(m.id)
+        const active = i === activeIndex
+        const locked = m.locked && !done
+        return (
+          <div key={m.id} className="flex items-center flex-shrink-0">
+            {i > 0 && (
+              <div className={cn('h-px w-6 transition-all', done ? 'bg-[#7C3AED]' : 'bg-[#E4E4E7]')} />
+            )}
+            <button
+              ref={active ? activeRef : undefined}
+              onClick={() => !locked && onSelect(i)}
+              className={cn(
+                'flex-shrink-0 flex items-center justify-center rounded-full transition-all duration-200',
+                active
+                  ? 'w-9 h-9 bg-[#7C3AED] shadow-lg ring-4 ring-[#7C3AED]/20'
+                  : done
+                  ? 'w-7 h-7 bg-[#18181B]'
+                  : locked
+                  ? 'w-6 h-6 border-2 border-[#E4E4E7] bg-transparent opacity-40'
+                  : 'w-6 h-6 border-2 border-[#D4D4D8] bg-white hover:border-[#7C3AED] transition-colors'
+              )}
+            >
+              {active ? (
+                <span className="text-[11px] font-bold text-white">{i + 1}</span>
+              ) : done ? (
+                <Check className="w-3 h-3 text-white" strokeWidth={3} />
+              ) : locked ? (
+                <Lock className="w-2.5 h-2.5 text-[#A1A1AA]" />
+              ) : (
+                <span className="text-[10px] font-semibold text-[#A1A1AA]">{i + 1}</span>
+              )}
+            </button>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+// ──────────────────────────────────────────
+// FocusedStepCard
+// ──────────────────────────────────────────
+function FocusedStepCard({
+  milestone, index, total, phaseColor, isCompleted,
+  savedChecklist, onComplete, onChecklistChange,
+  onNext, onPrev, hasNext, hasPrev, userId,
 }: {
   milestone: (typeof ROADMAP_DATA)['shopify']['phases'][0]['milestones'][0]
-  index: number
-  phaseColor: string
-  isCompleted: boolean
+  index: number; total: number; phaseColor: string; isCompleted: boolean
   savedChecklist: Record<number, boolean>
   onComplete: () => void
   onChecklistChange: (itemIndex: number, value: boolean) => void
-  userId?: string
+  onNext?: () => void; onPrev?: () => void
+  hasNext: boolean; hasPrev: boolean; userId?: string
 }) {
-  const [open, setOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState<StepTab>('lesson')
-  // Initialise from parent-provided persisted state
   const [checked, setChecked] = useState<Record<number, boolean>>(savedChecklist)
   const [completed, setCompleted] = useState(isCompleted)
-
-  // Sync if parent state changes (e.g. after localStorage loads)
-  useEffect(() => { setCompleted(isCompleted) }, [isCompleted])
-  useEffect(() => { setChecked(savedChecklist) }, [milestone.id]) // eslint-disable-line react-hooks/exhaustive-deps
+  const [showCoach, setShowCoach] = useState(false)
+  const [showWorkspace, setShowWorkspace] = useState(false)
   const [celebrating, setCelebrating] = useState(false)
+
+  useEffect(() => { setCompleted(isCompleted) }, [isCompleted])
+  useEffect(() => { setChecked(savedChecklist) }, [milestone.id]) // eslint-disable-line
 
   const completedCount = Object.values(checked).filter(Boolean).length
   const totalCount = milestone.checklist.length
-  const progress = Math.round((completedCount / totalCount) * 100)
+  const progress = totalCount > 0 ? completedCount / totalCount : 0
   const allDone = completedCount === totalCount
 
   const toggleItem = (i: number) => {
     if (milestone.locked || completed) return
-    const newValue = !checked[i]
-    setChecked(prev => ({ ...prev, [i]: newValue }))
-    onChecklistChange(i, newValue)
+    const newVal = !checked[i]
+    setChecked(prev => ({ ...prev, [i]: newVal }))
+    onChecklistChange(i, newVal)
   }
 
   const markComplete = () => {
     setCompleted(true)
     setCelebrating(true)
-    setOpen(false)
     onComplete()
   }
-
-  const TABS = [
-    { id: 'lesson' as StepTab, label: 'Lesson', icon: BookOpen },
-    { id: 'tasks' as StepTab, label: `Tasks`, icon: CheckSquare, badge: `${completedCount}/${totalCount}` },
-    { id: 'workspace' as StepTab, label: 'Workspace', icon: PenLine },
-  ]
 
   return (
     <>
       <AnimatePresence>
-        {celebrating && (
-          <XPToast xp={milestone.xp} onDone={() => setCelebrating(false)} />
-        )}
+        {celebrating && <XPBurst xp={milestone.xp} onDone={() => setCelebrating(false)} />}
       </AnimatePresence>
 
       <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: index * 0.06 }}
-        className={cn(
-          'rounded-2xl border transition-all duration-200',
-          completed
-            ? 'bg-white border-[#F4F4F5]'
-            : 'bg-white border-[#F4F4F5] hover:border-[#A1A1AA]',
-          milestone.locked && 'opacity-40'
-        )}
+        key={milestone.id}
+        initial={{ opacity: 0, x: 30 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: -30 }}
+        transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+        drag={!milestone.locked ? 'x' : false}
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={0.12}
+        onDragEnd={(_, info) => {
+          if ((info.offset.x < -60 || info.velocity.x < -400) && hasNext) onNext?.()
+          if ((info.offset.x > 60 || info.velocity.x > 400) && hasPrev) onPrev?.()
+        }}
+        className="bg-white rounded-3xl overflow-hidden border border-[#F0F0F0] shadow-card"
+        style={{ touchAction: 'pan-y', cursor: milestone.locked ? 'default' : 'grab' }}
       >
-        {/* ── Card header ── */}
-        <button
-          onClick={() => !milestone.locked && setOpen(o => !o)}
-          className="w-full flex items-start gap-4 p-5 text-left"
-        >
-          {/* Step indicator */}
-          <div className={cn(
-            'w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 border transition-all',
-            completed ? 'bg-[#18181B] border-[#18181B]' : milestone.locked ? 'border-[#E4E4E7] bg-transparent' : 'border-[#A1A1AA] bg-transparent'
-          )}>
-            {completed ? (
-              <Check className="w-3.5 h-3.5 text-white" strokeWidth={2.5} />
-            ) : milestone.locked ? (
-              <Lock className="w-3 h-3 text-[#A1A1AA]" />
-            ) : (
-              <span className="text-[10px] font-semibold text-[#A1A1AA]">{index + 1}</span>
-            )}
-          </div>
-
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <h3 className={cn(
-                  'font-semibold text-sm leading-snug',
-                  completed ? 'text-[#A1A1AA]' : milestone.locked ? 'text-[#A1A1AA]' : 'text-[#18181B]'
-                )}>
-                  {milestone.title}
-                </h3>
-                <p className="text-xs text-[#A1A1AA] mt-0.5 leading-relaxed">{milestone.description}</p>
-              </div>
-              <div className="flex items-center gap-2 flex-shrink-0 pt-0.5">
-                <span className="text-[10px] text-[#A1A1AA]">+{milestone.xp} XP</span>
-                {!milestone.locked && (
-                  open
-                    ? <ChevronUp className="w-4 h-4 text-[#A1A1AA]" />
-                    : <ChevronDown className="w-4 h-4 text-[#A1A1AA]" />
-                )}
-              </div>
+        {/* Dark header */}
+        <div className="p-6 pb-5" style={{ background: '#18181B' }}>
+          <div className="w-8 h-1 rounded-full mb-5" style={{ background: phaseColor }} />
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <p className="text-[#52525B] text-xs font-semibold uppercase tracking-widest mb-2">
+                Step {index + 1} of {total}
+              </p>
+              <h2 className="text-white text-[22px] font-bold leading-tight">
+                {milestone.title}
+              </h2>
             </div>
-
-            {/* Progress strip */}
-            {!milestone.locked && !completed && (
-              <div className="flex items-center gap-2 mt-2.5">
-                <div className="flex-1 h-1 bg-[#F4F4F5] rounded-full overflow-hidden max-w-[80px]">
-                  <div
-                    className="h-full rounded-full transition-all duration-500"
-                    style={{ width: `${progress}%`, backgroundColor: '#7C3AED' }}
-                  />
-                </div>
-                <span className="text-[10px] text-[#A1A1AA]">{completedCount}/{totalCount}</span>
+            {completed && (
+              <div className="w-9 h-9 rounded-2xl flex items-center justify-center flex-shrink-0 mt-1"
+                style={{ background: phaseColor + '30' }}>
+                <Check className="w-5 h-5" style={{ color: phaseColor }} strokeWidth={2.5} />
+              </div>
+            )}
+            {milestone.locked && (
+              <div className="w-9 h-9 rounded-2xl border border-white/10 flex items-center justify-center flex-shrink-0 mt-1">
+                <Lock className="w-4 h-4 text-[#52525B]" />
               </div>
             )}
           </div>
-        </button>
 
-        {/* ── Expanded body ── */}
-        <AnimatePresence>
-          {open && !milestone.locked && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.22, ease: 'easeInOut' }}
-              className="overflow-hidden"
-            >
-              <div className="border-t border-[#F4F4F5]">
-                {/* Tab bar */}
-                <div className="flex gap-0 border-b border-[#F4F4F5] px-1">
-                  {TABS.map(tab => (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
-                      className={cn(
-                        'flex items-center gap-1.5 px-4 py-3 text-xs font-semibold transition-all border-b-2 -mb-px',
-                        activeTab === tab.id
-                          ? 'text-[#7C3AED] border-[#7C3AED]'
-                          : 'text-[#A1A1AA] border-transparent hover:text-[#52525B]'
-                      )}
-                    >
-                      <tab.icon className="w-3.5 h-3.5" />
-                      {tab.label}
-                      {tab.badge && (
-                        <span className={cn(
-                          'text-[10px] px-1.5 py-0.5 rounded-full font-bold',
-                          activeTab === tab.id ? 'bg-[#EDE9FE] text-[#7C3AED]' : 'bg-[#F4F4F5] text-[#A1A1AA]'
-                        )}>
-                          {tab.badge}
-                        </span>
-                      )}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Tab content */}
-                <div className="p-5">
-                  <AnimatePresence mode="wait">
-                    {/* ── Lesson ── */}
-                    {activeTab === 'lesson' && (
-                      <motion.div
-                        key="lesson"
-                        initial={{ opacity: 0, x: -8 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: 8 }}
-                        transition={{ duration: 0.15 }}
-                      >
-                        <div className="flex items-start gap-3 p-4 rounded-xl bg-[#FAFAFA] border border-[#E4E4E7]">
-                          <BookOpen className="w-4 h-4 text-[#8B5CF6] flex-shrink-0 mt-0.5" />
-                          <p className="text-sm text-[#3F3F46] leading-relaxed">{milestone.lesson}</p>
-                        </div>
-                        <button
-                          onClick={() => setActiveTab('tasks')}
-                          className="mt-4 w-full py-2.5 rounded-xl border border-[#E4E4E7] text-sm font-medium text-[#7C3AED] hover:bg-[#EDE9FE] transition-all flex items-center justify-center gap-2"
-                        >
-                          <CheckSquare className="w-4 h-4" />
-                          View tasks →
-                        </button>
-                      </motion.div>
-                    )}
-
-                    {/* ── Tasks ── */}
-                    {activeTab === 'tasks' && (
-                      <motion.div
-                        key="tasks"
-                        initial={{ opacity: 0, x: -8 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: 8 }}
-                        transition={{ duration: 0.15 }}
-                      >
-                        <div className="space-y-2">
-                          {milestone.checklist.map((item, i) => (
-                            <motion.button
-                              key={i}
-                              onClick={() => toggleItem(i)}
-                              whileTap={{ scale: 0.98 }}
-                              className={cn(
-                                'w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all',
-                                checked[i]
-                                  ? 'bg-[#FAFAFA]'
-                                  : 'hover:bg-[#FAFAFA]'
-                              )}
-                            >
-                              <div className={cn(
-                                'w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all duration-200',
-                                checked[i] ? 'bg-[#18181B] border-[#18181B]' : 'border-[#D1D0CC]'
-                              )}>
-                                {checked[i] && (
-                                  <motion.div
-                                    initial={{ scale: 0 }}
-                                    animate={{ scale: 1 }}
-                                    transition={{ type: 'spring', stiffness: 500 }}
-                                  >
-                                    <Check className="w-3 h-3 text-white" strokeWidth={3} />
-                                  </motion.div>
-                                )}
-                              </div>
-                              <span className={cn(
-                                'text-sm font-medium transition-all',
-                                checked[i] ? 'text-[#A1A1AA] line-through' : 'text-[#3F3F46]'
-                              )}>
-                                {item}
-                              </span>
-                            </motion.button>
-                          ))}
-                        </div>
-
-                        {/* Mark complete CTA */}
-                        <AnimatePresence>
-                          {allDone && !completed && (
-                            <motion.div
-                              initial={{ opacity: 0, y: 8 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              exit={{ opacity: 0 }}
-                              className="mt-4"
-                            >
-                              <button
-                                onClick={markComplete}
-                                className="w-full py-3 rounded-xl text-white text-sm font-bold flex items-center justify-center gap-2 shadow-glow transition-all hover:opacity-90 active:scale-[0.98]"
-                                style={{ background: 'linear-gradient(135deg, #7C3AED 0%, #8B5CF6 100%)' }}
-                              >
-                                <CheckCircle2 className="w-4 h-4" />
-                                Complete step · +{milestone.xp} XP
-                              </button>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-
-                        {completed && (
-                          <div className="mt-4 flex items-center gap-2 text-sm font-medium text-[#A1A1AA]">
-                            <CheckCircle2 className="w-4 h-4" />
-                            Step completed · +{milestone.xp} XP earned
-                          </div>
-                        )}
-
-                        {!allDone && !completed && (
-                          <p className="mt-3 text-xs text-[#A1A1AA] text-center">
-                            {totalCount - completedCount} task{totalCount - completedCount !== 1 ? 's' : ''} left
-                          </p>
-                        )}
-                      </motion.div>
-                    )}
-
-                    {/* ── Workspace ── */}
-                    {activeTab === 'workspace' && (
-                      <motion.div
-                        key="workspace"
-                        initial={{ opacity: 0, x: -8 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: 8 }}
-                        transition={{ duration: 0.15 }}
-                      >
-                        <WorkspaceSection milestoneId={milestone.id} userId={userId} />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
+          {/* Task progress bar */}
+          {!completed && !milestone.locked && (
+            <div className="mt-4">
+              <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+                <motion.div
+                  className="h-full rounded-full"
+                  style={{ background: phaseColor }}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progress * 100}%` }}
+                  transition={{ duration: 0.5, ease: 'easeOut' }}
+                />
               </div>
-            </motion.div>
+              <p className="text-[#52525B] text-xs mt-1.5">
+                {completedCount} of {totalCount} tasks done
+              </p>
+            </div>
           )}
-        </AnimatePresence>
+        </div>
+
+        {/* White content */}
+        <div className="p-5 space-y-5">
+          {/* Description */}
+          <p className="text-[#52525B] text-sm leading-relaxed">
+            {milestone.description}
+          </p>
+
+          {/* Tasks */}
+          {!milestone.locked && (
+            <div className="space-y-2">
+              {milestone.checklist.map((item, i) => (
+                <motion.button
+                  key={i}
+                  onClick={() => toggleItem(i)}
+                  disabled={milestone.locked || completed}
+                  whileTap={{ scale: 0.98 }}
+                  className={cn(
+                    'w-full flex items-center gap-3 p-3.5 rounded-2xl text-left transition-all active:bg-[#F4F4F5]',
+                    checked[i] ? 'bg-[#F4F4F5]' : 'bg-[#FAFAFA] hover:bg-[#F4F4F5]'
+                  )}
+                >
+                  <motion.div
+                    className={cn(
+                      'w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 border-2 transition-colors',
+                      checked[i] ? 'bg-[#7C3AED] border-[#7C3AED]' : 'border-[#D4D4D8] bg-white'
+                    )}
+                    animate={{ scale: checked[i] ? [1, 1.3, 1] : 1 }}
+                    transition={{ type: 'spring', stiffness: 600, damping: 15 }}
+                  >
+                    {checked[i] && (
+                      <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}>
+                        <Check className="w-3 h-3 text-white" strokeWidth={3} />
+                      </motion.div>
+                    )}
+                  </motion.div>
+                  <span className={cn(
+                    'text-sm font-medium leading-snug',
+                    checked[i] ? 'text-[#A1A1AA] line-through' : 'text-[#18181B]'
+                  )}>
+                    {item}
+                  </span>
+                </motion.button>
+              ))}
+            </div>
+          )}
+
+          {/* Coach note toggle */}
+          {!milestone.locked && (
+            <>
+              <button
+                onClick={() => setShowCoach(v => !v)}
+                className="w-full flex items-center gap-2.5 py-1 text-left"
+              >
+                <span className="text-lg leading-none">💬</span>
+                <span className="text-sm font-semibold text-[#7C3AED] flex-1">Coach&apos;s note</span>
+                <motion.div animate={{ rotate: showCoach ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                  <ChevronDown className="w-4 h-4 text-[#A1A1AA]" />
+                </motion.div>
+              </button>
+              <AnimatePresence>
+                {showCoach && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.22 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="bg-[#EDE9FE] rounded-2xl p-4">
+                      <p className="text-sm text-[#4C1D95] leading-relaxed">{milestone.lesson}</p>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </>
+          )}
+
+          {/* Workspace toggle */}
+          {!milestone.locked && (
+            <>
+              <button
+                onClick={() => setShowWorkspace(v => !v)}
+                className="w-full flex items-center gap-2.5 py-1 text-left"
+              >
+                <PenLine className="w-4 h-4 text-[#A1A1AA]" />
+                <span className="text-sm font-semibold text-[#A1A1AA] flex-1">My notes</span>
+                <motion.div animate={{ rotate: showWorkspace ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                  <ChevronDown className="w-4 h-4 text-[#A1A1AA]" />
+                </motion.div>
+              </button>
+              <AnimatePresence>
+                {showWorkspace && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.22 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="border-t border-[#F4F4F5] pt-4">
+                      <WorkspaceSection milestoneId={milestone.id} userId={userId} />
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </>
+          )}
+
+          {/* Complete CTA */}
+          {!milestone.locked && !completed && (
+            <AnimatePresence mode="wait">
+              {allDone ? (
+                <motion.button
+                  key="complete-btn"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={markComplete}
+                  className="w-full py-4 rounded-2xl text-white font-bold text-[15px]"
+                  style={{ background: 'linear-gradient(135deg, #7C3AED 0%, #8B5CF6 100%)', boxShadow: '0 4px 24px rgba(124, 58, 237, 0.35)' }}
+                >
+                  ✓ Mark Complete · +{milestone.xp} XP
+                </motion.button>
+              ) : (
+                <motion.p
+                  key="tasks-left"
+                  initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                  className="text-center text-xs text-[#A1A1AA] py-1"
+                >
+                  {totalCount - completedCount} task{totalCount - completedCount !== 1 ? 's' : ''} left to unlock completion
+                </motion.p>
+              )}
+            </AnimatePresence>
+          )}
+
+          {completed && (
+            <div className="flex items-center justify-center gap-2 py-2">
+              <CheckCircle2 className="w-4 h-4 text-[#16A34A]" />
+              <span className="text-sm font-semibold text-[#16A34A]">
+                Step complete · +{milestone.xp} XP earned
+              </span>
+            </div>
+          )}
+
+          {milestone.locked && (
+            <div className="text-center py-2">
+              <p className="text-sm text-[#A1A1AA]">Complete the previous steps to unlock this one</p>
+            </div>
+          )}
+        </div>
       </motion.div>
     </>
   )
@@ -940,8 +1022,10 @@ export default function RoadmapDetailPage() {
   const slug = params.slug as string
 
   const [activePhase, setActivePhase] = useState(0)
+  const [activeStepIndex, setActiveStepIndex] = useState(0)
+  const [showPhaseComplete, setShowPhaseComplete] = useState(false)
+  const [phaseXP, setPhaseXP] = useState(0)
 
-  // ── Per-user progress state, persisted in localStorage ─────────────
   const [completedIds, setCompletedIds] = useState<Set<string>>(new Set())
   const [checklists, setChecklists] = useState<Record<string, Record<number, boolean>>>({})
 
@@ -957,6 +1041,16 @@ export default function RoadmapDetailPage() {
     } catch { /* ignore */ }
   }, [user?.id, slug])
 
+  const roadmap = ROADMAP_DATA[slug]
+
+  // Jump to first incomplete step when phase changes
+  useEffect(() => {
+    if (!roadmap) return
+    const phase = roadmap.phases[activePhase]
+    const firstIncomplete = phase.milestones.findIndex(m => !completedIds.has(m.id) && !m.locked)
+    setActiveStepIndex(firstIncomplete >= 0 ? firstIncomplete : 0)
+  }, [activePhase]) // eslint-disable-line
+
   const saveProgress = useCallback((ids: Set<string>, lists: Record<string, Record<number, boolean>>) => {
     if (!user?.id) return
     try {
@@ -968,13 +1062,31 @@ export default function RoadmapDetailPage() {
   }, [user?.id, slug])
 
   const handleComplete = useCallback((milestoneId: string) => {
+    if (!roadmap) return
     setCompletedIds(prev => {
       const next = new Set(prev)
       next.add(milestoneId)
       saveProgress(next, checklists)
+
+      const phase = roadmap.phases[activePhase]
+      const allPhaseDone = phase.milestones.every(m => next.has(m.id) || m.locked)
+
+      if (allPhaseDone) {
+        const earned = phase.milestones.reduce((sum, m) => sum + (next.has(m.id) ? m.xp : 0), 0)
+        setTimeout(() => {
+          setPhaseXP(earned)
+          setShowPhaseComplete(true)
+        }, 1400)
+      } else {
+        setActiveStepIndex(cur => {
+          const nextIdx = phase.milestones.findIndex((m, i) => i > cur && !next.has(m.id) && !m.locked)
+          return nextIdx >= 0 ? nextIdx : cur
+        })
+      }
+
       return next
     })
-  }, [checklists, saveProgress])
+  }, [checklists, saveProgress, roadmap, activePhase])
 
   const handleChecklistChange = useCallback((milestoneId: string, itemIndex: number, value: boolean) => {
     setChecklists(prev => {
@@ -984,38 +1096,50 @@ export default function RoadmapDetailPage() {
     })
   }, [completedIds, saveProgress])
 
-  const roadmap = ROADMAP_DATA[slug]
-
   if (!roadmap) {
     return (
       <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center">
         <div className="text-center">
           <p className="text-[#A1A1AA] mb-4">Roadmap not found.</p>
-          <button onClick={() => router.push('/roadmaps')} className="btn-primary">
-            Back to Roadmaps
-          </button>
+          <button onClick={() => router.push('/roadmaps')} className="btn-primary">Back to Roadmaps</button>
         </div>
       </div>
     )
   }
 
   const allMilestones = roadmap.phases.flatMap(p => p.milestones)
-  // Use real per-user progress, not static mock data
   const completedCount = allMilestones.filter(m => completedIds.has(m.id)).length
   const totalCount = allMilestones.length
   const progressPct = Math.round((completedCount / totalCount) * 100)
   const totalXP = allMilestones.reduce((sum, m) => sum + m.xp, 0)
-
   const currentPhase = roadmap.phases[activePhase]
+  const currentMilestone = currentPhase.milestones[activeStepIndex]
 
   return (
     <div className="min-h-screen bg-[#FAFAFA]">
       <Sidebar profile={profile} onSignOut={signOut} />
 
-      <div className="lg:pl-64 pb-20 lg:pb-8">
+      {/* Phase complete overlay */}
+      <AnimatePresence>
+        {showPhaseComplete && (
+          <PhaseCompleteOverlay
+            phaseName={currentPhase.name}
+            xpEarned={phaseXP}
+            hasNextPhase={activePhase < roadmap.phases.length - 1}
+            onNextPhase={() => {
+              setShowPhaseComplete(false)
+              setActivePhase(p => p + 1)
+              setActiveStepIndex(0)
+            }}
+            onDashboard={() => router.push('/dashboard')}
+          />
+        )}
+      </AnimatePresence>
+
+      <div className="lg:pl-64 pb-28 lg:pb-8">
         {/* Sticky header */}
         <div className="sticky top-0 z-30 bg-white border-b border-[#F4F4F5] px-4 md:px-6 py-3.5">
-          <div className="max-w-3xl mx-auto flex items-center gap-3">
+          <div className="max-w-2xl mx-auto flex items-center gap-3">
             <button
               onClick={() => router.push('/roadmaps')}
               className="w-8 h-8 rounded-xl border border-[#E4E4E7] flex items-center justify-center hover:bg-[#EDE9FE] transition-colors flex-shrink-0"
@@ -1025,14 +1149,11 @@ export default function RoadmapDetailPage() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <roadmap.icon className="w-4 h-4 text-[#71717A] flex-shrink-0" strokeWidth={1.5} />
-                <h1 className="font-display text-sm font-bold text-[#18181B] truncate">{roadmap.title}</h1>
+                <h1 className="text-sm font-bold text-[#18181B] truncate">{roadmap.title}</h1>
               </div>
               <div className="flex items-center gap-2 mt-0.5">
                 <div className="w-20 h-1 bg-[#E4E4E7] rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-[#7C3AED] rounded-full transition-all"
-                    style={{ width: `${progressPct}%` }}
-                  />
+                  <div className="h-full bg-[#7C3AED] rounded-full transition-all" style={{ width: `${progressPct}%` }} />
                 </div>
                 <span className="text-[10px] text-[#A1A1AA]">{progressPct}%</span>
               </div>
@@ -1044,40 +1165,20 @@ export default function RoadmapDetailPage() {
           </div>
         </div>
 
-        <div className="max-w-3xl mx-auto px-4 md:px-6 py-6 space-y-6">
-          {/* Hero card */}
-          <div className="bg-white rounded-2xl border border-[#F4F4F5] shadow-card p-6">
-            <div className="flex items-start gap-4 mb-5">
-              <div className="w-12 h-12 rounded-2xl bg-[#EDE9FE] flex items-center justify-center flex-shrink-0">
-                <roadmap.icon className="w-5 h-5 text-[#7C3AED]" strokeWidth={1.5} />
-              </div>
-              <div className="flex-1">
-                <h2 className="font-display text-xl font-bold text-[#18181B] mb-1">{roadmap.title}</h2>
-                <p className="text-sm text-[#71717A] leading-relaxed">{roadmap.description}</p>
-                <div className="flex gap-2 mt-3 flex-wrap">
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-[#FAFAFA] text-[#52525B]">
-                    <Clock className="w-3 h-3" />{roadmap.weeks} weeks
-                  </span>
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-[#FAFAFA] text-[#52525B]">
-                    <Trophy className="w-3 h-3" />{totalCount} steps
-                  </span>
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-[#EDE9FE] text-[#7C3AED]">
-                    <Zap className="w-3 h-3" />{totalXP} XP total
-                  </span>
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-[#FAFAFA] text-[#52525B]">
-                    {roadmap.difficulty}
-                  </span>
-                </div>
-              </div>
-            </div>
-            <ProgressBar value={progressPct} showPercent label="Overall progress" color="gold" size="md" />
+        <div className="max-w-2xl mx-auto px-4 py-5 space-y-4">
+          {/* XP badge */}
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-[#A1A1AA]">{roadmap.weeks} weeks · {roadmap.difficulty}</p>
+            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-[#EDE9FE] text-[#7C3AED]">
+              <Zap className="w-3 h-3" />{totalXP} XP total
+            </span>
           </div>
 
           {/* Phase tabs */}
           <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
             {roadmap.phases.map((phase, i) => {
-              const phaseDone = phase.milestones.filter(m => completedIds.has(m.id)).length
-              const phaseTotal = phase.milestones.length
+              const pDone = phase.milestones.filter(m => completedIds.has(m.id)).length
+              const pTotal = phase.milestones.length
               return (
                 <button
                   key={phase.name}
@@ -1085,40 +1186,66 @@ export default function RoadmapDetailPage() {
                   className={cn(
                     'flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex-shrink-0',
                     activePhase === i
-                      ? 'bg-[#18181B] text-white shadow-card'
+                      ? 'bg-[#18181B] text-white shadow-sm'
                       : 'bg-white border border-[#F4F4F5] text-[#71717A] hover:border-[#A1A1AA]'
                   )}
                 >
+                  <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: phase.color }} />
                   {phase.name}
-                  <span className={cn(
-                    'text-[10px] px-1.5 py-0.5 rounded-full',
-                    activePhase === i ? 'bg-white/15 text-white/80' : 'bg-[#FAFAFA] text-[#A1A1AA]'
-                  )}>
-                    {phaseDone}/{phaseTotal}
+                  <span className={cn('text-[10px] px-1.5 py-0.5 rounded-full', activePhase === i ? 'bg-white/15 text-white/80' : 'bg-[#F4F4F5] text-[#A1A1AA]')}>
+                    {pDone}/{pTotal}
                   </span>
                 </button>
               )
             })}
           </div>
 
-          {/* Step cards */}
-          <div className="space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-widest text-[#A1A1AA]">
-              {currentPhase.name} · {currentPhase.milestones.length} steps
-            </p>
-            {currentPhase.milestones.map((milestone, i) => (
-              <StepCard
-                key={milestone.id}
-                milestone={milestone}
-                index={i}
+          {/* Step trail */}
+          <StepTrail
+            milestones={currentPhase.milestones}
+            completedIds={completedIds}
+            activeIndex={activeStepIndex}
+            onSelect={setActiveStepIndex}
+          />
+
+          {/* Focused step card */}
+          <AnimatePresence mode="wait">
+            {currentMilestone && (
+              <FocusedStepCard
+                key={`${activePhase}-${activeStepIndex}`}
+                milestone={currentMilestone}
+                index={activeStepIndex}
+                total={currentPhase.milestones.length}
                 phaseColor={currentPhase.color}
-                isCompleted={completedIds.has(milestone.id)}
-                savedChecklist={checklists[milestone.id] ?? {}}
-                onComplete={() => handleComplete(milestone.id)}
-                onChecklistChange={(idx, val) => handleChecklistChange(milestone.id, idx, val)}
+                isCompleted={completedIds.has(currentMilestone.id)}
+                savedChecklist={checklists[currentMilestone.id] ?? {}}
+                onComplete={() => handleComplete(currentMilestone.id)}
+                onChecklistChange={(idx, val) => handleChecklistChange(currentMilestone.id, idx, val)}
+                onNext={() => setActiveStepIndex(i => Math.min(i + 1, currentPhase.milestones.length - 1))}
+                onPrev={() => setActiveStepIndex(i => Math.max(i - 1, 0))}
+                hasNext={activeStepIndex < currentPhase.milestones.length - 1}
+                hasPrev={activeStepIndex > 0}
                 userId={user?.id}
               />
-            ))}
+            )}
+          </AnimatePresence>
+
+          {/* Prev / Next buttons */}
+          <div className="flex gap-3 pt-1">
+            <button
+              onClick={() => setActiveStepIndex(i => Math.max(i - 1, 0))}
+              disabled={activeStepIndex === 0}
+              className="flex-1 py-3 rounded-2xl border border-[#E4E4E7] text-sm font-medium text-[#71717A] disabled:opacity-30 hover:bg-[#F4F4F5] transition-all"
+            >
+              ← Previous
+            </button>
+            <button
+              onClick={() => setActiveStepIndex(i => Math.min(i + 1, currentPhase.milestones.length - 1))}
+              disabled={activeStepIndex === currentPhase.milestones.length - 1}
+              className="flex-1 py-3 rounded-2xl border border-[#E4E4E7] text-sm font-medium text-[#71717A] disabled:opacity-30 hover:bg-[#F4F4F5] transition-all"
+            >
+              Next →
+            </button>
           </div>
         </div>
       </div>
