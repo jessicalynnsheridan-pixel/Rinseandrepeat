@@ -1,7 +1,7 @@
 'use client'
 
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import {
@@ -148,9 +148,32 @@ const ROADMAPS: Roadmap[] = [
 ]
 
 export default function RoadmapsPage() {
-  const { profile, signOut } = useUser()
+  const { profile, user, signOut } = useUser()
   const router = useRouter()
   const [selected, setSelected] = useState<string>('shopify')
+  const [progressMap, setProgressMap] = useState<Record<string, { progress: number; enrolled: boolean }>>({})
+
+  // Load real progress from localStorage for each roadmap
+  useEffect(() => {
+    if (!user?.id) return
+    const map: Record<string, { progress: number; enrolled: boolean }> = {}
+    for (const roadmap of ROADMAPS) {
+      try {
+        const raw = localStorage.getItem(`${user.id}_roadmap_${roadmap.id}_v1`)
+        if (raw) {
+          const saved = JSON.parse(raw) as { completed?: string[] }
+          const completedCount = (saved.completed ?? []).length
+          map[roadmap.id] = {
+            enrolled: completedCount > 0,
+            progress: roadmap.milestones > 0
+              ? Math.round((completedCount / roadmap.milestones) * 100)
+              : 0,
+          }
+        }
+      } catch { /* ignore parse errors */ }
+    }
+    setProgressMap(map)
+  }, [user?.id])
   const selectedRoadmap = ROADMAPS.find(r => r.id === selected)!
 
   return (
@@ -175,6 +198,9 @@ export default function RoadmapsPage() {
                 const locked = roadmap.tier === 'pro' && profile?.subscription_tier === 'free'
                 const isSelected = selected === roadmap.id
                 const Icon = roadmap.icon
+                const liveProgress = progressMap[roadmap.id]
+                const enrolled = liveProgress?.enrolled ?? roadmap.enrolled
+                const progress = liveProgress?.progress ?? roadmap.progress
 
                 return (
                   <motion.button
@@ -208,12 +234,12 @@ export default function RoadmapsPage() {
                         </p>
                         {locked && <Lock className="w-3 h-3 text-[#A1A1AA] flex-shrink-0" />}
                       </div>
-                      {roadmap.enrolled && roadmap.progress > 0 ? (
+                      {enrolled && progress > 0 ? (
                         <div className="flex items-center gap-2 mt-1">
                           <div className="flex-1 max-w-[80px] h-0.5 bg-[#F4F4F5] rounded-full overflow-hidden">
-                            <div className="h-full bg-[#7C3AED] rounded-full" style={{ width: `${roadmap.progress}%` }} />
+                            <div className="h-full bg-[#7C3AED] rounded-full" style={{ width: `${progress}%` }} />
                           </div>
-                          <span className="text-[10px] text-[#A1A1AA]">{roadmap.progress}%</span>
+                          <span className="text-[10px] text-[#A1A1AA]">{progress}%</span>
                         </div>
                       ) : (
                         <p className="text-[11px] text-[#A1A1AA] mt-0.5">{roadmap.weeks}w · {roadmap.milestones} steps</p>
@@ -277,15 +303,15 @@ export default function RoadmapsPage() {
                   </div>
                 </div>
 
-                {selectedRoadmap.enrolled ? (
+                {(progressMap[selectedRoadmap.id]?.enrolled ?? selectedRoadmap.enrolled) ? (
                   <div className="space-y-3">
                     <div>
                       <div className="flex justify-between text-xs text-[#A1A1AA] mb-1.5">
-                        <span>{selectedRoadmap.current_phase} phase</span>
-                        <span>{selectedRoadmap.progress}%</span>
+                        <span>{selectedRoadmap.current_phase ?? 'In progress'}</span>
+                        <span>{progressMap[selectedRoadmap.id]?.progress ?? selectedRoadmap.progress}%</span>
                       </div>
                       <div className="w-full h-1 bg-[#F4F4F5] rounded-full overflow-hidden">
-                        <div className="h-full bg-[#7C3AED] rounded-full transition-all" style={{ width: `${selectedRoadmap.progress}%` }} />
+                        <div className="h-full bg-[#7C3AED] rounded-full transition-all" style={{ width: `${progressMap[selectedRoadmap.id]?.progress ?? selectedRoadmap.progress}%` }} />
                       </div>
                     </div>
                     <button

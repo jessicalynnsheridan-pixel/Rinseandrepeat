@@ -54,18 +54,22 @@ export async function POST(req: NextRequest) {
     const tier = profile?.subscription_tier ?? 'free'
     const limit = QUERY_LIMITS[tier]
 
-    // Check monthly usage (simplified  -  in production use a proper counter)
+    // Count actual user messages sent this month across all conversations
     const monthStart = new Date()
     monthStart.setDate(1)
     monthStart.setHours(0, 0, 0, 0)
 
-    const { data: conversation, count: messageCount } = await supabase
+    const { data: conversations } = await supabase
       .from('ai_conversations')
-      .select('messages', { count: 'exact' })
+      .select('messages')
       .eq('user_id', user.id)
       .gte('created_at', monthStart.toISOString())
 
-    const usedQueries = messageCount ?? 0
+    // Sum user-role messages across all conversations this month
+    const usedQueries = (conversations ?? []).reduce((sum, conv) => {
+      const msgs = (conv.messages ?? []) as { role: string }[]
+      return sum + msgs.filter(m => m.role === 'user').length
+    }, 0)
 
     if (usedQueries >= limit) {
       return Response.json(

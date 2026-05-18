@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Flame, Zap, TrendingUp, Check, ChevronRight,
@@ -605,7 +605,7 @@ function InlineHabits({ userId, onAllDone }: { userId?: string; onAllDone: () =>
   const [habits, setHabits] = useState<HabitItem[]>([])
   const [hydrated, setHydrated] = useState(false)
   const [justCompleted, setJustCompleted] = useState<string | null>(null)
-  const allDoneRef = { current: false }
+  const allDoneRef = useRef(false)
 
   useEffect(() => {
     if (!userId) return

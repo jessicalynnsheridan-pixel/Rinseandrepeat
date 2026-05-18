@@ -6,11 +6,17 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',
 })
 
+// Accept both STRIPE_ and NEXT_PUBLIC_STRIPE_ forms so the map works
+// regardless of which env var names are set in Vercel
+function priceId(serverKey: string, publicKey: string): string {
+  return process.env[serverKey] ?? process.env[publicKey] ?? ''
+}
+
 const PLAN_MAP: Record<string, string> = {
-  [process.env.STRIPE_PRO_MONTHLY_PRICE_ID!]: 'pro',
-  [process.env.STRIPE_PRO_YEARLY_PRICE_ID!]: 'pro',
-  [process.env.STRIPE_CEO_MONTHLY_PRICE_ID!]: 'ceo',
-  [process.env.STRIPE_CEO_YEARLY_PRICE_ID!]: 'ceo',
+  [priceId('STRIPE_PRO_MONTHLY_PRICE_ID', 'NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID')]: 'pro',
+  [priceId('STRIPE_PRO_YEARLY_PRICE_ID', 'NEXT_PUBLIC_STRIPE_PRO_YEARLY_PRICE_ID')]: 'pro',
+  [priceId('STRIPE_CEO_MONTHLY_PRICE_ID', 'NEXT_PUBLIC_STRIPE_CEO_MONTHLY_PRICE_ID')]: 'ceo',
+  [priceId('STRIPE_CEO_YEARLY_PRICE_ID', 'NEXT_PUBLIC_STRIPE_CEO_YEARLY_PRICE_ID')]: 'ceo',
 }
 
 export async function POST(req: NextRequest) {

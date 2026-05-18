@@ -1,5 +1,5 @@
 import Stripe from 'stripe'
-import { createServerClient } from '@/lib/supabase-server'
+import { createRouteClient } from '@/lib/supabase-server'
 import { NextRequest } from 'next/server'
 import { SUBSCRIPTION_PLANS } from '@/types'
 
@@ -9,7 +9,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase = createServerClient()
+    const supabase = createRouteClient()
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {

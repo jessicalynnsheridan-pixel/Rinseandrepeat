@@ -1,7 +1,7 @@
 'use client'
 
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Search, Star, Lock, FileText, Layout, CheckSquare,
@@ -1465,13 +1465,22 @@ function ResourceCard({
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function VaultPage() {
-  const { profile, signOut } = useUser()
+  const { profile, user, signOut } = useUser()
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState<Category>('all')
   const [favorites, setFavorites] = useState<Set<string>>(new Set())
   const [openResource, setOpenResource] = useState<Resource | null>(null)
 
   const userTier = profile?.subscription_tier ?? 'free'
+
+  // Load favorites from localStorage on mount
+  useEffect(() => {
+    if (!user?.id) return
+    try {
+      const raw = localStorage.getItem(`${user.id}_vault_favs_v1`)
+      if (raw) setFavorites(new Set(JSON.parse(raw)))
+    } catch { /* ignore */ }
+  }, [user?.id])
 
   const filtered = RESOURCES.filter(r => {
     const q = search.toLowerCase()
@@ -1496,6 +1505,9 @@ export default function VaultPage() {
     setFavorites(prev => {
       const next = new Set(prev)
       next.has(id) ? next.delete(id) : next.add(id)
+      try {
+        if (user?.id) localStorage.setItem(`${user.id}_vault_favs_v1`, JSON.stringify(Array.from(next)))
+      } catch { /* ignore */ }
       return next
     })
   }
