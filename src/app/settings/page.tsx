@@ -2,6 +2,7 @@
 
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { User, Bell, CreditCard, Shield, Check, Eye, EyeOff } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -31,6 +32,7 @@ const NOTIFICATION_OPTIONS = [
 export default function SettingsPage() {
   const { profile, signOut, refreshProfile } = useUser()
   const supabase = createClientComponentClient()
+  const router = useRouter()
   const [activeSection, setActiveSection] = useState<Section>('profile')
   const [saving, setSaving] = useState(false)
   const notifStorageKey = profile?.id ? `${profile.id}_notif_prefs_v1` : null
@@ -259,12 +261,14 @@ export default function SettingsPage() {
                 <div className="space-y-4">
                   <div className="card p-5">
                     <h2 className="text-sm font-semibold text-[#18181B] mb-3">Current Plan</h2>
-                    <div className="flex items-center justify-between p-4 bg-[#EDE9FE] rounded-xl">
+                    <div className={`flex items-center justify-between p-4 rounded-xl ${profile?.subscription_tier === 'free' ? 'bg-[#F4F4F5]' : 'bg-[#EDE9FE]'}`}>
                       <div>
-                        <p className="text-sm font-semibold text-[#7C3AED]">{tierLabel}</p>
+                        <p className={`text-sm font-semibold ${profile?.subscription_tier === 'free' ? 'text-[#52525B]' : 'text-[#7C3AED]'}`}>{tierLabel}</p>
                         <p className="text-xs text-[#71717A]">{tierPrice}</p>
                       </div>
-                      <span className="px-2.5 py-1 text-xs font-semibold bg-[#7C3AED] text-white rounded-full">Active</span>
+                      {profile?.subscription_tier !== 'free' && (
+                        <span className="px-2.5 py-1 text-xs font-semibold bg-[#7C3AED] text-white rounded-full">Active</span>
+                      )}
                     </div>
                   </div>
                   {profile?.subscription_tier !== 'ceo' && (
@@ -273,8 +277,11 @@ export default function SettingsPage() {
                         {profile?.subscription_tier === 'free' ? 'Upgrade to Founder Pro' : 'Upgrade to CEO Elite'}
                       </h2>
                       <p className="text-xs text-[#71717A] mb-4">Unlock all roadmaps, unlimited AI, and the full resource vault.</p>
-                      <button className="btn-primary text-sm w-full">
-                        {profile?.subscription_tier === 'free' ? 'Upgrade  -  $19/mo' : 'Upgrade  -  $49/mo'}
+                      <button
+                        onClick={() => router.push('/pricing')}
+                        className="btn-primary text-sm w-full"
+                      >
+                        {profile?.subscription_tier === 'free' ? 'Upgrade — $19/mo' : 'Upgrade — $49/mo'}
                       </button>
                     </div>
                   )}
@@ -329,7 +336,7 @@ export default function SettingsPage() {
                     <button
                       onClick={() => {
                         if (confirm('Are you absolutely sure? This will permanently delete your account.')) {
-                          toast.error('Please contact support to delete your account.')
+                          toast.error('Email support@rinseandrepeatceo.com to delete your account.')
                         }
                       }}
                       className="text-sm font-medium text-[#DC2626] border border-[#DC2626] px-4 py-2 rounded-xl hover:bg-[#FEE2E2] transition-all"

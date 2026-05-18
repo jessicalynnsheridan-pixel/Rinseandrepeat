@@ -179,7 +179,7 @@ export default function RevenuePage() {
       id: Date.now().toString(),
       source: newEntry.source,
       amount: parseFloat(newEntry.amount),
-      date: 'Today',
+      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
       category: newEntry.category,
     }
     setRevenueData(prev => ({

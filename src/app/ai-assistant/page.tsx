@@ -54,6 +54,8 @@ function MessageLine({ text }: { text: string }) {
   )
 }
 
+const TIER_LIMITS: Record<string, number> = { free: 10, pro: 100, ceo: Infinity }
+
 export default function AIAssistantPage() {
   const { profile, signOut } = useUser()
   const router = useRouter()
@@ -65,6 +67,7 @@ export default function AIAssistantPage() {
   ])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [queriesUsed, setQueriesUsed] = useState(0)
   const bottomRef = useRef<HTMLDivElement>(null)
 
   // Update greeting once profile loads (profile is null on first render)
@@ -106,10 +109,16 @@ export default function AIAssistantPage() {
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({}))
-        setMessages(prev => [...prev, { id: replyId, role: 'assistant', content: err.error ?? 'Something went wrong. Try again.' }])
+        const isLimit = res.status === 429
+        const errMsg = isLimit
+          ? `You've used all your queries for this month. Upgrade to get more. → /pricing`
+          : (err.error ?? 'Something went wrong. Try again.')
+        setMessages(prev => [...prev, { id: replyId, role: 'assistant', content: errMsg }])
         setIsLoading(false)
         return
       }
+      // Count successful sends
+      setQueriesUsed(n => n + 1)
 
       // Stream response
       const reader = res.body?.getReader()
@@ -170,9 +179,17 @@ export default function AIAssistantPage() {
               <p className="text-xs text-[#A1A1AA]">Powered by GPT-4o</p>
             </div>
           </div>
-          <div className="ml-auto flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-[#16A34A]" />
-            <span className="text-xs text-[#A1A1AA]">Online</span>
+          <div className="ml-auto flex items-center gap-3">
+            {/* Quota indicator */}
+            {profile?.subscription_tier && profile.subscription_tier !== 'ceo' && (
+              <span className="text-[10px] text-[#A1A1AA] hidden sm:block">
+                {queriesUsed}/{TIER_LIMITS[profile.subscription_tier ?? 'free']} queries
+              </span>
+            )}
+            <div className="flex items-center gap-1.5">
+              <div className="w-2 h-2 rounded-full bg-[#16A34A]" />
+              <span className="text-xs text-[#A1A1AA]">Online</span>
+            </div>
           </div>
         </div>
 
