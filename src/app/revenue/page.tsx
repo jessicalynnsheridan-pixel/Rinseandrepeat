@@ -7,6 +7,8 @@ import { cn, formatCurrency } from '@/lib/utils'
 import { Sidebar } from '@/components/navigation/Sidebar'
 import { MobileNav } from '@/components/navigation/MobileNav'
 import { useUser } from '@/components/providers/UserProvider'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { setRing } from '@/lib/rings'
 
 type Period = 'week' | 'month' | 'year'
 
@@ -140,6 +142,7 @@ function loadRevenue(userId: string): Record<Period, PeriodData> {
 
 export default function RevenuePage() {
   const { profile, signOut, user } = useUser()
+  const supabase = createClientComponentClient()
   const [period, setPeriod] = useState<Period>('month')
   const [showAdd, setShowAdd] = useState(false)
   const [newEntry, setNewEntry] = useState({ source: '', amount: '', category: 'service' })
@@ -189,10 +192,18 @@ export default function RevenuePage() {
         entries: [entry, ...prev[period].entries],
       },
     }))
+    const amount = parseFloat(newEntry.amount)
     setNewEntry({ source: '', amount: '', category: 'service' })
     setShowAdd(false)
     // Trigger celebration after a brief delay so the form close animation plays first
-    setTimeout(() => setCelebrationAmount(parseFloat(newEntry.amount)), 200)
+    setTimeout(() => setCelebrationAmount(amount), 200)
+
+    // Award XP + set earn ring
+    if (user?.id) {
+      const xp = amount >= 1000 ? 50 : amount >= 100 ? 25 : 15
+      void supabase.rpc('award_xp', { p_user_id: user.id, p_xp: xp })
+      setRing(user.id, 'earn')
+    }
   }
 
   return (

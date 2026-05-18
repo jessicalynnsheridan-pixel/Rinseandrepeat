@@ -2,11 +2,13 @@
 
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, Flame, Check, X, Trash2, Target, ShieldCheck } from 'lucide-react'
+import { Plus, Flame, Check, X, Trash2, Target, ShieldCheck, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Sidebar } from '@/components/navigation/Sidebar'
 import { MobileNav } from '@/components/navigation/MobileNav'
 import { useUser } from '@/components/providers/UserProvider'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { setRing } from '@/lib/rings'
 
 const WEEK_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
@@ -134,6 +136,7 @@ function getWeekDates(): string[] {
 
 export default function HabitsPage() {
   const { profile, signOut, user } = useUser()
+  const supabase = createClientComponentClient()
   const TODAY_INDEX = useMemo(() => (new Date().getDay() + 6) % 7, [])
 
   // Start with empty  -  loaded from user-specific localStorage once userId is known
@@ -142,6 +145,9 @@ export default function HabitsPage() {
   const [showAdd, setShowAdd] = useState(false)
   const [newHabitName, setNewHabitName] = useState('')
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [xpBurst, setXpBurst] = useState<{ id: string; amount: number } | null>(null)
+  const [allDoneCelebrated, setAllDoneCelebrated] = useState(false)
+  const allDoneRef = useRef(false)
 
   const weekDates = getWeekDates()
   const isSaving = useRef(false)
@@ -178,33 +184,50 @@ export default function HabitsPage() {
 
   function toggleHabit(id: string) {
     const today = todayDateStr()
-    setHabits(prev => prev.map(h => {
-      if (h.id !== id) return h
-      const next = !h.completedToday
-      const history = [...h.weekHistory]
-      history[TODAY_INDEX] = next
+    setHabits(prev => {
+      const updated = prev.map(h => {
+        if (h.id !== id) return h
+        const next = !h.completedToday
+        const history = [...h.weekHistory]
+        history[TODAY_INDEX] = next
 
-      let newStreak = h.streak
-      if (next) {
-        // Completing today: only increment streak once per day
-        if (h.lastCompletedDate !== today) {
-          newStreak = h.streak + 1
+        let newStreak = h.streak
+        if (next) {
+          if (h.lastCompletedDate !== today) newStreak = h.streak + 1
+        } else {
+          if (h.lastCompletedDate === today) newStreak = Math.max(0, h.streak - 1)
         }
-      } else {
-        // Unchecking: undo the streak increment for today only
-        if (h.lastCompletedDate === today) {
-          newStreak = Math.max(0, h.streak - 1)
+
+        // Award XP for completing (not unchecking)
+        if (next && user?.id) {
+          const xp = newStreak >= 7 ? 20 : 10 // bonus XP for 7+ day streaks
+          void supabase.rpc('award_xp', { p_user_id: user.id, p_xp: xp })
+          setXpBurst({ id, amount: xp })
+          setTimeout(() => setXpBurst(null), 1800)
         }
+
+        return {
+          ...h,
+          completedToday: next,
+          lastCompletedDate: next ? today : h.lastCompletedDate,
+          streak: newStreak,
+          weekHistory: history,
+        }
+      })
+
+      // Check if all habits are now done → set grow ring + celebrate
+      const allDone = updated.length > 0 && updated.every(h => h.completedToday)
+      if (allDone && !allDoneRef.current && user?.id) {
+        allDoneRef.current = true
+        setAllDoneCelebrated(true)
+        setRing(user.id, 'grow')
+        setTimeout(() => setAllDoneCelebrated(false), 3000)
+      } else if (!allDone) {
+        allDoneRef.current = false
       }
 
-      return {
-        ...h,
-        completedToday: next,
-        lastCompletedDate: next ? today : h.lastCompletedDate,
-        streak: newStreak,
-        weekHistory: history,
-      }
-    }))
+      return updated
+    })
   }
 
   function addHabit(name?: string) {
@@ -523,6 +546,45 @@ export default function HabitsPage() {
 
         </div>
       </main>
+
+      {/* +XP burst toast */}
+      <AnimatePresence>
+        {xpBurst && (
+          <motion.div
+            key={xpBurst.id}
+            initial={{ opacity: 0, y: 20, scale: 0.8 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.9 }}
+            className="fixed bottom-24 lg:bottom-8 right-6 z-50 pointer-events-none"
+          >
+            <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#7C3AED] text-white shadow-lg text-sm font-bold">
+              <Sparkles className="w-4 h-4" />
+              +{xpBurst.amount} XP
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* All done celebration banner */}
+      <AnimatePresence>
+        {allDoneCelebrated && (
+          <motion.div
+            initial={{ opacity: 0, y: 60 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 60 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 24 }}
+            className="fixed bottom-24 lg:bottom-8 left-1/2 -translate-x-1/2 z-50 pointer-events-none"
+          >
+            <div className="flex items-center gap-3 px-5 py-3.5 rounded-2xl bg-[#18181B] text-white shadow-2xl whitespace-nowrap">
+              <span className="text-xl">👑</span>
+              <div>
+                <p className="text-sm font-bold">All habits done!</p>
+                <p className="text-xs text-[#A1A1AA]">Grow ring earned · You showed up today</p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <MobileNav />
     </div>

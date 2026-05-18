@@ -15,6 +15,8 @@ import { cn } from '@/lib/utils'
 import { Sidebar } from '@/components/navigation/Sidebar'
 import { MobileNav } from '@/components/navigation/MobileNav'
 import { useUser } from '@/components/providers/UserProvider'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { setRing } from '@/lib/rings'
 import {
   WORKSPACE_TEMPLATES,
   DEFAULT_WORKSPACE,
@@ -1072,6 +1074,7 @@ function FocusedStepCard({
 // ──────────────────────────────────────────
 export default function RoadmapDetailPage() {
   const { user, profile, signOut } = useUser()
+  const supabase = createClientComponentClient()
   const params = useParams()
   const router = useRouter()
   const slug = params.slug as string
@@ -1124,7 +1127,15 @@ export default function RoadmapDetailPage() {
       saveProgress(next, checklists)
 
       const phase = roadmap.phases[activePhase]
+      const milestone = phase.milestones.find(m => m.id === milestoneId)
+      const stepXP = milestone?.xp ?? 25
       const allPhaseDone = phase.milestones.every(m => next.has(m.id) || m.locked)
+
+      // Award XP + set build ring on every step completion
+      if (user?.id) {
+        void supabase.rpc('award_xp', { p_user_id: user.id, p_xp: stepXP })
+        setRing(user.id, 'build')
+      }
 
       if (allPhaseDone) {
         const earned = phase.milestones.reduce((sum, m) => sum + (next.has(m.id) ? m.xp : 0), 0)
@@ -1141,7 +1152,7 @@ export default function RoadmapDetailPage() {
 
       return next
     })
-  }, [checklists, saveProgress, roadmap, activePhase])
+  }, [checklists, saveProgress, roadmap, activePhase, user?.id]) // eslint-disable-line
 
   const handleChecklistChange = useCallback((milestoneId: string, itemIndex: number, value: boolean) => {
     setChecklists(prev => {
