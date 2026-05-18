@@ -860,6 +860,103 @@ function DailyTruth() {
   )
 }
 
+// ─── BEGINNER GUIDE (days 0–7) ────────────────────────────────────────────
+
+function BeginnerGuide({ firstName, roadmapSlug, userId }: { firstName?: string; roadmapSlug: string; userId?: string }) {
+  const router = useRouter()
+  const meta = ROADMAP_META[roadmapSlug] ?? ROADMAP_META[DEFAULT_ROADMAP]
+
+  const steps = [
+    { emoji: '🗺️', label: 'Pick your roadmap', done: !!roadmapSlug && roadmapSlug !== DEFAULT_ROADMAP, href: '/roadmaps' },
+    { emoji: '📋', label: 'Open Step 1 of your roadmap', done: false, href: `/roadmaps/${roadmapSlug}` },
+    { emoji: '💪', label: 'Set your first daily habit', done: false, href: '/habits' },
+  ]
+
+  // Check if step 1 of roadmap is done
+  if (userId) {
+    try {
+      const raw = localStorage.getItem(`${userId}_roadmap_${roadmapSlug}_v1`)
+      if (raw) {
+        const saved = JSON.parse(raw)
+        if ((saved.completed ?? []).length > 0) steps[1].done = true
+      }
+      const habRaw = localStorage.getItem(`${userId}_habits_v1`)
+      if (habRaw) {
+        const habits = JSON.parse(habRaw)
+        if (habits.length > 0) steps[2].done = true
+      }
+    } catch { /* ignore */ }
+  }
+
+  const nextStep = steps.find(s => !s.done)
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-white rounded-2xl border border-[#F0F0F0] overflow-hidden shadow-sm"
+    >
+      {/* Header */}
+      <div className="px-5 pt-5 pb-4" style={{ background: 'linear-gradient(135deg, #18181B 0%, #27272A 100%)' }}>
+        <p className="text-[#A78BFA] text-xs font-bold uppercase tracking-widest mb-1.5">Your Start Here Guide</p>
+        <h2 className="text-white text-lg font-bold leading-snug">
+          Hey {firstName ?? 'CEO'} 👋 Let's get you set up in 3 steps.
+        </h2>
+        <p className="text-[#71717A] text-xs mt-1.5">
+          Don't overthink it. Just follow the steps below, one at a time.
+        </p>
+      </div>
+
+      {/* Steps */}
+      <div className="p-4 space-y-2">
+        {steps.map((step, i) => (
+          <button
+            key={i}
+            onClick={() => router.push(step.href)}
+            className={cn(
+              'w-full flex items-center gap-3 p-3.5 rounded-xl text-left transition-all',
+              step.done ? 'bg-[#F0FDF4]' : nextStep?.label === step.label ? 'bg-[#EDE9FE] ring-1 ring-[#7C3AED]/20' : 'bg-[#F9F9F9] opacity-60'
+            )}
+          >
+            <div className={cn(
+              'w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-sm',
+              step.done ? 'bg-[#16A34A]' : nextStep?.label === step.label ? 'bg-[#7C3AED]' : 'bg-[#E4E4E7]'
+            )}>
+              {step.done ? <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} /> : <span>{step.emoji}</span>}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className={cn(
+                'text-sm font-semibold',
+                step.done ? 'text-[#15803D] line-through' : nextStep?.label === step.label ? 'text-[#18181B]' : 'text-[#A1A1AA]'
+              )}>
+                {i + 1}. {step.label}
+              </p>
+            </div>
+            {!step.done && nextStep?.label === step.label && (
+              <span className="text-[10px] font-bold text-[#7C3AED] bg-white px-2 py-1 rounded-full flex-shrink-0">
+                Do this now →
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* CTA */}
+      {nextStep && (
+        <div className="px-4 pb-4">
+          <button
+            onClick={() => router.push(nextStep.href)}
+            className="w-full py-3.5 rounded-xl text-white font-bold text-sm"
+            style={{ background: 'linear-gradient(135deg, #7C3AED, #8B5CF6)' }}
+          >
+            {nextStep.emoji} Start: {nextStep.label} →
+          </button>
+        </div>
+      )}
+    </motion.div>
+  )
+}
+
 // ─── QUICK ACTIONS ─────────────────────────────────────────────────────────
 
 function QuickActions() {
@@ -1009,17 +1106,26 @@ export default function DashboardPage() {
             <ComebackBanner streak={streak} daysInApp={days} firstName={firstName} />
           </AnimatePresence>
 
-          {/* ── THE ONE THING ── */}
-          <TheOneThing roadmapSlug={roadmapSlug} userId={user?.id} />
+          {/* ── BEGINNER GUIDE: shown for first 7 days ── */}
+          {days <= 7 && (
+            <BeginnerGuide
+              firstName={firstName}
+              roadmapSlug={roadmapSlug}
+              userId={user?.id}
+            />
+          )}
+
+          {/* ── THE ONE THING (shown after day 7) ── */}
+          {days > 7 && <TheOneThing roadmapSlug={roadmapSlug} userId={user?.id} />}
 
           {/* ── Inline habits ── */}
           <InlineHabits userId={user?.id} onAllDone={handleAllHabitsDone} />
 
-          {/* ── Stats row ── */}
-          <StatRow streak={streak} revenue={localRevenue} days={days} />
+          {/* ── Stats row (hidden for brand new users) ── */}
+          {days > 3 && <StatRow streak={streak} revenue={localRevenue} days={days} />}
 
-          {/* ── XP progress ── */}
-          <XPBar xp={xp} />
+          {/* ── XP progress (hidden for brand new users) ── */}
+          {days > 3 && <XPBar xp={xp} />}
 
           {/* ── Quick action grid ── */}
           <QuickActions />

@@ -407,6 +407,47 @@ const ROADMAP_DATA: Record<string, {
 }
 
 // ──────────────────────────────────────────
+// "Do This Now" — one direct action per step
+// ──────────────────────────────────────────
+const STEP_ACTIONS: Record<string, { label: string; url: string }> = {
+  // Shopify
+  s1:  { label: 'Research niches on Google Trends', url: 'https://trends.google.com' },
+  s2:  { label: 'Register your business on Ownr.co', url: 'https://ownr.co' },
+  s3:  { label: 'Start your Shopify free trial', url: 'https://shopify.com/free-trial' },
+  s4:  { label: 'Browse suppliers on Alibaba', url: 'https://alibaba.com' },
+  s5:  { label: 'Open Canva and start your logo', url: 'https://canva.com' },
+  l1:  { label: 'Open your Shopify product editor', url: 'https://shopify.com/login' },
+  l2:  { label: 'Create your Instagram business account', url: 'https://www.instagram.com/accounts/convert_to_professional' },
+  l3:  { label: 'Go live — remove your store password', url: 'https://shopify.com/login' },
+  g1:  { label: 'Open Meta Business Manager', url: 'https://business.facebook.com' },
+  g2:  { label: 'Start free with Klaviyo', url: 'https://klaviyo.com' },
+  sc1: { label: 'View your Shopify analytics', url: 'https://shopify.com/login' },
+  // Digital products
+  d1:  { label: 'See what\'s trending on TikTok', url: 'https://tiktok.com' },
+  d2:  { label: 'Create your product in Canva', url: 'https://canva.com/create/ebooks' },
+  d3:  { label: 'Set up your Stan Store', url: 'https://stan.store' },
+  dl1: { label: 'Post your launch content on Instagram', url: 'https://instagram.com' },
+  // Creator
+  c1:  { label: 'Research your niche on TikTok', url: 'https://tiktok.com' },
+  c2:  { label: 'Set up your Instagram business profile', url: 'https://instagram.com' },
+  c3:  { label: 'Create your first Reel today', url: 'https://instagram.com' },
+  cm1: { label: 'Set up your Stan Store', url: 'https://stan.store' },
+  cm2: { label: 'Pitch your first brand deal', url: 'https://app.grin.co' },
+  // Service business
+  sv1: { label: 'List your service on Fiverr', url: 'https://fiverr.com/selling' },
+  sv2: { label: 'Create a proposal template in Canva', url: 'https://canva.com' },
+  sv3: { label: 'Set up your booking link on Calendly', url: 'https://calendly.com' },
+  // Affiliate
+  a1:  { label: 'Browse affiliate programs on ShareASale', url: 'https://shareasale.com' },
+  a2:  { label: 'Apply to Amazon Associates', url: 'https://affiliate-program.amazon.ca' },
+  a3:  { label: 'Create a link-in-bio with Stan Store', url: 'https://stan.store' },
+  // Med spa
+  ms1: { label: 'Check your province\'s licensing rules', url: 'https://canada.ca/en/health-canada.html' },
+  ms2: { label: 'Register your business on Ownr.co', url: 'https://ownr.co' },
+  ms3: { label: 'Set up online booking with Jane App', url: 'https://jane.app' },
+}
+
+// ──────────────────────────────────────────
 // Brainstorm (chip) input
 // ──────────────────────────────────────────
 function BrainstormInput({
@@ -862,6 +903,20 @@ function FocusedStepCard({
           <p className="text-[#52525B] text-sm leading-relaxed">
             {milestone.description}
           </p>
+
+          {/* Do This Now CTA */}
+          {!milestone.locked && !completed && STEP_ACTIONS[milestone.id] && (
+            <a
+              href={STEP_ACTIONS[milestone.id].url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-between w-full px-4 py-3.5 rounded-2xl text-white font-semibold text-sm transition-all active:scale-[0.98]"
+              style={{ background: '#18181B' }}
+            >
+              <span>👉 {STEP_ACTIONS[milestone.id].label}</span>
+              <span className="text-[#71717A] text-xs ml-2 flex-shrink-0">Open →</span>
+            </a>
+          )}
 
           {/* Tasks */}
           {!milestone.locked && (
