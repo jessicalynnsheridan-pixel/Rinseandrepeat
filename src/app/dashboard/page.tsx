@@ -1,14 +1,15 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Flame, Zap, TrendingUp, Check, ChevronRight,
-  ArrowRight, BookOpen, Plus, Sparkles, Crown, Target,
+  ArrowRight, Plus, Sparkles, Crown, Shield, AlertCircle,
+  Users, Trophy, Rocket,
 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { cn, getGreeting, formatCurrency } from '@/lib/utils'
+import { cn, formatCurrency } from '@/lib/utils'
 import { Sidebar } from '@/components/navigation/Sidebar'
 import { MobileNav } from '@/components/navigation/MobileNav'
 import { useUser } from '@/components/providers/UserProvider'
@@ -20,6 +21,10 @@ function todayKey() {
 }
 function ringsStorageKey(userId: string) {
   return `${userId}_rings_${todayKey()}`
+}
+function daysInApp(createdAt: string | null): number {
+  if (!createdAt) return 0
+  return Math.floor((Date.now() - new Date(createdAt).getTime()) / (1000 * 60 * 60 * 24))
 }
 
 // ─── Roadmap metadata ──────────────────────────────────────────────────────
@@ -34,7 +39,7 @@ const ROADMAP_META: Record<string, {
   shopify: {
     label: 'Shopify Brand',
     firstStep: 'Choose your niche',
-    firstStepDesc: 'Research 5 potential niches, validate with TikTok/Instagram, and decide. This is your foundation  -  everything else builds on this.',
+    firstStepDesc: 'Research 5 potential niches, validate with TikTok/Instagram, and decide. This is your foundation — everything else builds on this.',
     xp: 50,
     steps: [
       { id: 's1', title: 'Choose your niche' },
@@ -46,7 +51,7 @@ const ROADMAP_META: Record<string, {
   digital: {
     label: 'Digital Products',
     firstStep: 'Define your core offer',
-    firstStepDesc: 'Decide what digital product to create  -  a course, ebook, template, or toolkit. Research what your audience already buys.',
+    firstStepDesc: 'Decide what digital product to create — a course, ebook, template, or toolkit. Research what your audience already buys.',
     xp: 50,
     steps: [
       { id: 'd1', title: 'Define your core offer' },
@@ -58,7 +63,7 @@ const ROADMAP_META: Record<string, {
   creator: {
     label: 'Content Creator',
     firstStep: 'Choose your content niche',
-    firstStepDesc: 'Pick the topic you can create content about consistently. Narrow beats broad  -  "skincare for Black women" beats "beauty tips".',
+    firstStepDesc: 'Pick the topic you can create content about consistently. Narrow beats broad — "skincare for Black women" beats "beauty tips".',
     xp: 50,
     steps: [
       { id: 'c1', title: 'Choose your content niche' },
@@ -76,7 +81,7 @@ const ROADMAP_META: Record<string, {
       { id: 'sv1', title: 'Define your service offer' },
       { id: 'sv2', title: 'Set your pricing' },
       { id: 'sv3', title: 'Build a simple landing page' },
-      { id: 'sv4', title: 'Do outreach and land your first client' },
+      { id: 'sv4', title: 'Land your first client' },
     ],
   },
   affiliate: {
@@ -94,7 +99,7 @@ const ROADMAP_META: Record<string, {
   medspa: {
     label: 'Med Spa / Wellness',
     firstStep: 'Research licensing requirements',
-    firstStepDesc: 'Find out exactly what licences and certifications you need in your state. This is non-negotiable  -  get clarity here first.',
+    firstStepDesc: 'Find out exactly what licences and certifications you need in your state. This is non-negotiable — get clarity here first.',
     xp: 50,
     steps: [
       { id: 'm1', title: 'Research licensing requirements' },
@@ -107,408 +112,196 @@ const ROADMAP_META: Record<string, {
 
 const DEFAULT_ROADMAP = 'shopify'
 
-// ─── Context-aware greeting ────────────────────────────────────────────────
+// ─── Dynamic daily brief copy ─────────────────────────────────────────────
 
-function getContextGreeting(firstName: string | undefined, streak: number): { line1: string; line2: string } {
-  const name = firstName ? `, ${firstName}` : ''
-  const hour = new Date().getHours()
-  const timeWord = hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : 'evening'
-
-  if (streak === 0) return { line1: `Good ${timeWord}${name}.`, line2: 'Start your streak today.' }
-  if (streak === 1) return { line1: `Day 1${name}.`, line2: 'Every empire starts somewhere.' }
-  if (streak === 7) return { line1: `One week straight${name}.`, line2: "You're building something real." }
-  if (streak === 14) return { line1: `Two weeks in${name}.`, line2: 'This is already more than most.' }
-  if (streak === 30) return { line1: `30 days${name}.`, line2: "You're in the top 1%." }
-  if (streak >= 100) return { line1: `${streak} days${name}.`, line2: 'The Century Club. Welcome.' }
-  if (streak > 0 && streak < 7) return { line1: `Day ${streak}${name}.`, line2: 'Keep the momentum.' }
-  return { line1: `Good ${timeWord}${name}.`, line2: `Day ${streak} streak. Don't stop now.` }
+const BUSINESS_VERBS: Record<string, string> = {
+  shopify: 'building your brand',
+  digital: 'creating your offer',
+  creator: 'growing your audience',
+  service: 'landing clients',
+  affiliate: 'building passive income',
+  medspa: 'building your practice',
 }
 
-// ─── THREE RINGS ───────────────────────────────────────────────────────────
+function getDailyBrief(
+  firstName: string | undefined,
+  streak: number,
+  days: number,
+  businessType: string | null,
+  hour: number,
+): { headline: string; subtext: string; tag: string } {
+  const name = firstName ?? 'CEO'
+  const verb = BUSINESS_VERBS[businessType ?? 'shopify'] ?? 'building your business'
 
-function ThreeRings({ build, earn, grow }: { build: boolean; earn: boolean; grow: boolean }) {
-  const rings = [
-    { done: build, color: '#7C3AED', bg: '#EDE9FE', r: 54, label: 'BUILD' },
-    { done: earn, color: '#16A34A', bg: '#DCFCE7', r: 40, label: 'EARN' },
-    { done: grow, color: '#F97316', bg: '#FEF3C7', r: 26, label: 'GROW' },
-  ]
-  const total = [build, earn, grow].filter(Boolean).length
-  const circumference = (r: number) => 2 * Math.PI * r
-
-  return (
-    <div className="relative flex flex-col items-center">
-      <div className="relative w-[130px] h-[130px]">
-        <svg className="w-full h-full -rotate-90" viewBox="0 0 130 130">
-          {rings.map(ring => (
-            <g key={ring.label}>
-              <circle cx="65" cy="65" r={ring.r} fill="none" stroke={ring.bg} strokeWidth="8" />
-              <motion.circle
-                cx="65" cy="65" r={ring.r}
-                fill="none" stroke={ring.color} strokeWidth="8"
-                strokeLinecap="round"
-                strokeDasharray={circumference(ring.r)}
-                initial={{ strokeDashoffset: circumference(ring.r) }}
-                animate={{ strokeDashoffset: ring.done ? 0 : circumference(ring.r) }}
-                transition={{ duration: 0.8, ease: 'easeOut', delay: 0.1 }}
-              />
-            </g>
-          ))}
-        </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          {total === 3 ? (
-            <Crown className="w-6 h-6 text-[#7C3AED]" />
-          ) : (
-            <>
-              <span className="text-xl font-bold text-[#18181B]">{total}</span>
-              <span className="text-[10px] text-[#A1A1AA]">of 3</span>
-            </>
-          )}
-        </div>
-      </div>
-      <div className="flex gap-3 mt-2">
-        {rings.map(ring => (
-          <div key={ring.label} className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: ring.done ? ring.color : '#E4E4E7' }} />
-            <span className="text-[10px] font-semibold" style={{ color: ring.done ? ring.color : '#A1A1AA' }}>{ring.label}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-// Mobile rings: horizontal strip
-function RingStrip({ build, earn, grow }: { build: boolean; earn: boolean; grow: boolean }) {
-  const total = [build, earn, grow].filter(Boolean).length
-  const items = [
-    { done: build, color: '#7C3AED', label: 'BUILD' },
-    { done: earn, color: '#16A34A', label: 'EARN' },
-    { done: grow, color: '#F97316', label: 'GROW' },
-  ]
-  return (
-    <div className="flex items-center gap-4">
-      {items.map(item => (
-        <div key={item.label} className="flex items-center gap-1.5">
-          <div
-            className="w-3 h-3 rounded-full border-2"
-            style={{
-              backgroundColor: item.done ? item.color : 'transparent',
-              borderColor: item.done ? item.color : '#D4D4D8',
-            }}
-          />
-          <span className="text-xs font-semibold" style={{ color: item.done ? item.color : '#A1A1AA' }}>
-            {item.label}
-          </span>
-        </div>
-      ))}
-      <span className="text-xs text-[#A1A1AA] ml-1"> -  {total}/3 today</span>
-    </div>
-  )
-}
-
-// ─── STREAK TIER DISPLAY ───────────────────────────────────────────────────
-
-function StreakDisplay({ streak }: { streak: number }) {
-  type Tier = 'cold' | 'warm' | 'hot' | 'blazing' | 'legendary'
-  const tier: Tier = streak === 0 ? 'cold' : streak < 7 ? 'warm' : streak < 30 ? 'hot' : streak < 100 ? 'blazing' : 'legendary'
-  const config: Record<Tier, { color: string; bg: string; icon: string; label: string }> = {
-    cold: { color: '#A1A1AA', bg: '#F4F4F5', icon: '○', label: 'Start streak' },
-    warm: { color: '#F97316', bg: '#FEF3C7', icon: '🔥', label: `Day ${streak}` },
-    hot: { color: '#EA580C', bg: '#FFEDD5', icon: '🔥', label: `${streak} days` },
-    blazing: { color: '#7C3AED', bg: '#EDE9FE', icon: '🔥', label: `${streak} days` },
-    legendary: { color: '#18181B', bg: '#F4F4F5', icon: '👑', label: `${streak} days` },
+  // Special milestone days
+  if (days === 1) return {
+    tag: 'Day One',
+    headline: `This is where it starts, ${name}.`,
+    subtext: `Every CEO you admire had a Day One. Yours is today. Don't overthink it — just begin.`,
   }
-  const { color, bg, icon, label } = config[tier]
+  if (days === 7) return {
+    tag: 'One Week In',
+    headline: `You made it a full week.`,
+    subtext: `Most people quit before Day 7. You didn't. That already puts you ahead of the majority. Keep that energy.`,
+  }
+  if (days === 14) return {
+    tag: 'Two Weeks Strong',
+    headline: `Two weeks of showing up.`,
+    subtext: `This is the part where the results aren't obvious yet, but the roots are growing. Trust the process, ${name}.`,
+  }
+  if (days === 30) return {
+    tag: '30-Day CEO',
+    headline: `30 days. You're the real deal now.`,
+    subtext: `You've proven something to yourself. Most entrepreneurs never make it a month in. You did. This is your foundation.`,
+  }
+  if (days === 60) return {
+    tag: '60 Days',
+    headline: `Two months of building, ${name}.`,
+    subtext: `At 60 days, compounding starts to kick in. Every habit, every step, every dollar logged — it adds up faster from here.`,
+  }
+  if (days === 90) return {
+    tag: '90-Day Milestone',
+    headline: `Quarter one of your CEO era. Done.`,
+    subtext: `90 days of ${verb}. This is the moment most people say "I wish I'd started." You started. Now you scale.`,
+  }
 
-  return (
-    <div className="flex items-center gap-2 px-3 py-2 rounded-xl" style={{ backgroundColor: bg }}>
-      <span className="text-base leading-none">{icon}</span>
-      <div>
-        <p className="text-xs font-bold leading-none" style={{ color }}>{label}</p>
-        <p className="text-[10px] text-[#A1A1AA] mt-0.5">{streak === 0 ? 'no streak yet' : 'streak'}</p>
-      </div>
-    </div>
-  )
+  // Streak milestones
+  if (streak === 3) return {
+    tag: '3-Day Streak',
+    headline: `Three days straight. The habit is forming.`,
+    subtext: `Research says it takes 21 days to form a habit. You're 3 in. Don't break the chain.`,
+  }
+  if (streak === 7) return {
+    tag: 'Week Streak 🔥',
+    headline: `7 days on fire. You're building a real habit.`,
+    subtext: `One week of daily consistency. That's more than 80% of people ever manage. What you do today determines if this becomes permanent.`,
+  }
+  if (streak === 30) return {
+    tag: '30-Day Streak 👑',
+    headline: `30 days without stopping. You're elite.`,
+    subtext: `This kind of consistency is what separates the ones who make it. You're not just building a business — you're building a new identity.`,
+  }
+
+  // Time-of-day based (fallback)
+  if (hour < 9) return {
+    tag: 'Morning Brief',
+    headline: `Up early. That's the energy.`,
+    subtext: `The best CEOs own their morning before the world can steal it. You're already ahead. Now make it count.`,
+  }
+  if (hour < 12) return {
+    tag: 'Morning Brief',
+    headline: `Good morning, ${name}.`,
+    subtext: `You have the whole day ahead of you. One focused hour on ${verb} today beats ten scattered ones. Let's go.`,
+  }
+  if (hour < 17) return {
+    tag: 'Afternoon',
+    headline: `The day isn't over, ${name}.`,
+    subtext: `Whatever's happened so far — the afternoon is your second chance. ${streak > 0 ? `Your ${streak}-day streak is counting on you.` : 'Use it.'}`,
+  }
+  return {
+    tag: 'Evening',
+    headline: `End the day strong.`,
+    subtext: `Whatever you accomplish in the next hour will compound. Future-${name} is watching what you do right now.`,
+  }
 }
 
-// ─── SETUP GUIDE ───────────────────────────────────────────────────────────
+// ─── COMMUNITY PULSE (social proof that makes the app feel alive) ──────────
 
-const SETUP_ITEMS = [
-  { id: 'habit', label: 'Add your first habit', href: '/habits' },
-  { id: 'milestone', label: 'Complete your first milestone', href: '/roadmaps' },
-  { id: 'income', label: 'Log your first income', href: '/revenue' },
-  { id: 'community', label: 'Introduce yourself in the community', href: '/community' },
-  { id: 'profile', label: 'Complete your profile', href: '/settings' },
+const PULSE_MESSAGES = [
+  { emoji: '🎉', text: 'Maya just logged her first $1,000 month' },
+  { emoji: '🔥', text: '47 entrepreneurs kept their streak alive today' },
+  { emoji: '💼', text: 'Priya landed her first coaching client this week' },
+  { emoji: '👑', text: '12 women in this community hit $10K+ this month' },
+  { emoji: '📈', text: 'Danielle completed her Shopify roadmap milestone' },
+  { emoji: '⚡', text: '183 habits completed across the community today' },
+  { emoji: '🚀', text: 'Camille hit a 30-day streak this morning' },
+  { emoji: '💰', text: 'Revenue logged today: $18,240 across the community' },
 ]
 
-function SetupGuide({ userId }: { userId?: string }) {
-  const router = useRouter()
-  const [checked, setChecked] = useState<Set<string>>(new Set())
-  const [dismissed, setDismissed] = useState(false)
-  const [hydrated, setHydrated] = useState(false)
+function CommunityPulse() {
+  const [idx, setIdx] = useState(() => Math.floor(Math.random() * PULSE_MESSAGES.length))
+  const [visible, setVisible] = useState(true)
 
   useEffect(() => {
-    if (!userId) return
-    try {
-      const raw = localStorage.getItem(`${userId}_setup_v1`)
-      const saved = raw ? JSON.parse(raw) : {}
-      const initialChecked: Set<string> = new Set(saved.checked ?? [])
-      if (saved.dismissed) { setDismissed(true); setHydrated(true); return }
+    const interval = setInterval(() => {
+      setVisible(false)
+      setTimeout(() => {
+        setIdx(i => (i + 1) % PULSE_MESSAGES.length)
+        setVisible(true)
+      }, 400)
+    }, 5000)
+    return () => clearInterval(interval)
+  }, [])
 
-      // Auto-check habit
-      const habitsRaw = localStorage.getItem(`${userId}_habits_v1`)
-      if (habitsRaw && JSON.parse(habitsRaw).length > 0) initialChecked.add('habit')
-
-      // Auto-check income
-      const revRaw = localStorage.getItem(`${userId}_revenue_v1`)
-      if (revRaw) {
-        const revData = JSON.parse(revRaw)
-        const hasEntries = ['week', 'month', 'year'].some(
-          (p) => Array.isArray(revData[p]?.entries) && revData[p].entries.length > 0
-        )
-        if (hasEntries) initialChecked.add('income')
-      }
-
-      setChecked(initialChecked)
-    } catch { /* ignore */ }
-    setHydrated(true)
-  }, [userId])
-
-  function persist(nextChecked: Set<string>, nextDismissed: boolean) {
-    if (!userId) return
-    try {
-      localStorage.setItem(
-        `${userId}_setup_v1`,
-        JSON.stringify({ checked: Array.from(nextChecked), dismissed: nextDismissed })
-      )
-    } catch { /* ignore */ }
-  }
-
-  function toggleItem(id: string) {
-    setChecked(prev => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id); else next.add(id)
-      persist(next, dismissed)
-      return next
-    })
-  }
-
-  function dismiss() {
-    setDismissed(true)
-    persist(checked, true)
-  }
-
-  if (!hydrated || dismissed) return null
-
-  const completedCount = checked.size
-  const totalCount = SETUP_ITEMS.length
-  const allDone = completedCount === totalCount
-  const pct = Math.round((completedCount / totalCount) * 100)
+  const msg = PULSE_MESSAGES[idx]
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="bg-white rounded-2xl border border-[#E4E4E7] p-5"
-    >
-      <div className="flex items-center justify-between mb-1">
-        <p className="text-xs font-bold uppercase tracking-widest text-[#A1A1AA]">Getting Started</p>
-        <button onClick={dismiss} className="text-[10px] text-[#A1A1AA] hover:text-[#71717A] transition-colors">
-          {allDone ? 'Dismiss ✓' : 'Skip'}
-        </button>
-      </div>
-      <p className="text-sm font-semibold text-[#18181B] mb-3">
-        {allDone ? "Setup complete! You're ready to build." : `${completedCount} of ${totalCount} steps complete`}
-      </p>
-      <div className="w-full h-1 bg-[#F4F4F5] rounded-full overflow-hidden mb-4">
-        <motion.div
-          className="h-full rounded-full bg-[#7C3AED]"
-          initial={{ width: 0 }}
-          animate={{ width: `${pct}%` }}
-          transition={{ duration: 0.6, ease: 'easeOut' }}
-        />
-      </div>
-      <div className="space-y-2">
-        {SETUP_ITEMS.map(item => {
-          const done = checked.has(item.id)
-          return (
-            <div key={item.id} className="flex items-center gap-3">
-              <button
-                onClick={() => toggleItem(item.id)}
-                className={cn(
-                  'w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all',
-                  done ? 'bg-[#7C3AED] border-[#7C3AED]' : 'border-[#D4D4D8] hover:border-[#7C3AED]'
-                )}
-              >
-                {done && <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />}
-              </button>
-              <button
-                onClick={() => router.push(item.href)}
-                className={cn(
-                  'text-sm flex-1 text-left transition-colors',
-                  done ? 'text-[#A1A1AA] line-through' : 'text-[#3F3F46] font-medium hover:text-[#7C3AED]'
-                )}
-              >
-                {item.label}
-              </button>
-            </div>
-          )
-        })}
-      </div>
-    </motion.div>
-  )
-}
-
-// ─── RINGS WIDGET CARD ─────────────────────────────────────────────────────
-
-function RingsCard({
-  rings,
-  isMobile,
-}: {
-  rings: { build: boolean; earn: boolean; grow: boolean }
-  isMobile?: boolean
-}) {
-  const router = useRouter()
-
-  if (isMobile) {
-    return (
+    <Link href="/community">
       <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-2xl border border-[#E4E4E7] p-4"
+        whileHover={{ scale: 1.01 }}
+        className="bg-white border border-[#E4E4E7] rounded-2xl px-4 py-3 flex items-center gap-3 cursor-pointer hover:border-[#C4B5FD] transition-colors"
       >
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-[#A1A1AA] mb-2">Daily CEO Ritual</p>
-            <RingStrip {...rings} />
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => router.push('/roadmaps')}
-              className="px-2.5 py-1.5 text-[10px] font-semibold rounded-lg bg-[#EDE9FE] text-[#7C3AED]"
-            >
-              BUILD
-            </button>
-            <button
-              onClick={() => router.push('/revenue')}
-              className="px-2.5 py-1.5 text-[10px] font-semibold rounded-lg bg-[#DCFCE7] text-[#16A34A]"
-            >
-              EARN
-            </button>
-            <button
-              onClick={() => router.push('/habits')}
-              className="px-2.5 py-1.5 text-[10px] font-semibold rounded-lg bg-[#FEF3C7] text-[#F97316]"
-            >
-              GROW
-            </button>
-          </div>
+        <div className="w-7 h-7 rounded-full bg-[#EDE9FE] flex items-center justify-center flex-shrink-0">
+          <Users className="w-3.5 h-3.5 text-[#7C3AED]" />
         </div>
+        <AnimatePresence mode="wait">
+          {visible && (
+            <motion.p
+              key={idx}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.3 }}
+              className="text-xs text-[#52525B] flex-1"
+            >
+              <span className="mr-1">{msg.emoji}</span>
+              {msg.text}
+            </motion.p>
+          )}
+        </AnimatePresence>
+        <ChevronRight className="w-3.5 h-3.5 text-[#D4D4D8] flex-shrink-0" />
       </motion.div>
-    )
-  }
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="bg-white rounded-2xl border border-[#E4E4E7] p-5 flex flex-col items-center"
-    >
-      <p className="text-[10px] font-bold uppercase tracking-widest text-[#A1A1AA] mb-4 self-start">Daily CEO Ritual</p>
-      <ThreeRings {...rings} />
-      <p className="text-xs text-[#A1A1AA] mt-3 text-center">
-        {[rings.build, rings.earn, rings.grow].filter(Boolean).length === 3
-          ? 'All three rings closed. Crowned.'
-          : 'Close all 3 rings today.'}
-      </p>
-      <div className="flex gap-2 mt-4 w-full">
-        <button
-          onClick={() => router.push('/roadmaps')}
-          className="flex-1 py-2 text-[10px] font-bold rounded-xl bg-[#EDE9FE] text-[#7C3AED] hover:bg-[#DDD6FE] transition-colors"
-        >
-          BUILD
-        </button>
-        <button
-          onClick={() => router.push('/revenue')}
-          className="flex-1 py-2 text-[10px] font-bold rounded-xl bg-[#DCFCE7] text-[#16A34A] hover:bg-[#BBF7D0] transition-colors"
-        >
-          EARN
-        </button>
-        <button
-          onClick={() => router.push('/habits')}
-          className="flex-1 py-2 text-[10px] font-bold rounded-xl bg-[#FEF3C7] text-[#F97316] hover:bg-[#FDE68A] transition-colors"
-        >
-          GROW
-        </button>
-      </div>
-    </motion.div>
+    </Link>
   )
 }
 
-// ─── TODAY'S FOCUS ─────────────────────────────────────────────────────────
+// ─── STREAK DEFENSE BANNER ────────────────────────────────────────────────
 
-function TodayFocus({ roadmapSlug, userId }: { roadmapSlug: string; userId?: string }) {
-  const router = useRouter()
-  const [done, setDone] = useState(false)
-  const [completedIds, setCompletedIds] = useState<Set<string>>(new Set())
+function StreakDefenseBanner({ streak, habitsAllDone }: { streak: number; habitsAllDone: boolean }) {
+  const [dismissed, setDismissed] = useState(false)
+  const hour = new Date().getHours()
 
-  const meta = ROADMAP_META[roadmapSlug] ?? ROADMAP_META[DEFAULT_ROADMAP]
+  // Show warning after 3pm if streak > 0 and habits not all done
+  const isAtRisk = streak > 0 && !habitsAllDone && hour >= 15 && !dismissed
 
-  useEffect(() => {
-    if (!userId) return
-    try {
-      const raw = localStorage.getItem(`${userId}_roadmap_${roadmapSlug}_v1`)
-      if (raw) {
-        const saved = JSON.parse(raw)
-        setCompletedIds(new Set(saved.completed ?? []))
-      }
-    } catch { /* ignore */ }
-  }, [userId, roadmapSlug])
-
-  // Find first uncompleted step
-  const nextStep = meta.steps.find(s => !completedIds.has(s.id))
-  const allDone = !nextStep
-
-  const stepTitle = nextStep?.title ?? meta.firstStep
-  const stepDesc = allDone
-    ? 'You have completed all steps in this phase. Check your roadmap for what comes next.'
-    : (nextStep?.id === meta.steps[0].id ? meta.firstStepDesc : `Continue with: ${stepTitle}`)
+  if (!isAtRisk) return null
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.1 }}
-      className="bg-white rounded-2xl border border-[#E4E4E7] p-6 relative overflow-hidden"
+      initial={{ opacity: 0, y: -8, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -8 }}
+      className="relative bg-gradient-to-r from-[#F97316] to-[#EA580C] rounded-2xl p-4 text-white overflow-hidden"
     >
-      <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#7C3AED] rounded-l-2xl" />
-      <div className="pl-4">
-        <div className="flex items-center gap-2 mb-3">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-[#7C3AED]">Today&apos;s focus</span>
-          <span className="text-[10px] text-[#A1A1AA]">· {meta.label}</span>
+      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJ3aGl0ZSIgZmlsbC1vcGFjaXR5PSIwLjA1Ij48cmVjdCB3aWR0aD0iMjAiIGhlaWdodD0iMjAiLz48cmVjdCB4PSIyMCIgeT0iMjAiIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIvPjwvZz48L3N2Zz4=')] opacity-30" />
+      <div className="relative flex items-center gap-3">
+        <div className="text-2xl flex-shrink-0">🔥</div>
+        <div className="flex-1">
+          <p className="text-sm font-bold leading-tight">Your {streak}-day streak is at risk</p>
+          <p className="text-xs text-orange-100 mt-0.5">Complete at least one habit before midnight to keep it alive.</p>
         </div>
-        <h2 className="text-lg font-semibold text-[#18181B] leading-snug mb-2">{stepTitle}</h2>
-        <p className="text-sm text-[#71717A] leading-relaxed mb-5">{stepDesc}</p>
-        <div className="flex items-center gap-3 flex-wrap">
-          {!allDone && (
-            <button
-              onClick={() => setDone(!done)}
-              className={cn(
-                'flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all',
-                done
-                  ? 'bg-[#DCFCE7] text-[#15803D] border border-[#BBF7D0]'
-                  : 'bg-[#7C3AED] text-white hover:bg-[#6D28D9]'
-              )}
-            >
-              <Check className="w-3.5 h-3.5" strokeWidth={2.5} />
-              {done ? `Done! +${meta.xp} XP` : 'Mark as done'}
-            </button>
-          )}
-          <button
-            onClick={() => router.push(`/roadmaps/${roadmapSlug}`)}
-            className="flex items-center gap-1.5 text-sm text-[#71717A] hover:text-[#18181B] transition-colors"
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <Link
+            href="/habits"
+            className="px-3 py-1.5 bg-white text-[#EA580C] text-xs font-bold rounded-xl hover:bg-orange-50 transition-colors"
           >
-            <BookOpen className="w-3.5 h-3.5" />
-            {allDone ? 'View roadmap' : 'Open roadmap'}
+            Save it
+          </Link>
+          <button
+            onClick={() => setDismissed(true)}
+            className="p-1 text-orange-200 hover:text-white transition-colors"
+          >
+            <AlertCircle className="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -516,223 +309,585 @@ function TodayFocus({ roadmapSlug, userId }: { roadmapSlug: string; userId?: str
   )
 }
 
-// ─── ROADMAP PROGRESS ──────────────────────────────────────────────────────
+// ─── COMEBACK BANNER (for users returning after a break) ─────────────────
 
-function RoadmapProgress({ roadmapSlug, userId }: { roadmapSlug: string; userId?: string }) {
-  const router = useRouter()
-  const meta = ROADMAP_META[roadmapSlug] ?? ROADMAP_META[DEFAULT_ROADMAP]
-  const [completedIds, setCompletedIds] = useState<Set<string>>(new Set())
+function ComebackBanner({ streak, daysInApp: days, firstName }: { streak: number; daysInApp: number; firstName?: string }) {
+  const [show, setShow] = useState(false)
+  const [dismissed, setDismissed] = useState(false)
 
   useEffect(() => {
-    if (!userId) return
-    try {
-      const raw = localStorage.getItem(`${userId}_roadmap_${roadmapSlug}_v1`)
-      if (raw) {
-        const saved = JSON.parse(raw)
-        setCompletedIds(new Set(saved.completed ?? []))
-      }
-    } catch { /* ignore */ }
-  }, [userId, roadmapSlug])
+    // Streak just reset (was >0 at some point, now 0 or 1, days >3)
+    const key = `comeback_shown_${todayKey()}`
+    if (streak <= 1 && days > 3 && !localStorage.getItem(key)) {
+      setShow(true)
+    }
+  }, [streak, days])
 
-  const completed = meta.steps.filter(s => completedIds.has(s.id)).length
-  const pct = Math.round((completed / meta.steps.length) * 100)
+  function dismiss() {
+    localStorage.setItem(`comeback_shown_${todayKey()}`, '1')
+    setDismissed(true)
+  }
+
+  if (!show || dismissed) return null
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.15 }}
-      className="bg-white rounded-2xl border border-[#E4E4E7] p-5"
+      initial={{ opacity: 0, scale: 0.96 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.96 }}
+      className="bg-[#18181B] rounded-2xl p-5 relative overflow-hidden"
     >
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-[#A1A1AA] mb-0.5">Your roadmap</p>
-          <p className="text-sm font-semibold text-[#18181B]">{meta.label} · Foundation</p>
+      <div className="absolute inset-0 bg-gradient-to-br from-[#7C3AED]/20 to-transparent" />
+      <div className="relative">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-widest text-[#7C3AED] mb-1">You're back 👋</p>
+            <h3 className="text-base font-semibold text-white leading-snug">
+              The 3% who return become the 1% who succeed{firstName ? `, ${firstName}` : ''}.
+            </h3>
+            <p className="text-sm text-[#71717A] mt-1.5 leading-relaxed">
+              Life happens. What matters is you're here. Start fresh today — your streak resets at 1, not zero.
+            </p>
+          </div>
+          <button onClick={dismiss} className="text-[#52525B] hover:text-[#71717A] flex-shrink-0 mt-0.5 transition-colors text-xs">
+            ✕
+          </button>
         </div>
-        <span className="text-xs font-semibold text-[#A1A1AA]">{completed}/{meta.steps.length} done</span>
-      </div>
-      <div className="w-full h-1.5 bg-[#F4F4F5] rounded-full overflow-hidden mb-4">
-        <motion.div
-          className="h-full bg-[#7C3AED] rounded-full"
-          initial={{ width: 0 }}
-          animate={{ width: `${pct}%` }}
-          transition={{ duration: 0.8, ease: 'easeOut' }}
-        />
-      </div>
-      <div className="space-y-1.5 mb-4">
-        {meta.steps.map(step => {
-          const isDone = completedIds.has(step.id)
-          return (
-            <div key={step.id} className="flex items-center gap-3 py-1.5 px-2 rounded-lg">
-              <div className={cn(
-                'w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0',
-                isDone ? 'bg-[#7C3AED] border-[#7C3AED]' : 'border-[#D4D4D8]'
-              )}>
-                {isDone && <Check className="w-2 h-2 text-white" strokeWidth={3} />}
-              </div>
-              <span className={cn(
-                'text-xs flex-1',
-                isDone ? 'text-[#A1A1AA] line-through' : 'text-[#3F3F46] font-medium'
-              )}>
-                {step.title}
-              </span>
-              {!isDone && <ChevronRight className="w-3 h-3 text-[#D4D4D8]" />}
-            </div>
-          )
-        })}
-      </div>
-      {completed === 0 ? (
         <button
-          onClick={() => router.push(`/roadmaps/${roadmapSlug}`)}
-          className="w-full py-2.5 text-sm font-semibold text-white bg-[#7C3AED] rounded-xl hover:bg-[#6D28D9] transition-colors flex items-center justify-center gap-2"
+          onClick={dismiss}
+          className="mt-4 w-full py-2.5 bg-[#7C3AED] text-white text-sm font-semibold rounded-xl hover:bg-[#6D28D9] transition-colors"
         >
-          Start your first task <ArrowRight className="w-3.5 h-3.5" />
+          Let's go — Day 1 again 🔥
         </button>
-      ) : (
-        <button
-          onClick={() => router.push(`/roadmaps/${roadmapSlug}`)}
-          className="w-full py-2.5 text-sm font-semibold text-[#7C3AED] border border-[#DDD6FE] rounded-xl hover:bg-[#EDE9FE] transition-colors flex items-center justify-center gap-2"
-        >
-          Continue roadmap <ArrowRight className="w-3.5 h-3.5" />
-        </button>
-      )}
+      </div>
     </motion.div>
   )
 }
 
-// ─── QUICK HABITS ──────────────────────────────────────────────────────────
+// ─── CELEBRATION OVERLAY ──────────────────────────────────────────────────
 
-function QuickHabits({ userId }: { userId?: string }) {
-  const [habits, setHabits] = useState<{ id: string; title: string; completed: boolean }[]>([])
+interface CelebrationProps {
+  type: 'habit_done' | 'all_habits' | 'streak_milestone'
+  streak?: number
+  onDone: () => void
+}
+
+function CelebrationOverlay({ type, streak, onDone }: CelebrationProps) {
+  useEffect(() => {
+    const t = setTimeout(onDone, type === 'all_habits' ? 3500 : 2000)
+    return () => clearTimeout(t)
+  }, [type, onDone])
+
+  const particles = ['#7C3AED', '#A78BFA', '#F97316', '#FFD700', '#16A34A', '#E8B4B8']
+    .flatMap((c, i) => [
+      { x: 10 + i * 14, color: c, delay: i * 0.05, size: 8 },
+      { x: 5 + i * 16, color: c, delay: i * 0.08 + 0.1, size: 6 },
+    ])
+
+  if (type === 'habit_done') {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20, scale: 0.9 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.9 }}
+        className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 bg-[#18181B] text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-2.5"
+        onClick={onDone}
+      >
+        <span className="text-lg">🔥</span>
+        <p className="text-sm font-semibold">Habit done. Keep going.</p>
+        <span className="text-xs text-[#7C3AED] font-bold">+5 XP</span>
+      </motion.div>
+    )
+  }
+
+  if (type === 'all_habits') {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-50 flex items-center justify-center"
+        onClick={onDone}
+      >
+        <div className="fixed inset-0 pointer-events-none overflow-hidden">
+          {particles.map((p, i) => (
+            <motion.div
+              key={i}
+              initial={{ y: '-5vh', x: `${p.x}vw`, opacity: 1 }}
+              animate={{ y: '110vh', opacity: 0 }}
+              transition={{ duration: 2.2, delay: p.delay, ease: [0.2, 0.8, 0.9, 1] }}
+              className="absolute rounded-sm"
+              style={{ width: p.size, height: p.size * 0.6, backgroundColor: p.color }}
+            />
+          ))}
+        </div>
+        <motion.div
+          initial={{ scale: 0.7, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: 'spring', stiffness: 260, damping: 18 }}
+          className="bg-white rounded-3xl shadow-2xl p-8 text-center max-w-xs w-full mx-4 relative"
+          onClick={e => e.stopPropagation()}
+        >
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: [0, 1.2, 1] }}
+            transition={{ delay: 0.1, duration: 0.5 }}
+            className="w-16 h-16 rounded-3xl bg-gradient-to-br from-[#7C3AED] to-[#5B21B6] flex items-center justify-center mx-auto mb-4 shadow-[0_0_32px_rgba(124,58,237,0.4)]"
+          >
+            <Crown className="w-8 h-8 text-white" />
+          </motion.div>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-[#7C3AED] mb-1">CEO Ritual Complete</p>
+          <p className="text-2xl font-bold text-[#18181B] mb-2">All habits done. 👑</p>
+          <p className="text-sm text-[#71717A]">You just closed your rings for today. That's elite consistency.</p>
+          <p className="text-xs text-[#A1A1AA] mt-4">Tap anywhere to continue</p>
+        </motion.div>
+      </motion.div>
+    )
+  }
+
+  // streak_milestone
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      onClick={onDone}
+    >
+      <motion.div
+        initial={{ y: 40 }}
+        animate={{ y: 0 }}
+        transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+        className="bg-[#18181B] rounded-3xl p-8 text-center max-w-xs w-full mx-4"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="text-5xl mb-3">🔥</div>
+        <p className="text-[10px] font-bold uppercase tracking-widest text-[#F97316] mb-2">Streak Milestone</p>
+        <p className="text-3xl font-bold text-white mb-1">{streak} days straight</p>
+        <p className="text-sm text-[#71717A]">You're in the top 5% of entrepreneurs who make it this far.</p>
+      </motion.div>
+    </motion.div>
+  )
+}
+
+// ─── THE ONE THING (primary daily action) ─────────────────────────────────
+
+function TheOneThing({ roadmapSlug, userId }: { roadmapSlug: string; userId?: string }) {
+  const router = useRouter()
+  const [done, setDone] = useState(false)
+  const [completedIds, setCompletedIds] = useState<Set<string>>(new Set())
+  const [showCelebration, setShowCelebration] = useState(false)
+
+  const meta = ROADMAP_META[roadmapSlug] ?? ROADMAP_META[DEFAULT_ROADMAP]
+
+  useEffect(() => {
+    if (!userId) return
+    // Check if already marked done today
+    const doneKey = `${userId}_one_thing_${todayKey()}`
+    if (localStorage.getItem(doneKey)) setDone(true)
+
+    try {
+      const raw = localStorage.getItem(`${userId}_roadmap_${roadmapSlug}_v1`)
+      if (raw) setCompletedIds(new Set(JSON.parse(raw).completed ?? []))
+    } catch { /* ignore */ }
+  }, [userId, roadmapSlug])
+
+  const nextStep = meta.steps.find(s => !completedIds.has(s.id))
+  const allDone = !nextStep
+  const stepTitle = nextStep?.title ?? meta.firstStep
+  const isFirstStep = nextStep?.id === meta.steps[0].id
+
+  function markDone() {
+    if (!userId || done) return
+    setDone(true)
+    setShowCelebration(true)
+    localStorage.setItem(`${userId}_one_thing_${todayKey()}`, '1')
+
+    // Persist step completion
+    try {
+      const storageKey = `${userId}_roadmap_${roadmapSlug}_v1`
+      const raw = localStorage.getItem(storageKey)
+      const saved = raw ? JSON.parse(raw) : { completed: [] }
+      if (nextStep && !saved.completed.includes(nextStep.id)) {
+        saved.completed.push(nextStep.id)
+        localStorage.setItem(storageKey, JSON.stringify(saved))
+      }
+    } catch { /* ignore */ }
+  }
+
+  return (
+    <>
+      <AnimatePresence>
+        {showCelebration && (
+          <CelebrationOverlay
+            type="habit_done"
+            onDone={() => setShowCelebration(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        className={cn(
+          'rounded-2xl p-5 relative overflow-hidden transition-all',
+          done ? 'bg-[#F0FDF4] border border-[#BBF7D0]' : 'bg-[#18181B]'
+        )}
+      >
+        {!done && (
+          <div className="absolute inset-0 bg-gradient-to-br from-[#7C3AED]/15 to-transparent pointer-events-none" />
+        )}
+        <div className="relative">
+          <div className="flex items-center justify-between mb-3">
+            <span className={cn(
+              'text-[10px] font-bold uppercase tracking-widest',
+              done ? 'text-[#16A34A]' : 'text-[#7C3AED]'
+            )}>
+              {done ? '✓ Today\'s focus — done' : '★ Your ONE thing today'}
+            </span>
+            <span className={cn('text-[10px] font-bold px-2 py-0.5 rounded-full',
+              done ? 'bg-[#DCFCE7] text-[#16A34A]' : 'bg-[#7C3AED]/20 text-[#A78BFA]'
+            )}>
+              +{meta.xp} XP
+            </span>
+          </div>
+
+          <h2 className={cn(
+            'text-lg font-bold leading-snug mb-2',
+            done ? 'text-[#166534] line-through opacity-60' : 'text-white'
+          )}>
+            {allDone ? 'All roadmap steps complete 🏆' : stepTitle}
+          </h2>
+
+          {!done && !allDone && (
+            <p className="text-sm text-[#A1A1AA] leading-relaxed mb-4">
+              {isFirstStep ? meta.firstStepDesc : `Continue with this step on your ${meta.label} roadmap.`}
+            </p>
+          )}
+
+          {done ? (
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 rounded-full bg-[#16A34A] flex items-center justify-center">
+                <Check className="w-3 h-3 text-white" strokeWidth={3} />
+              </div>
+              <p className="text-sm font-semibold text-[#15803D]">Completed today. Legend.</p>
+            </div>
+          ) : (
+            <div className="flex items-center gap-3 flex-wrap">
+              {!allDone && (
+                <button
+                  onClick={markDone}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-[#7C3AED] text-white text-sm font-bold rounded-xl hover:bg-[#6D28D9] active:scale-95 transition-all"
+                >
+                  <Check className="w-3.5 h-3.5" strokeWidth={3} />
+                  Mark it done
+                </button>
+              )}
+              <button
+                onClick={() => router.push(`/roadmaps/${roadmapSlug}`)}
+                className="flex items-center gap-1.5 text-sm text-[#71717A] hover:text-[#A78BFA] transition-colors"
+              >
+                Open roadmap <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+        </div>
+      </motion.div>
+    </>
+  )
+}
+
+// ─── INLINE HABIT CHECK-INS (1-tap from dashboard) ────────────────────────
+
+interface HabitItem { id: string; name: string; completedToday: boolean }
+
+function InlineHabits({ userId, onAllDone }: { userId?: string; onAllDone: () => void }) {
+  const [habits, setHabits] = useState<HabitItem[]>([])
   const [hydrated, setHydrated] = useState(false)
+  const [justCompleted, setJustCompleted] = useState<string | null>(null)
+  const allDoneRef = { current: false }
 
   useEffect(() => {
     if (!userId) return
     try {
       const raw = localStorage.getItem(`${userId}_habits_v1`)
       if (raw) {
-        const all = JSON.parse(raw) as { id: string; name: string; completedToday: boolean }[]
-        setHabits(all.slice(0, 3).map(h => ({ id: h.id, title: h.name, completed: h.completedToday })))
+        const all = JSON.parse(raw) as HabitItem[]
+        setHabits(all.slice(0, 4))
       }
     } catch { /* ignore */ }
     setHydrated(true)
   }, [userId])
 
+  function toggle(id: string) {
+    const today = new Date().toISOString().split('T')[0]
+    setHabits(prev => {
+      const next = prev.map(h => {
+        if (h.id !== id) return h
+        return { ...h, completedToday: !h.completedToday }
+      })
+
+      // Persist
+      try {
+        const raw = localStorage.getItem(`${userId}_habits_v1`)
+        if (raw) {
+          const all = JSON.parse(raw)
+          const updated = all.map((h: HabitItem & { lastCompletedDate?: string; streak?: number; weekHistory?: boolean[] }) => {
+            if (h.id !== id) return h
+            const completing = !h.completedToday
+            const todayIdx = (new Date().getDay() + 6) % 7
+            const history = [...(h.weekHistory ?? Array(7).fill(false))]
+            history[todayIdx] = completing
+            return {
+              ...h,
+              completedToday: completing,
+              lastCompletedDate: completing ? today : h.lastCompletedDate,
+              streak: completing && h.lastCompletedDate !== today
+                ? (h.streak ?? 0) + 1
+                : h.streak ?? 0,
+              weekHistory: history,
+            }
+          })
+          localStorage.setItem(`${userId}_habits_v1`, JSON.stringify(updated))
+        }
+      } catch { /* ignore */ }
+
+      const allNowDone = next.every(h => h.completedToday)
+      if (allNowDone && !allDoneRef.current) {
+        allDoneRef.current = true
+        setTimeout(onAllDone, 400)
+      }
+
+      return next
+    })
+
+    setJustCompleted(id)
+    setTimeout(() => setJustCompleted(null), 800)
+  }
+
+  if (!hydrated) return null
+
+  if (habits.length === 0) {
+    return (
+      <Link href="/habits">
+        <div className="border border-dashed border-[#D4D4D8] rounded-2xl p-4 text-center hover:border-[#7C3AED] transition-colors">
+          <p className="text-sm text-[#A1A1AA]">No habits yet</p>
+          <p className="text-xs text-[#7C3AED] font-semibold mt-1">+ Add your first daily habit →</p>
+        </div>
+      </Link>
+    )
+  }
+
+  const doneCount = habits.filter(h => h.completedToday).length
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.2 }}
-      className="bg-white rounded-2xl border border-[#E4E4E7] p-5"
+      transition={{ delay: 0.12 }}
+      className="bg-white rounded-2xl border border-[#E4E4E7] p-4"
     >
       <div className="flex items-center justify-between mb-3">
         <p className="text-[10px] font-bold uppercase tracking-widest text-[#A1A1AA]">Daily habits</p>
-        {habits.length > 0 && (
-          <span className="text-xs text-[#A1A1AA]">
-            {habits.filter(h => h.completed).length}/{habits.length} today
-          </span>
-        )}
-      </div>
-      {hydrated && habits.length === 0 ? (
-        <div className="py-4 text-center">
-          <p className="text-xs text-[#A1A1AA] mb-3">No habits yet  -  small daily actions compound into big results.</p>
-          <Link
-            href="/habits"
-            className="inline-flex items-center gap-1.5 text-xs text-[#7C3AED] font-semibold hover:underline"
-          >
-            <Plus className="w-3 h-3" /> Add your first habit
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-[#A1A1AA]">{doneCount}/{habits.length} done</span>
+          <Link href="/habits" className="text-[10px] text-[#7C3AED] font-semibold hover:underline">
+            See all
           </Link>
         </div>
-      ) : (
-        <>
-          <div className="space-y-1 mb-2">
-            {habits.map(habit => (
-              <div
-                key={habit.id}
-                className={cn(
-                  'flex items-center gap-3 px-3 py-2.5 rounded-xl',
-                  habit.completed ? 'bg-[#F4F4F5]' : 'bg-transparent'
-                )}
-              >
-                <div className={cn(
-                  'w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0',
-                  habit.completed ? 'bg-[#7C3AED] border-[#7C3AED]' : 'border-[#D4D4D8]'
-                )}>
-                  {habit.completed && <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />}
-                </div>
-                <span className={cn(
-                  'text-sm flex-1',
-                  habit.completed ? 'text-[#A1A1AA] line-through' : 'text-[#3F3F46] font-medium'
-                )}>
-                  {habit.title}
-                </span>
-              </div>
-            ))}
-          </div>
-          <Link href="/habits" className="flex items-center gap-1 text-xs text-[#A1A1AA] hover:text-[#71717A] transition-colors">
-            <Plus className="w-3 h-3" /> Manage habits
-          </Link>
-        </>
+      </div>
+
+      <div className="space-y-1.5">
+        {habits.map(habit => (
+          <motion.button
+            key={habit.id}
+            onClick={() => toggle(habit.id)}
+            whileTap={{ scale: 0.97 }}
+            className={cn(
+              'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-left',
+              habit.completedToday ? 'bg-[#F0FDF4]' : 'bg-[#FAFAFA] hover:bg-[#F4F4F5]'
+            )}
+          >
+            <motion.div
+              animate={justCompleted === habit.id ? { scale: [1, 1.3, 1] } : {}}
+              transition={{ duration: 0.3 }}
+              className={cn(
+                'w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all',
+                habit.completedToday ? 'bg-[#16A34A] border-[#16A34A]' : 'border-[#D4D4D8]'
+              )}
+            >
+              {habit.completedToday && <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />}
+            </motion.div>
+            <span className={cn(
+              'text-sm flex-1 font-medium',
+              habit.completedToday ? 'text-[#16A34A] line-through opacity-70' : 'text-[#3F3F46]'
+            )}>
+              {habit.name}
+            </span>
+            {habit.completedToday && <span className="text-xs text-[#16A34A]">✓</span>}
+          </motion.button>
+        ))}
+      </div>
+
+      {doneCount === habits.length && habits.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-3 flex items-center justify-center gap-1.5 py-2 bg-[#F0FDF4] rounded-xl"
+        >
+          <Crown className="w-3.5 h-3.5 text-[#16A34A]" />
+          <p className="text-xs font-bold text-[#16A34A]">CEO ritual complete. 👑</p>
+        </motion.div>
       )}
     </motion.div>
   )
 }
 
-// ─── REVENUE SNAPSHOT ──────────────────────────────────────────────────────
+// ─── XP / LEVEL PROGRESS BAR ──────────────────────────────────────────────
 
-function RevenueSnapshot({ profile, localRevenue }: {
-  profile: { current_revenue?: number | null; revenue_goal?: number | null } | null
-  localRevenue: number
-}) {
-  const current = localRevenue  // use localStorage value - DB column is never updated
-  const goal = profile?.revenue_goal ?? 5000
-  const pct = Math.min(Math.round((current / goal) * 100), 100)
+function XPBar({ xp }: { xp: number }) {
+  const levels = [
+    { label: 'Intern', min: 0, max: 499 },
+    { label: 'Founder', min: 500, max: 1999 },
+    { label: 'CEO', min: 2000, max: 4999 },
+    { label: 'Empire', min: 5000, max: 5000 },
+  ]
+  const current = levels.find(l => xp >= l.min && xp <= l.max) ?? levels[0]
+  const next = levels[levels.indexOf(current) + 1]
+  const pct = next ? Math.round(((xp - current.min) / (next.min - current.min)) * 100) : 100
+  const toNext = next ? next.min - xp : 0
+
+  return (
+    <div className="flex items-center gap-3 bg-white rounded-2xl border border-[#E4E4E7] px-4 py-3">
+      <div className="w-8 h-8 rounded-xl bg-[#EDE9FE] flex items-center justify-center flex-shrink-0">
+        <Zap className="w-4 h-4 text-[#7C3AED]" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-xs font-bold text-[#18181B]">{current.label} · {xp.toLocaleString()} XP</span>
+          {next && <span className="text-[10px] text-[#A1A1AA]">{toNext} to {next.label}</span>}
+        </div>
+        <div className="w-full h-1.5 bg-[#F4F4F5] rounded-full overflow-hidden">
+          <motion.div
+            className="h-full bg-gradient-to-r from-[#7C3AED] to-[#A78BFA] rounded-full"
+            initial={{ width: 0 }}
+            animate={{ width: `${pct}%` }}
+            transition={{ duration: 1, ease: 'easeOut', delay: 0.3 }}
+          />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── STAT ROW ─────────────────────────────────────────────────────────────
+
+function StatRow({ streak, revenue, days }: { streak: number; revenue: number; days: number }) {
+  const tier = streak === 0 ? 'cold' : streak < 7 ? 'warm' : streak < 30 ? 'hot' : 'blazing'
+  const streakColor = { cold: '#A1A1AA', warm: '#F97316', hot: '#EA580C', blazing: '#7C3AED' }[tier]
+  const streakBg = { cold: '#F4F4F5', warm: '#FEF3C7', hot: '#FFEDD5', blazing: '#EDE9FE' }[tier]
+  const streakIcon = tier === 'cold' ? '○' : '🔥'
+
+  return (
+    <div className="grid grid-cols-3 gap-2">
+      <motion.div
+        initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+        className="rounded-xl p-3 text-center"
+        style={{ backgroundColor: streakBg }}
+      >
+        <p className="text-lg leading-none mb-0.5">{streakIcon}</p>
+        <p className="text-base font-bold" style={{ color: streakColor }}>{streak}</p>
+        <p className="text-[10px] font-medium" style={{ color: streakColor }}>day streak</p>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
+        className="bg-[#DCFCE7] rounded-xl p-3 text-center"
+      >
+        <p className="text-lg leading-none mb-0.5">💰</p>
+        <p className="text-base font-bold text-[#16A34A]">{formatCurrency(revenue)}</p>
+        <p className="text-[10px] font-medium text-[#16A34A]">this month</p>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+        className="bg-[#F4F4F5] rounded-xl p-3 text-center"
+      >
+        <p className="text-lg leading-none mb-0.5">📅</p>
+        <p className="text-base font-bold text-[#18181B]">{days}</p>
+        <p className="text-[10px] font-medium text-[#71717A]">days in</p>
+      </motion.div>
+    </div>
+  )
+}
+
+// ─── MOTIVATION ROTATOR ───────────────────────────────────────────────────
+
+const DAILY_TRUTHS = [
+  'The version of you who built a business started on a random Tuesday, just like today.',
+  'Your competition is not other businesses. It\'s your own resistance.',
+  'Revenue is a lagging indicator. Consistency is the leading one.',
+  'Done beats perfect. Shipped beats polished. Now beats later.',
+  'Every CEO you admire was once exactly where you are right now.',
+  'You don\'t need more information. You need more action on what you already know.',
+  'The hardest day to show up is the day that matters most.',
+  'Your streak is proof of character. Numbers come after.',
+  'The business you\'re building today is the asset that buys back your time tomorrow.',
+  'Clarity comes from action, not more thinking. Move first.',
+  'You\'re not behind. You\'re exactly where you need to be to learn what you\'re learning.',
+  'The women who made it didn\'t have a better plan. They just didn\'t stop.',
+]
+
+function DailyTruth() {
+  // Deterministic per calendar day so it doesn't jump on re-render
+  const idx = useMemo(() => {
+    const day = new Date().getDate() + new Date().getMonth() * 31
+    return day % DAILY_TRUTHS.length
+  }, [])
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.2 }}
-      className="bg-white rounded-2xl border border-[#E4E4E7] p-5"
+      transition={{ delay: 0.3 }}
+      className="bg-[#18181B] rounded-2xl px-5 py-4"
     >
-      <p className="text-[10px] font-bold uppercase tracking-widest text-[#A1A1AA] mb-3">Revenue · This month</p>
-      <div className="flex items-baseline gap-2 mb-1">
-        <span className="text-2xl font-semibold text-[#18181B]">{formatCurrency(current)}</span>
-        <span className="text-sm text-[#A1A1AA]">/ {formatCurrency(goal)}</span>
-      </div>
-      {current === 0 ? (
-        <p className="text-xs text-[#A1A1AA] mt-2 mb-3">No income logged yet. Every empire starts at $0.</p>
-      ) : (
-        <div className="w-full h-1.5 bg-[#F4F4F5] rounded-full overflow-hidden mt-2 mb-3">
-          <motion.div
-            className="h-full rounded-full bg-[#16A34A]"
-            initial={{ width: 0 }}
-            animate={{ width: `${pct}%` }}
-            transition={{ duration: 0.7, ease: 'easeOut' }}
-          />
-        </div>
-      )}
-      <Link
-        href="/revenue"
-        className="flex items-center gap-1.5 text-xs text-[#A1A1AA] hover:text-[#71717A] transition-colors"
-      >
-        <Plus className="w-3 h-3" /> Log income
-      </Link>
+      <p className="text-[10px] font-bold uppercase tracking-widest text-[#52525B] mb-2">Today's truth</p>
+      <p className="text-sm text-[#E4E4E7] leading-relaxed italic">
+        &ldquo;{DAILY_TRUTHS[idx]}&rdquo;
+      </p>
     </motion.div>
   )
 }
 
-// ─── STAT CHIP ─────────────────────────────────────────────────────────────
+// ─── QUICK ACTIONS ─────────────────────────────────────────────────────────
 
-function StatChip({ icon: Icon, value, label, color }: {
-  icon: React.ElementType; value: string; label: string; color: string
-}) {
+function QuickActions() {
+  const items = [
+    { label: 'Log income', href: '/revenue', emoji: '💰', color: '#DCFCE7', textColor: '#15803D' },
+    { label: 'AI advisor', href: '/ai-assistant', emoji: '🤖', color: '#EDE9FE', textColor: '#5B21B6' },
+    { label: 'Roadmaps', href: '/roadmaps', emoji: '🗺️', color: '#FEF3C7', textColor: '#92400E' },
+    { label: 'Community', href: '/community', emoji: '👭', color: '#F4F4F5', textColor: '#3F3F46' },
+  ]
   return (
-    <div className="flex items-center gap-2 px-4 py-2.5 bg-white rounded-xl border border-[#F4F4F5]">
-      <Icon className="w-3.5 h-3.5 flex-shrink-0" style={{ color }} />
-      <span className="text-sm font-semibold text-[#18181B]">{value}</span>
-      <span className="text-xs text-[#A1A1AA]">{label}</span>
-    </div>
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.2 }}
+      className="grid grid-cols-4 gap-2"
+    >
+      {items.map(item => (
+        <Link key={item.href} href={item.href}>
+          <div
+            className="rounded-2xl p-3 text-center hover:opacity-80 active:scale-95 transition-all cursor-pointer"
+            style={{ backgroundColor: item.color }}
+          >
+            <p className="text-xl mb-1">{item.emoji}</p>
+            <p className="text-[10px] font-semibold leading-tight" style={{ color: item.textColor }}>{item.label}</p>
+          </div>
+        </Link>
+      ))}
+    </motion.div>
   )
 }
 
@@ -742,9 +897,12 @@ export default function DashboardPage() {
   const { profile, user, signOut, loading } = useUser()
   const firstName = profile?.full_name?.split(' ')[0]
   const streak = profile?.streak_current ?? 0
+  const xp = profile?.xp_points ?? 0
   const roadmapSlug = (profile?.selected_roadmap ?? DEFAULT_ROADMAP) as string
+  const days = daysInApp(profile?.created_at ?? null)
+  const hour = new Date().getHours()
 
-  // Revenue this month - read from localStorage (same source as /revenue page)
+  // Revenue from localStorage
   const [localRevenue, setLocalRevenue] = useState(0)
   useEffect(() => {
     if (!user?.id) return
@@ -752,56 +910,47 @@ export default function DashboardPage() {
       const raw = localStorage.getItem(`${user.id}_revenue_v1`)
       if (raw) {
         const data = JSON.parse(raw)
-        const monthEntries: { amount: number }[] = data.month?.entries ?? []
-        setLocalRevenue(monthEntries.reduce((s, e) => s + (e.amount ?? 0), 0))
+        const entries: { amount: number }[] = data.month?.entries ?? []
+        setLocalRevenue(entries.reduce((s, e) => s + (e.amount ?? 0), 0))
       }
     } catch { /* ignore */ }
   }, [user?.id])
 
-  // Rings state
-  const [rings, setRings] = useState({ build: false, earn: false, grow: false })
-
+  // Habit state for streak defense
+  const [habitsAllDone, setHabitsAllDone] = useState(false)
   useEffect(() => {
     if (!user?.id) return
     try {
-      const raw = localStorage.getItem(ringsStorageKey(user.id))
-      const base = raw ? JSON.parse(raw) : {}
-
-      // Auto-fill GROW from habits
-      const habitsRaw = localStorage.getItem(`${user.id}_habits_v1`)
-      let growDone = base.grow ?? false
-      if (habitsRaw) {
-        const habits = JSON.parse(habitsRaw) as { completedToday?: boolean }[]
-        if (habits.some(h => h.completedToday)) growDone = true
+      const raw = localStorage.getItem(`${user.id}_habits_v1`)
+      if (raw) {
+        const habits: { completedToday: boolean }[] = JSON.parse(raw)
+        if (habits.length > 0) setHabitsAllDone(habits.every(h => h.completedToday))
       }
-
-      setRings({ build: base.build ?? false, earn: base.earn ?? false, grow: growDone })
     } catch { /* ignore */ }
   }, [user?.id])
 
-  // Determine if setup guide should show (first 14 days)
-  const showSetupGuide = useMemo(() => {
-    if (!profile?.created_at) return false
-    const createdAt = new Date(profile.created_at)
-    const diffDays = (Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24)
-    return diffDays <= 14
-  }, [profile?.created_at])
+  const [celebration, setCelebration] = useState<'habit_done' | 'all_habits' | 'streak_milestone' | null>(null)
 
-  const greeting = getContextGreeting(firstName, streak)
+  const brief = getDailyBrief(firstName, streak, days, profile?.business_type ?? null, hour)
+
+  const handleAllHabitsDone = useCallback(() => {
+    setHabitsAllDone(true)
+    setCelebration('all_habits')
+  }, [])
 
   if (loading) {
     return (
       <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <motion.div
-            animate={{ scale: [1, 1.05, 1] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-            className="w-12 h-12 rounded-2xl bg-[#7C3AED] flex items-center justify-center"
-          >
-            <Sparkles className="w-6 h-6 text-white" />
-          </motion.div>
-          <p className="text-sm text-[#A1A1AA] font-medium">Loading your dashboard…</p>
-        </div>
+        <motion.div
+          animate={{ scale: [1, 1.08, 1] }}
+          transition={{ duration: 1.4, repeat: Infinity }}
+          className="flex flex-col items-center gap-3"
+        >
+          <div className="w-12 h-12 rounded-2xl bg-[#7C3AED] flex items-center justify-center shadow-[0_0_32px_rgba(124,58,237,0.35)]">
+            <Crown className="w-6 h-6 text-white" />
+          </div>
+          <p className="text-sm text-[#A1A1AA] font-medium">Preparing your brief…</p>
+        </motion.div>
       </div>
     )
   }
@@ -810,107 +959,77 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-[#FAFAFA]">
       <Sidebar profile={profile} onSignOut={signOut} />
 
+      {/* Celebration overlay */}
+      <AnimatePresence>
+        {celebration && (
+          <CelebrationOverlay
+            type={celebration}
+            streak={streak}
+            onDone={() => setCelebration(null)}
+          />
+        )}
+      </AnimatePresence>
+
       <div className="lg:pl-64 pb-24 lg:pb-8">
 
-        {/* ── Header ── */}
+        {/* ── Daily CEO Brief Header ── */}
         <div className="bg-white border-b border-[#F4F4F5] px-6 py-5">
-          <div className="max-w-4xl mx-auto flex items-center justify-between">
-            <div>
-              <p className="text-xs text-[#A1A1AA]">
-                {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
-              </p>
-              <h1 className="text-lg font-semibold text-[#18181B] mt-0.5">{greeting.line1}</h1>
-              <p className="text-sm text-[#71717A] mt-0.5">{greeting.line2}</p>
-            </div>
-            <div className="w-9 h-9 rounded-full bg-[#EDE9FE] flex items-center justify-center text-sm font-semibold text-[#7C3AED] flex-shrink-0">
-              {firstName?.[0]?.toUpperCase() ?? '✦'}
+          <div className="max-w-2xl mx-auto">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-[#7C3AED] px-2 py-0.5 bg-[#EDE9FE] rounded-full">
+                    {brief.tag}
+                  </span>
+                  <span className="text-[10px] text-[#A1A1AA]">
+                    {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+                  </span>
+                </div>
+                <h1 className="text-xl font-bold text-[#18181B] leading-snug">{brief.headline}</h1>
+                <p className="text-sm text-[#71717A] mt-1 leading-relaxed max-w-md">{brief.subtext}</p>
+              </div>
+              <Link href="/profile">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#5B21B6] flex items-center justify-center text-sm font-bold text-white shadow-[0_0_16px_rgba(124,58,237,0.3)] flex-shrink-0 hover:scale-105 transition-transform">
+                  {firstName?.[0]?.toUpperCase() ?? '✦'}
+                </div>
+              </Link>
             </div>
           </div>
         </div>
 
-        <div className="max-w-4xl mx-auto px-4 md:px-6 py-6 space-y-4">
+        <div className="max-w-2xl mx-auto px-4 md:px-6 py-5 space-y-3">
 
-          {/* ── Setup Guide (first 14 days only) ── */}
+          {/* ── Streak defense banner ── */}
           <AnimatePresence>
-            {showSetupGuide && <SetupGuide userId={user?.id} />}
+            <StreakDefenseBanner streak={streak} habitsAllDone={habitsAllDone} />
           </AnimatePresence>
 
-          {/* ── Stats + Rings strip (mobile) ── */}
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-wrap gap-2"
-          >
-            <StreakDisplay streak={streak} />
-            <StatChip icon={Zap} value={(profile?.xp_points ?? 0).toLocaleString()} label="XP" color="#7C3AED" />
-            <StatChip icon={TrendingUp} value={formatCurrency(localRevenue)} label="this month" color="#16A34A" />
-          </motion.div>
+          {/* ── Comeback banner ── */}
+          <AnimatePresence>
+            <ComebackBanner streak={streak} daysInApp={days} firstName={firstName} />
+          </AnimatePresence>
 
-          {/* ── Rings mobile strip ── */}
-          <div className="lg:hidden">
-            <RingsCard rings={rings} isMobile />
-          </div>
+          {/* ── THE ONE THING ── */}
+          <TheOneThing roadmapSlug={roadmapSlug} userId={user?.id} />
 
-          {/* ── Main 2-col grid ── */}
-          <div className="grid lg:grid-cols-5 gap-4">
+          {/* ── Inline habits ── */}
+          <InlineHabits userId={user?.id} onAllDone={handleAllHabitsDone} />
 
-            {/* Left col  -  primary focus */}
-            <div className="lg:col-span-3 space-y-4">
-              <TodayFocus roadmapSlug={roadmapSlug} userId={user?.id} />
-              <RoadmapProgress roadmapSlug={roadmapSlug} userId={user?.id} />
-              <QuickHabits userId={user?.id} />
-            </div>
+          {/* ── Stats row ── */}
+          <StatRow streak={streak} revenue={localRevenue} days={days} />
 
-            {/* Right col  -  supporting info */}
-            <div className="lg:col-span-2 space-y-4">
+          {/* ── XP progress ── */}
+          <XPBar xp={xp} />
 
-              {/* Rings (desktop) */}
-              <div className="hidden lg:block">
-                <RingsCard rings={rings} />
-              </div>
+          {/* ── Quick action grid ── */}
+          <QuickActions />
 
-              <RevenueSnapshot profile={profile} localRevenue={localRevenue} />
+          {/* ── Community pulse ── */}
+          <CommunityPulse />
 
-              {/* Motivation card */}
-              <motion.div
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.25 }}
-                className="rounded-2xl bg-[#18181B] px-5 py-4"
-              >
-                <p className="text-[10px] font-bold uppercase tracking-widest text-[#52525B] mb-2">Remember</p>
-                <p className="text-sm text-[#E4E4E7] leading-relaxed">
-                  &ldquo;Every action you take today is a vote for the business owner you&apos;re becoming.&rdquo;
-                </p>
-              </motion.div>
+          {/* ── Daily truth (rotates daily) ── */}
+          <DailyTruth />
 
-              {/* Quick links */}
-              <motion.div
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="bg-white rounded-2xl border border-[#E4E4E7] p-4 space-y-1"
-              >
-                <p className="text-[10px] font-bold uppercase tracking-widest text-[#A1A1AA] mb-3">Quick access</p>
-                {[
-                  { label: 'Resource Vault', href: '/vault', emoji: '📁' },
-                  { label: 'AI Assistant', href: '/ai-assistant', emoji: '🤖' },
-                  { label: 'Revenue Tracker', href: '/revenue', emoji: '💰' },
-                  { label: 'Community', href: '/community', emoji: '👭' },
-                ].map(item => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[#F4F4F5] transition-colors group"
-                  >
-                    <span className="text-base">{item.emoji}</span>
-                    <span className="text-sm text-[#3F3F46] font-medium group-hover:text-[#18181B] transition-colors">{item.label}</span>
-                    <ChevronRight className="w-3.5 h-3.5 text-[#D4D4D8] ml-auto group-hover:text-[#A1A1AA] transition-colors" />
-                  </Link>
-                ))}
-              </motion.div>
-            </div>
-          </div>
         </div>
       </div>
 
