@@ -501,6 +501,20 @@ export default function OnboardingPage() {
 
       if (error) throw error
 
+      // Check if this user purchased on Stan Store before creating their account.
+      // If so, apply their pending plan upgrade now.
+      try {
+        const email = user.email?.toLowerCase()
+        if (email) {
+          const res = await fetch('/api/stan-store/apply-pending', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, userId }),
+          })
+          if (!res.ok) console.warn('Pending upgrade check failed silently')
+        }
+      } catch { /* non-fatal — don't block onboarding */ }
+
       // Only clear saved progress once we know the save succeeded
       try {
         sessionStorage.removeItem('onboarding_step')
