@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Crown, ArrowRight, ArrowLeft, Check, Sparkles, Lock, Mail } from 'lucide-react'
+import { Crown, ArrowRight, ArrowLeft, Check, Sparkles, Lock, Mail, Share2, Copy } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 
@@ -950,6 +950,9 @@ function Result({ archetype }: { archetype: Archetype; }) {
         {/* Email capture funnel */}
         <EmailCapture archetype={archetype} />
 
+        {/* Share your result */}
+        <ShareResult archetype={archetype} />
+
         {/* Retake */}
         <div className="text-center pt-2">
           <button
@@ -964,13 +967,63 @@ function Result({ archetype }: { archetype: Archetype; }) {
   )
 }
 
+// ── Share result ──────────────────────────────────────────────────────────────
+
+function ShareResult({ archetype }: { archetype: Archetype }) {
+  const [copied, setCopied] = useState(false)
+
+  const quizUrl = typeof window !== 'undefined'
+    ? `${window.location.origin}/quiz`
+    : 'https://rinseandrepeat.vercel.app/quiz'
+
+  const shareText = `I just found out I'm a ${archetype.name} 🎯\n\nFind out your entrepreneur type → ${quizUrl}`
+
+  async function handleShare() {
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'My CEO Entrepreneur Type', text: shareText, url: quizUrl })
+      } catch { /* user dismissed */ }
+    } else {
+      await navigator.clipboard.writeText(shareText)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.3 }}
+      className="rounded-2xl border border-[#DDD6FE] bg-[#EDE9FE]/40 p-5 text-center"
+    >
+      <p className="text-sm font-semibold text-[#18181B] mb-1">
+        Know a friend who needs this?
+      </p>
+      <p className="text-xs text-[#71717A] mb-4">
+        Send them the quiz — it takes 3 minutes and it is actually useful.
+      </p>
+      <motion.button
+        onClick={handleShare}
+        whileTap={{ scale: 0.97 }}
+        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#7C3AED] text-white text-sm font-semibold hover:bg-[#5B21B6] transition-colors"
+      >
+        {copied
+          ? <><Copy className="w-4 h-4" /> Copied!</>
+          : <><Share2 className="w-4 h-4" /> Share this quiz</>
+        }
+      </motion.button>
+    </motion.div>
+  )
+}
+
 // ── Email capture funnel ──────────────────────────────────────────────────────
 //
 // ⚙️  SETUP: Replace STAN_STORE_URL below with your Stan Store freebie link.
 //    Create a free product on Stan Store (e.g. "Your Free CEO Starter Kit")
 //    and paste the link here. Stan Store will collect the email on their end.
 //
-const STAN_STORE_URL = 'https://stan.store/thedit'
+const STAN_STORE_URL = 'https://join.stan.store/thedit'
 
 function EmailCapture({ archetype }: { archetype: Archetype }) {
   const [email, setEmail] = useState('')
