@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import {
   LayoutDashboard, Map, BookOpen, Bot, Flame, Users,
-  Crown, Settings, LogOut, Sparkles, TrendingUp, Calculator, User,
+  Crown, Settings, LogOut, Sparkles, TrendingUp, Calculator, User, Sun,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Profile, UserLevel } from '@/types'
@@ -33,6 +33,7 @@ interface SidebarProps {
 
 const navItems = [
   { href: '/dashboard',    label: 'Dashboard',       icon: LayoutDashboard },
+  { href: '/daily',        label: 'Daily Brief',     icon: Sun, badge: 'TODAY' },
   { href: '/roadmaps',     label: 'Roadmaps',         icon: Map },
   { href: '/vault',        label: 'Resource Vault',   icon: BookOpen },
   { href: '/ai-assistant', label: 'AI Assistant',     icon: Bot, badge: 'NEW' },
@@ -111,7 +112,9 @@ export function Sidebar({ profile, onSignOut }: SidebarProps) {
                 <Icon className={cn('w-4 h-4 flex-shrink-0', isActive ? 'text-[#7C3AED]' : '')} />
                 <span>{item.label}</span>
                 {item.badge && (
-                  <span className="ml-auto text-[10px] font-bold px-1.5 py-0.5 bg-[#7C3AED] text-white rounded-full">
+                  <span className={`ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                    item.badge === 'TODAY' ? 'bg-[#16A34A] text-white' : 'bg-[#7C3AED] text-white'
+                  }`}>
                     {item.badge}
                   </span>
                 )}

@@ -9,6 +9,7 @@ import { MobileNav } from '@/components/navigation/MobileNav'
 import { useUser } from '@/components/providers/UserProvider'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { setRing } from '@/lib/rings'
+import { useRouter } from 'next/navigation'
 
 type Period = 'week' | 'month' | 'year'
 
@@ -103,6 +104,111 @@ function RevenueCelebration({ amount, onDone }: { amount: number; onDone: () => 
   )
 }
 
+// ── Milestone System ─────────────────────────────────────────────────────────
+
+const MILESTONES = [1, 100, 500, 1000, 5000, 10000, 50000, 100000]
+
+const MILESTONE_LABELS: Record<number, string> = {
+  1:      'First Dollar 🎉',
+  100:    'First $100 💪',
+  500:    '$500 Club 🔥',
+  1000:   'Four Figures 💎',
+  5000:   '$5K Milestone 👑',
+  10000:  'Five Figures 🏆',
+  50000:  '$50K Club 🌟',
+  100000: 'Six Figures Legend 💫',
+}
+
+const MILESTONE_XP: Record<number, number> = {
+  1:      50,
+  100:    100,
+  500:    150,
+  1000:   200,
+  5000:   300,
+  10000:  500,
+  50000:  500,
+  100000: 500,
+}
+
+function getMilestoneCrossed(userId: string): number[] {
+  try {
+    const raw = localStorage.getItem(`${userId}_rev_milestones_v1`)
+    return raw ? (JSON.parse(raw) as number[]) : []
+  } catch { return [] }
+}
+
+function saveMilestoneCrossed(userId: string, crossed: number[]) {
+  try {
+    localStorage.setItem(`${userId}_rev_milestones_v1`, JSON.stringify(crossed))
+  } catch {}
+}
+
+function MilestoneCelebration({ milestone, onShare, onDone }: {
+  milestone: number
+  onShare: () => void
+  onDone: () => void
+}) {
+  useEffect(() => {
+    const t = setTimeout(onDone, 8000)
+    return () => clearTimeout(t)
+  }, [onDone])
+
+  const xp = MILESTONE_XP[milestone] ?? 50
+  const label = MILESTONE_LABELS[milestone] ?? `$${milestone.toLocaleString()}`
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+      onClick={onDone}
+    >
+      <motion.div
+        initial={{ scale: 0.7, opacity: 0, y: 30 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.8, opacity: 0 }}
+        transition={{ type: 'spring', stiffness: 240, damping: 20 }}
+        className="relative bg-white rounded-3xl shadow-2xl p-8 text-center max-w-xs w-full mx-4"
+        onClick={e => e.stopPropagation()}
+      >
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: [0, 1.3, 1] }}
+          transition={{ delay: 0.1, duration: 0.5, times: [0, 0.6, 1] }}
+          className="text-5xl mb-4"
+        >
+          👑
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+        >
+          <p className="text-xs font-bold uppercase tracking-widest text-[#7C3AED] mb-2">Milestone Unlocked</p>
+          <p className="text-2xl font-bold text-[#18181B] mb-2">{label}</p>
+          <p className="text-sm text-[#71717A] mb-1">You&apos;ve earned</p>
+          <p className="text-lg font-bold text-[#16A34A] mb-5">+{xp} XP bonus</p>
+        </motion.div>
+        <div className="flex flex-col gap-2">
+          <button
+            onClick={onShare}
+            className="w-full px-4 py-2.5 rounded-xl bg-[#7C3AED] text-white text-sm font-semibold hover:bg-[#6D28D9] transition-colors"
+          >
+            Share with community 🎉
+          </button>
+          <button
+            onClick={onDone}
+            className="w-full px-4 py-2.5 rounded-xl border border-[#E4E4E7] text-[#71717A] text-sm font-medium hover:bg-[#F4F4F5] transition-colors"
+          >
+            Keep going →
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  )
+}
+
 // ── Constants ────────────────────────────────────────────────────────────────
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -148,6 +254,7 @@ const goalsKey = (uid: string) => `${uid}_revenue_goals_v2`
 export default function RevenuePage() {
   const { profile, signOut, user } = useUser()
   const supabase = createClientComponentClient()
+  const router = useRouter()
 
   const [period, setPeriod]   = useState<Period>('month')
   const [entries, setEntries] = useState<Entry[]>([])
@@ -157,6 +264,8 @@ export default function RevenuePage() {
   const [newEntry, setNewEntry] = useState({ source: '', amount: '', category: 'service' })
   const [saving, setSaving]   = useState(false)
   const [celebrationAmount, setCelebrationAmount] = useState<number | null>(null)
+  const [allTimeTotal, setAllTimeTotal] = useState(0)
+  const [celebrationMilestone, setCelebrationMilestone] = useState<number | null>(null)
 
   // ── Load goals from localStorage (just a display preference) ──────────────
   useEffect(() => {
@@ -174,18 +283,24 @@ export default function RevenuePage() {
     try {
       // Fetch the whole current year so period filters work client-side instantly
       const yearStart = new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0]
-      const { data, error } = await supabase
-        .from('revenue_logs')
-        .select('id, source, amount, notes, logged_date')
-        .eq('user_id', user.id)
-        .gte('logged_date', yearStart)
-        .order('logged_date', { ascending: false })
-        .order('created_at', { ascending: false })
+      const [yearResult, allTimeResult] = await Promise.all([
+        supabase
+          .from('revenue_logs')
+          .select('id, source, amount, notes, logged_date')
+          .eq('user_id', user.id)
+          .gte('logged_date', yearStart)
+          .order('logged_date', { ascending: false })
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('revenue_logs')
+          .select('amount')
+          .eq('user_id', user.id),
+      ])
 
-      if (error) throw error
+      if (yearResult.error) throw yearResult.error
 
       setEntries(
-        (data ?? []).map(row => ({
+        (yearResult.data ?? []).map(row => ({
           id:          row.id,
           source:      row.source ?? '',
           amount:      parseFloat(row.amount),
@@ -193,6 +308,9 @@ export default function RevenuePage() {
           category:    row.notes ?? 'service',
         }))
       )
+
+      const allTime = (allTimeResult.data ?? []).reduce((sum, r) => sum + parseFloat(r.amount), 0)
+      setAllTimeTotal(allTime)
     } catch (err) {
       console.error('Failed to load revenue:', err)
     } finally {
@@ -249,6 +367,21 @@ export default function RevenuePage() {
       const xp = amount >= 1000 ? 50 : amount >= 100 ? 25 : 15
       void supabase.rpc('award_xp', { p_user_id: user.id, p_xp: xp })
       setRing(user.id, 'earn')
+
+      // Check milestones
+      const newAllTimeTotal = allTimeTotal + amount
+      setAllTimeTotal(newAllTimeTotal)
+
+      const crossedSet = new Set(getMilestoneCrossed(user.id))
+      const newlyCrossed = MILESTONES.filter(m => m <= newAllTimeTotal && !crossedSet.has(m))
+      if (newlyCrossed.length > 0) {
+        const highest = newlyCrossed[newlyCrossed.length - 1]
+        setCelebrationMilestone(highest)
+        const updatedCrossed = [...Array.from(crossedSet), ...newlyCrossed]
+        saveMilestoneCrossed(user.id, updatedCrossed)
+        const milestoneXp = MILESTONE_XP[highest] ?? 50
+        void supabase.rpc('award_xp', { p_user_id: user.id, p_xp: milestoneXp })
+      }
     } catch (err) {
       console.error('Failed to save revenue entry:', err)
     } finally {
@@ -265,6 +398,23 @@ export default function RevenuePage() {
           <RevenueCelebration
             amount={celebrationAmount}
             onDone={() => setCelebrationAmount(null)}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {celebrationMilestone !== null && (
+          <MilestoneCelebration
+            milestone={celebrationMilestone}
+            onShare={() => {
+              if (celebrationMilestone !== null) {
+                const msg = `Just hit my ${MILESTONE_LABELS[celebrationMilestone]} milestone inside Rinse & Repeat CEO! 🏆 #CEOera`
+                try { sessionStorage.setItem('community_prefill', msg) } catch {}
+              }
+              setCelebrationMilestone(null)
+              router.push('/community')
+            }}
+            onDone={() => setCelebrationMilestone(null)}
           />
         )}
       </AnimatePresence>

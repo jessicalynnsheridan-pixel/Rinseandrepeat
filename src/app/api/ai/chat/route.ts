@@ -78,17 +78,23 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const { messages, conversationId } = await req.json()
+    const { messages, conversationId, roadmapContext } = await req.json()
 
     if (!messages || !Array.isArray(messages)) {
       return Response.json({ error: 'Invalid request' }, { status: 400 })
     }
 
+    const contextSection = roadmapContext
+      ? `\n\nCURRENT USER CONTEXT:\nThis user is actively working on their ${roadmapContext}. When relevant, reference where they are in their journey and give advice specific to this stage. Lead with what's most useful for someone at this exact step.`
+      : ''
+
+    const fullSystemPrompt = SYSTEM_PROMPT + contextSection
+
     // Stream the response
     const stream = await getOpenAI().chat.completions.create({
       model: 'gpt-4o',
       messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'system', content: fullSystemPrompt },
         ...messages.slice(-10), // Keep last 10 messages for context
       ],
       stream: true,

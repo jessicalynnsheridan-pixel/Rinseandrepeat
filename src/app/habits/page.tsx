@@ -132,6 +132,15 @@ function computeStreak(logDates: Set<string>, completedToday: boolean): number {
 
 // ── Page ─────────────────────────────────────────────────────────────────────
 
+// ── Shield helpers ────────────────────────────────────────────────────────────
+
+function getShields(userId: string): number {
+  try { return parseInt(localStorage.getItem(`${userId}_shields_v1`) ?? '0', 10) || 0 } catch { return 0 }
+}
+function setShields(userId: string, count: number) {
+  try { localStorage.setItem(`${userId}_shields_v1`, String(Math.max(0, count))) } catch {}
+}
+
 export default function HabitsPage() {
   const { profile, signOut, user } = useUser()
   const supabase = createClientComponentClient()
@@ -145,8 +154,16 @@ export default function HabitsPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [xpBurst, setXpBurst]       = useState<{ id: string; amount: number } | null>(null)
   const [allDoneCelebrated, setAllDoneCelebrated] = useState(false)
+  const [shields, setShieldsState]  = useState(0)
+  const [shieldToast, setShieldToast] = useState<string | null>(null)
   const allDoneRef = useRef(false)
   const weekDayNumbers = getWeekDayNumbers()
+
+  // Load shields from localStorage once user is known
+  useEffect(() => {
+    if (!user?.id) return
+    setShieldsState(getShields(user.id))
+  }, [user?.id])
 
   // ── Fetch habits + logs from Supabase ─────────────────────────────────────
 
@@ -237,13 +254,27 @@ export default function HabitsPage() {
         setTimeout(() => setXpBurst(null), 1800)
       }
 
-      // Check all done → grow ring + celebrate
+      // Check all done → grow ring + celebrate + award shield
       const allDone = updated.length > 0 && updated.every(h => h.completedToday)
       if (allDone && !allDoneRef.current) {
         allDoneRef.current = true
         setAllDoneCelebrated(true)
         setRing(user.id, 'grow')
         setTimeout(() => setAllDoneCelebrated(false), 3000)
+
+        // Award shield (once per day)
+        try {
+          const shieldEarnedKey = `${user.id}_shield_earned_${todayStr()}`
+          if (!localStorage.getItem(shieldEarnedKey)) {
+            localStorage.setItem(shieldEarnedKey, '1')
+            const current = getShields(user.id)
+            const next = current + 1
+            setShields(user.id, next)
+            setShieldsState(next)
+            setShieldToast('+1 🛡️ Shield earned!')
+            setTimeout(() => setShieldToast(null), 3000)
+          }
+        } catch { /* ignore */ }
       } else if (!allDone) {
         allDoneRef.current = false
       }
@@ -368,7 +399,15 @@ export default function HabitsPage() {
 
           {/* Header */}
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
-            <h1 className="text-xl font-display font-semibold text-[#18181B] tracking-tight">Daily Habits</h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-xl font-display font-semibold text-[#18181B] tracking-tight">Daily Habits</h1>
+              {shields > 0 && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#FEF3C7] text-[#D97706] text-[11px] font-bold">
+                  <ShieldCheck className="w-3 h-3" strokeWidth={2.5} />
+                  {shields}
+                </span>
+              )}
+            </div>
             <p className="text-sm text-[#A1A1AA] mt-1">Small actions, compounded daily.</p>
           </motion.div>
 
@@ -426,6 +465,33 @@ export default function HabitsPage() {
                       transition={{ duration: 0.7, ease: 'easeOut' }}
                     />
                   </div>
+
+                  {/* Streak Shield strip */}
+                  {completedToday === 0 && shields > 0 && (
+                    <div className="mt-4 pt-4 border-t border-[#FEF3C7] flex items-center justify-between gap-3">
+                      <p className="text-xs text-[#D97706] font-medium flex-1">
+                        Streak at risk today · Use a shield to protect it
+                      </p>
+                      <button
+                        onClick={() => {
+                          if (!user?.id) return
+                          const newShields = shields - 1
+                          setShields(user.id, newShields)
+                          setShieldsState(newShields)
+                          try {
+                            localStorage.setItem(`${user.id}_shield_used_${todayStr()}`, '1')
+                          } catch { /* ignore */ }
+                          allDoneRef.current = true
+                          if (user?.id) setRing(user.id, 'grow')
+                          setShieldToast('Shield used! Streak protected for today 🛡️')
+                          setTimeout(() => setShieldToast(null), 3000)
+                        }}
+                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[#FEF3C7] text-[#D97706] text-xs font-bold hover:bg-[#FDE68A] transition-colors flex-shrink-0"
+                      >
+                        Use Shield 🛡️
+                      </button>
+                    </div>
+                  )}
                 </motion.div>
               )}
 
@@ -699,6 +765,24 @@ export default function HabitsPage() {
             <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#7C3AED] text-white shadow-lg text-sm font-bold">
               <Sparkles className="w-4 h-4" />
               +{xpBurst.amount} XP
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Shield toast */}
+      <AnimatePresence>
+        {shieldToast && (
+          <motion.div
+            key="shield-toast"
+            initial={{ opacity: 0, y: 20, scale: 0.8 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.9 }}
+            className="fixed bottom-36 lg:bottom-16 right-6 z-50 pointer-events-none"
+          >
+            <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#D97706] text-white shadow-lg text-sm font-bold">
+              <ShieldCheck className="w-4 h-4" />
+              {shieldToast}
             </div>
           </motion.div>
         )}

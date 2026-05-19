@@ -56,9 +56,20 @@ function MessageLine({ text }: { text: string }) {
 
 const TIER_LIMITS: Record<string, number> = { free: 10, pro: 100, ceo: Infinity }
 
+const ROADMAP_NAMES: Record<string, string> = {
+  shopify:   'Shopify Brand',
+  digital:   'Digital Products',
+  creator:   'Content Creator',
+  service:   'Service Business',
+  affiliate: 'Affiliate Marketing',
+  medspa:    'Med Spa / Wellness',
+}
+
 export default function AIAssistantPage() {
-  const { profile, signOut } = useUser()
+  const { profile, signOut, user } = useUser()
   const router = useRouter()
+
+  const [roadmapContext, setRoadmapContext] = useState<string | null>(null)
 
   const greeting = `Hi ${profile?.full_name ?? 'there'}! I'm your AI business assistant.\n\nAsk me anything  -  content ideas, pricing strategy, how to get your first client, what to post today. I'm here to help you build.`
 
@@ -70,18 +81,36 @@ export default function AIAssistantPage() {
   const [queriesUsed, setQueriesUsed] = useState(0)
   const bottomRef = useRef<HTMLDivElement>(null)
 
+  // Load roadmap context from localStorage
+  useEffect(() => {
+    if (!user?.id || !profile?.selected_roadmap) return
+    try {
+      const slug = profile.selected_roadmap
+      const raw = localStorage.getItem(`${user.id}_roadmap_${slug}_v1`)
+      if (raw) {
+        const progress = JSON.parse(raw)
+        const stepsCompleted = (progress.completedIds ?? []).length
+        setRoadmapContext(`${ROADMAP_NAMES[slug] ?? slug} roadmap, Step ${stepsCompleted + 1}`)
+      }
+    } catch {}
+  }, [user?.id, profile?.selected_roadmap])
+
   // Update greeting once profile loads (profile is null on first render)
   useEffect(() => {
     if (profile?.full_name) {
+      const name = profile.full_name
+      const contextGreeting = roadmapContext
+        ? `Hi ${name}! I'm your AI business assistant — and I can see you're working on your ${roadmapContext}. Ask me anything about your next steps, content ideas, pricing, or anything else. I'm here to help you build.`
+        : `Hi ${name}! I'm your AI business assistant.\n\nAsk me anything  -  content ideas, pricing strategy, how to get your first client, what to post today. I'm here to help you build.`
       setMessages(prev =>
         prev.map(m =>
           m.id === '0'
-            ? { ...m, content: `Hi ${profile.full_name}! I'm your AI business assistant.\n\nAsk me anything  -  content ideas, pricing strategy, how to get your first client, what to post today. I'm here to help you build.` }
+            ? { ...m, content: contextGreeting }
             : m
         )
       )
     }
-  }, [profile?.full_name])
+  }, [profile?.full_name, roadmapContext])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -104,6 +133,7 @@ export default function AIAssistantPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           messages: [...messages, userMsg].map(m => ({ role: m.role, content: m.content })),
+          roadmapContext,
         }),
       })
 
