@@ -119,13 +119,34 @@ export default function DailyBriefPage() {
 
   const quote = QUOTES[getDayOfYear() % 5]
 
-  // ── Load roadmap from localStorage ─────────────────────────────────────────
+  // ── Load roadmap progress from Supabase (fallback to localStorage) ──────────
   useEffect(() => {
     if (!user?.id || !profile) return
     const slug = profile.selected_roadmap
-    if (slug) {
+    if (!slug) { setRoadmapLoaded(true); return }
+
+    async function loadRoadmap() {
       try {
-        const raw = localStorage.getItem(`${user.id}_roadmap_${slug}_v1`)
+        const { data } = await supabase
+          .from('roadmap_progress')
+          .select('completed_ids, checklists')
+          .eq('user_id', user!.id)
+          .eq('slug', slug!)
+          .maybeSingle()
+
+        if (data) {
+          setRoadmapProgress({
+            completedIds: (data.completed_ids as string[]) ?? [],
+            activeStepIndex: 0,
+          })
+          setRoadmapLoaded(true)
+          return
+        }
+      } catch { /* fall through */ }
+
+      // Fallback: localStorage
+      try {
+        const raw = localStorage.getItem(`${user!.id}_roadmap_${slug}_v1`)
         if (raw) {
           const parsed = JSON.parse(raw) as RoadmapProgress
           setRoadmapProgress(parsed)
@@ -135,9 +156,11 @@ export default function DailyBriefPage() {
       } catch {
         setRoadmapProgress({ completedIds: [], activeStepIndex: 0 })
       }
+      setRoadmapLoaded(true)
     }
-    setRoadmapLoaded(true)
-  }, [user?.id, profile])
+
+    void loadRoadmap()
+  }, [user?.id, profile?.selected_roadmap]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Fetch habits ────────────────────────────────────────────────────────────
   useEffect(() => {

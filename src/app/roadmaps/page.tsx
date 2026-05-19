@@ -1,8 +1,9 @@
 'use client'
 
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { motion } from 'framer-motion'
 import {
   Lock, ChevronRight, Check, ArrowRight, Clock, Layers,
@@ -150,12 +151,37 @@ const ROADMAPS: Roadmap[] = [
 export default function RoadmapsPage() {
   const { profile, user, signOut } = useUser()
   const router = useRouter()
+  const supabase = createClientComponentClient()
   const [selected, setSelected] = useState<string>('shopify')
   const [progressMap, setProgressMap] = useState<Record<string, { progress: number; enrolled: boolean }>>({})
 
-  // Load real progress from localStorage for each roadmap
-  useEffect(() => {
+  // Load progress from Supabase (source of truth), fall back to localStorage
+  const loadProgress = useCallback(async () => {
     if (!user?.id) return
+    try {
+      const { data } = await supabase
+        .from('roadmap_progress')
+        .select('slug, completed_ids')
+        .eq('user_id', user.id)
+
+      if (data && data.length > 0) {
+        const map: Record<string, { progress: number; enrolled: boolean }> = {}
+        for (const row of data) {
+          const roadmapDef = ROADMAPS.find(r => r.id === row.slug)
+          const completedCount = (row.completed_ids as string[]).length
+          map[row.slug] = {
+            enrolled: completedCount > 0,
+            progress: (roadmapDef?.milestones ?? 0) > 0
+              ? Math.round((completedCount / roadmapDef!.milestones) * 100)
+              : 0,
+          }
+        }
+        setProgressMap(map)
+        return
+      }
+    } catch { /* fall through to localStorage */ }
+
+    // Fallback: localStorage (covers users not yet migrated)
     const map: Record<string, { progress: number; enrolled: boolean }> = {}
     for (const roadmap of ROADMAPS) {
       try {
@@ -170,10 +196,12 @@ export default function RoadmapsPage() {
               : 0,
           }
         }
-      } catch { /* ignore parse errors */ }
+      } catch { /* ignore */ }
     }
     setProgressMap(map)
-  }, [user?.id])
+  }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => { void loadProgress() }, [loadProgress])
   const selectedRoadmap = ROADMAPS.find(r => r.id === selected)!
 
   return (

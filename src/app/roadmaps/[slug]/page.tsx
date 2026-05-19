@@ -1128,17 +1128,44 @@ export default function RoadmapDetailPage() {
   const [completedIds, setCompletedIds] = useState<Set<string>>(new Set())
   const [checklists, setChecklists] = useState<Record<string, Record<number, boolean>>>({})
 
+  // Load progress from Supabase (with localStorage migration fallback)
   useEffect(() => {
     if (!user?.id) return
-    try {
-      const raw = localStorage.getItem(`${user.id}_roadmap_${slug}_v1`)
-      if (raw) {
-        const saved = JSON.parse(raw)
-        setCompletedIds(new Set(saved.completed ?? []))
-        setChecklists(saved.checklists ?? {})
-      }
-    } catch { /* ignore */ }
-  }, [user?.id, slug])
+    async function loadProgress() {
+      try {
+        const { data } = await supabase
+          .from('roadmap_progress')
+          .select('completed_ids, checklists')
+          .eq('user_id', user!.id)
+          .eq('slug', slug)
+          .maybeSingle()
+
+        if (data) {
+          setCompletedIds(new Set(data.completed_ids as string[]))
+          setChecklists((data.checklists as Record<string, Record<number, boolean>>) ?? {})
+          return
+        }
+
+        // Migration: if no DB row yet, try reading from localStorage and migrate up
+        const raw = localStorage.getItem(`${user!.id}_roadmap_${slug}_v1`)
+        if (raw) {
+          const saved = JSON.parse(raw)
+          const ids: string[] = saved.completed ?? []
+          const lists = saved.checklists ?? {}
+          setCompletedIds(new Set(ids))
+          setChecklists(lists)
+          // Write to Supabase so future loads come from DB
+          await supabase.from('roadmap_progress').upsert({
+            user_id: user!.id,
+            slug,
+            completed_ids: ids,
+            checklists: lists,
+          })
+        }
+      } catch { /* ignore — use empty state */ }
+    }
+    void loadProgress()
+  }, [user?.id, slug]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const roadmap = ROADMAP_DATA[slug]
 
@@ -1152,13 +1179,21 @@ export default function RoadmapDetailPage() {
 
   const saveProgress = useCallback((ids: Set<string>, lists: Record<string, Record<number, boolean>>) => {
     if (!user?.id) return
+    // Write to Supabase (source of truth)
+    void supabase.from('roadmap_progress').upsert({
+      user_id: user.id,
+      slug,
+      completed_ids: Array.from(ids),
+      checklists: lists,
+    })
+    // Keep localStorage in sync for the dashboard/daily widgets that read it
     try {
       localStorage.setItem(`${user.id}_roadmap_${slug}_v1`, JSON.stringify({
         completed: Array.from(ids),
         checklists: lists,
       }))
     } catch { /* ignore */ }
-  }, [user?.id, slug])
+  }, [user?.id, slug]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleComplete = useCallback((milestoneId: string) => {
     if (!roadmap) return

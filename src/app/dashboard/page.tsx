@@ -311,54 +311,87 @@ function StreakDefenseBanner({ streak, habitsAllDone }: { streak: number; habits
 
 // ─── COMEBACK BANNER (for users returning after a break) ─────────────────
 
-function ComebackBanner({ streak, daysInApp: days, firstName }: { streak: number; daysInApp: number; firstName?: string }) {
+function ComebackBanner({ lastActiveDate, roadmapSlug, firstName }: {
+  lastActiveDate: string | null
+  roadmapSlug: string
+  firstName?: string
+}) {
   const [show, setShow] = useState(false)
   const [dismissed, setDismissed] = useState(false)
+  const [daysAway, setDaysAway] = useState(0)
 
   useEffect(() => {
-    // Streak just reset (was >0 at some point, now 0 or 1, days >3)
+    if (!lastActiveDate) return
     const key = `comeback_shown_${todayKey()}`
-    if (streak <= 1 && days > 3 && !localStorage.getItem(key)) {
+    if (localStorage.getItem(key)) return
+    const diff = Math.floor((Date.now() - new Date(lastActiveDate).getTime()) / 86_400_000)
+    if (diff >= 3) {
+      setDaysAway(diff)
       setShow(true)
     }
-  }, [streak, days])
+  }, [lastActiveDate])
 
   function dismiss() {
     localStorage.setItem(`comeback_shown_${todayKey()}`, '1')
     setDismissed(true)
   }
 
+  const ROADMAP_NAMES: Record<string, string> = {
+    shopify: 'Shopify Brand', digital: 'Digital Products',
+    creator: 'Content Creator', service: 'Service Business',
+    affiliate: 'Affiliate Marketing', medspa: 'Med Spa / Wellness',
+  }
+  const roadmapName = ROADMAP_NAMES[roadmapSlug] ?? 'your roadmap'
+
   if (!show || dismissed) return null
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.96 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.96 }}
-      className="bg-[#18181B] rounded-2xl p-5 relative overflow-hidden"
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -8 }}
+      className="rounded-2xl overflow-hidden mb-4"
+      style={{ background: 'linear-gradient(135deg, #18181B 0%, #1C1917 100%)' }}
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-[#7C3AED]/20 to-transparent" />
-      <div className="relative">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-[#7C3AED] mb-1">You're back 👋</p>
-            <h3 className="text-base font-semibold text-white leading-snug">
-              The 3% who return become the 1% who succeed{firstName ? `, ${firstName}` : ''}.
-            </h3>
-            <p className="text-sm text-[#71717A] mt-1.5 leading-relaxed">
-              Life happens. What matters is you're here. Start fresh today — your streak resets at 1, not zero.
-            </p>
+      <div className="p-5">
+        <div className="flex items-start justify-between gap-3 mb-3">
+          <div className="flex items-center gap-2.5">
+            <span className="text-2xl">👋</span>
+            <div>
+              <p className="text-white font-semibold text-sm leading-snug">
+                {firstName ? `Welcome back, ${firstName}.` : 'Welcome back.'}
+              </p>
+              <p className="text-[#71717A] text-xs mt-0.5">
+                {daysAway} days away — your spot is still here.
+              </p>
+            </div>
           </div>
-          <button onClick={dismiss} className="text-[#52525B] hover:text-[#71717A] flex-shrink-0 mt-0.5 transition-colors text-xs">
-            ✕
+          <button onClick={dismiss} className="text-[#52525B] hover:text-[#71717A] transition-colors p-1 flex-shrink-0">
+            <span className="text-xs">✕</span>
           </button>
         </div>
-        <button
-          onClick={dismiss}
-          className="mt-4 w-full py-2.5 bg-[#7C3AED] text-white text-sm font-semibold rounded-xl hover:bg-[#6D28D9] transition-colors"
-        >
-          Let's go — Day 1 again 🔥
-        </button>
+
+        {/* No shame messaging */}
+        <p className="text-sm text-[#A1A1AA] leading-relaxed mb-4">
+          Life happens. The women who build real businesses aren&apos;t the ones who never stop — they&apos;re the ones who keep coming back. Your{' '}
+          <span className="text-white font-medium">{roadmapName}</span> roadmap is right where you left it.
+        </p>
+
+        <div className="flex gap-2">
+          <a
+            href={`/roadmaps/${roadmapSlug}`}
+            onClick={dismiss}
+            className="flex-1 py-2.5 bg-[#7C3AED] text-white text-sm font-semibold rounded-xl hover:bg-[#6D28D9] transition-colors text-center"
+          >
+            Pick up where I left off →
+          </a>
+          <button
+            onClick={dismiss}
+            className="px-4 py-2.5 text-[#71717A] text-sm rounded-xl hover:text-[#A1A1AA] transition-colors border border-[#3F3F46]"
+          >
+            Later
+          </button>
+        </div>
       </div>
     </motion.div>
   )
@@ -1404,7 +1437,7 @@ export default function DashboardPage() {
 
           {/* ── Comeback banner ── */}
           <AnimatePresence>
-            <ComebackBanner streak={streak} daysInApp={days} firstName={firstName} />
+            <ComebackBanner lastActiveDate={profile?.last_active_date ?? null} roadmapSlug={roadmapSlug} firstName={firstName} />
           </AnimatePresence>
 
           {/* ── BEGINNER GUIDE: shown for first 7 days ── */}

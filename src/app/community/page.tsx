@@ -80,6 +80,19 @@ export default function CommunityPage() {
 
   const supabase = createClientComponentClient()
 
+  // ─── Prefill from roadmap share prompt ────────────────────────────────────
+
+  useEffect(() => {
+    try {
+      const prefill = sessionStorage.getItem('community_prefill')
+      if (prefill) {
+        sessionStorage.removeItem('community_prefill')
+        setNewPost({ content: prefill, post_type: 'win' })
+        setShowCompose(true)
+      }
+    } catch { /* private mode */ }
+  }, [])
+
   // ─── Fetch posts ───────────────────────────────────────────────────────────
 
   const fetchPosts = useCallback(async () => {
