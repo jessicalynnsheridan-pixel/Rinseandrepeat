@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import {
   LayoutDashboard, Map, BookOpen, Bot, Flame, Users,
-  Crown, Settings, LogOut, Sparkles, TrendingUp, Calculator, User, Sun,
+  Crown, Settings, LogOut, Sparkles, TrendingUp, Calculator, User, Sun, ShoppingBag,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Profile, UserLevel } from '@/types'
@@ -38,6 +38,7 @@ const navItems = [
   { href: '/vault',        label: 'Resource Vault',   icon: BookOpen },
   { href: '/ai-assistant', label: 'AI Assistant',     icon: Bot, badge: 'NEW' },
   { href: '/guide',        label: 'Claude Guide',     icon: Sparkles, badge: 'NEW' },
+  { href: '/stan-guide',   label: 'Stan Store Guide', icon: ShoppingBag },
   { href: '/habits',       label: 'Habits',           icon: Flame },
   { href: '/revenue',      label: 'Revenue',          icon: TrendingUp },
   { href: '/calculators',  label: 'Calculators',      icon: Calculator },
