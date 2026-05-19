@@ -810,7 +810,7 @@ function Pricing() {
         </div>
 
         <p className="text-center text-sm text-ink-400 mt-8">
-          All plans include a 7-day free trial. Cancel anytime. No hidden fees.
+          Cancel anytime. No hidden fees.
         </p>
       </div>
     </section>

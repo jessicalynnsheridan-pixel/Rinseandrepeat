@@ -234,13 +234,13 @@ export default function PricingPage() {
                   ) : plan.price_monthly === 0 ? (
                     'Get started free'
                   ) : (
-                    `Start free trial →`
+                    `Get started →`
                   )}
                 </button>
 
                 {!isCurrent && plan.price_monthly > 0 && (
                   <p className={cn('text-center text-[10px] mt-2', isCeo ? 'text-[#52525B]' : 'text-[#A1A1AA]')}>
-                    7-day free trial · no card required
+                    Cancel anytime · billed {billing === 'yearly' ? 'annually' : 'monthly'}
                   </p>
                 )}
               </motion.div>

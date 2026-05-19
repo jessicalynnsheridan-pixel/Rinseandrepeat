@@ -46,6 +46,9 @@ const ROADMAP_DATA: Record<string, {
       completed: boolean
       checklist: string[]
       lesson: string
+      mentorNote: string
+      minimumViableAction: string
+      sections?: { type: 'bigSisterAdvice' | 'quitterWarning' | 'doItScared' | 'wishIKnew'; content: string }[]
     }[]
   }[]
 }> = {
@@ -67,8 +70,16 @@ const ROADMAP_DATA: Record<string, {
             xp: 50,
             locked: false,
             completed: false,
-            checklist: ['Research 5 potential niches', 'Check search volume on each', 'Validate with TikTok/Instagram', 'Choose your niche'],
+            checklist: ['Research 5 potential niches', 'Check if people actually search for this niche (use Google Trends at trends.google.com — it\'s free)', 'Validate with TikTok/Instagram', 'Choose your niche'],
             lesson: 'A good niche is specific, has buyers, and is something you can speak about authentically. Think: pet accessories for small dogs, women\'s fitness wear for curvy bodies, natural skincare for melanin-rich skin. The more specific, the less competition and the more loyal your customers.',
+            mentorNote: "I know this feels impossible right now. You're probably sitting there with 10 tabs open, a Notes app full of ideas, and a growing anxiety that you'll pick the \"wrong\" one. Here's what nobody tells you: there is no wrong niche — only niches you haven't tested yet. Analysis paralysis is real, and it hits almost every single founder at this exact step. The overwhelm you feel isn't a sign you're not ready. It's a sign you care. Give yourself permission to pick imperfectly and learn as you go. Done beats perfect every single time.",
+            minimumViableAction: "Open TikTok right now and search one niche idea you already have. Just look. That's it. That's your first step.",
+            sections: [
+              {
+                type: 'quitterWarning',
+                content: "This is where most people quit — they spin in 'research mode' for weeks and never choose. Give yourself 48 hours to decide, then commit. You can always pivot later. A chosen niche you can change beats a perfect niche that never gets started.",
+              },
+            ],
           },
           {
             id: 's2',
@@ -87,6 +98,14 @@ const ROADMAP_DATA: Record<string, {
               'Set up a professional business email',
             ],
             lesson: 'In Canada, you have two main options: sole proprietorship (fast, low cost, minimal paperwork  -  great to start) or incorporation (more legal protection, better for growth and investors). For most beginners, starting as a sole proprietor is totally fine. Use Ownr.co  -  it walks you through the entire registration or incorporation process online in under an hour, no lawyer required. Once registered, get your Business Number (BN) from the CRA  -  you\'ll need it for taxes and business banking. Keep business and personal money completely separate from day one. For tax questions, speak with a Canadian accountant  -  rules vary by province.',
+            mentorNote: "Okay, I need to acknowledge what this moment actually means. You're making it official. That can feel terrifying — like now it's 'real' and you can fail for real. Impostor syndrome tends to peak right here. You might be wondering: 'Who am I to start a business? What if people laugh? What if it doesn't work?' Those thoughts are completely normal. Every woman who has ever built something went through this exact moment. The fear doesn't mean stop — it means you're about to become someone new.",
+            minimumViableAction: "Go to Ownr.co right now and look at the registration page. You don't have to start — just look at what's there. Familiarity is the first step.",
+            sections: [
+              {
+                type: 'doItScared',
+                content: "You don't need to feel 'ready' to make this official. Make it official and you'll feel ready. The registration takes about 30 minutes. Most of the fear lives in the anticipation — not the actual doing.",
+              },
+            ],
           },
           {
             id: 's3',
@@ -97,6 +116,14 @@ const ROADMAP_DATA: Record<string, {
             completed: false,
             checklist: ['Start Shopify free trial', 'Choose and customize a theme', 'Add your brand colors and logo', 'Set up payment processing', 'Configure shipping settings', 'Add your return policy'],
             lesson: 'Use the Dawn or Debut theme to start  -  they\'re clean, fast, and convert well. Don\'t overthink the design. A simple, fast store beats a beautiful slow one every time. Your settings matter more than your aesthetics early on.',
+            mentorNote: "Tech overwhelm hits hard right here. You might be staring at the Shopify dashboard feeling like everyone else knows what they're doing and you're the only one lost. You're not. Most successful Shopify founders felt exactly this way on day one. Perfectionism will whisper that your store needs to be flawless before you launch — ignore it. A 'good enough' store that's live beats a perfect store that never launches. You can improve it every week. Start messy.",
+            minimumViableAction: "Start the Shopify free trial. Just that. You don't have to build anything today — just get inside and look around for 10 minutes.",
+            sections: [
+              {
+                type: 'bigSisterAdvice',
+                content: "Don't touch the theme code. Don't try to make it look like your favourite brand's store yet. Pick Dawn (it's clean, free, and fast), add your logo and colors, and move on. Your first store's job is to be functional — not beautiful. Beautiful comes after buyers.",
+              },
+            ],
           },
           {
             id: 's4',
@@ -105,8 +132,16 @@ const ROADMAP_DATA: Record<string, {
             xp: 100,
             locked: false,
             completed: false,
-            checklist: ['Research 3+ suppliers on Alibaba or CJ Dropshipping', 'Order samples from top 2', 'Evaluate quality and packaging', 'Negotiate pricing and MOQ', 'Place your first order'],
+            checklist: ['Find 3+ suppliers on Alibaba.com or CJDropshipping.com (these are marketplaces where manufacturers list products they can make for your brand)', 'Order samples from top 2', 'Evaluate quality and packaging', 'Ask each supplier about their minimum order quantity (MOQ = the minimum number of items you must buy) and negotiate their price', 'Place your first order'],
             lesson: 'Always order samples before bulk. Check supplier response time, reviews, and product photos. The quality of your packaging matters almost as much as the product  -  your unboxing is your first impression.',
+            mentorNote: "Fear of being scammed is completely valid — and almost every new e-commerce founder feels it at this stage. The internet is full of sketchy suppliers, and it's hard to know who to trust. That uncertainty can make you freeze. But here's the thing: ordering samples is literally the system designed to protect you. You don't have to trust anyone blindly — you get to verify first. Take it one supplier at a time. Slow and careful is still progress.",
+            minimumViableAction: "Search one product idea on Alibaba.com today. Just browse the listings. Don't order anything, don't contact anyone — just see what exists out there.",
+            sections: [
+              {
+                type: 'wishIKnew',
+                content: "I wish someone had told me: the first supplier you find probably isn't the one you'll use — and that's completely normal. Sampling a few and discarding most is the actual process. It's not a sign you're doing it wrong. It's due diligence, and every successful brand did exactly this.",
+              },
+            ],
           },
           {
             id: 's5',
@@ -126,6 +161,14 @@ const ROADMAP_DATA: Record<string, {
               'Write your brand story in 3–5 sentences',
             ],
             lesson: 'Canva is the tool to start with  -  it\'s free, beginner-friendly, and everything you need is in one place. Start with a simple logo using their free templates. Search "minimalist logo" for clean, professional options. Once your logo is done, set up a Brand Kit in Canva so your colors and fonts auto-apply to every new design. Create a few Instagram post templates while you\'re in there  -  this lets you batch your content in 30 minutes instead of starting from scratch each time. Your Canva Brand Kit will also be the source for your Stan Store cover images, product covers, and any PDFs or freebies you create.',
+            mentorNote: "This is the step where perfectionism goes absolutely feral. You'll look at polished brand accounts and feel like yours looks 'amateur.' You'll redo your logo six times. You'll change your brand colors at 2am. I'm telling you this because it's going to happen, and I want you to recognize it when it does. Your brand doesn't have to be perfect — it has to be consistent. Pick three words that feel like you, choose colors you love, and commit. You can always refine later. Brands evolve. Yours will too.",
+            minimumViableAction: "Write down 3 words that describe how you want your brand to feel. Three words. That's your entire brand strategy on day one. Everything else builds from those 3 words.",
+            sections: [
+              {
+                type: 'quitterWarning',
+                content: "This is where the perfectionism spiral starts — and it can eat weeks. Most people spend so long on 'branding' that they never actually open their store. Give yourself one focused afternoon. Lock in what you have. Move forward. You will refine it over time, and that's normal and expected.",
+              },
+            ],
           },
         ],
       },
@@ -140,8 +183,16 @@ const ROADMAP_DATA: Record<string, {
             xp: 100,
             locked: true,
             completed: false,
-            checklist: ['Write SEO product titles', 'Write benefit-focused descriptions', 'Take/edit professional product photos', 'Set pricing strategy', 'Add size guides if needed'],
+            checklist: ['Write product titles that include: what it is + who it\'s for + one key benefit (this format helps Google find you — that\'s called SEO)', 'Write benefit-focused descriptions', 'Take/edit professional product photos', 'Set your price (aim for 3–4× your product cost to cover shipping, ads, packaging, and still make profit)', 'Add size guides if needed'],
             lesson: 'Your product title should include: what it is, who it\'s for, and a key benefit. Example: "Moisturizing Body Butter for Dry Skin  -  Shea & Vitamin E, Women\'s Daily Skincare". Lead with the benefit, not the feature.',
+            mentorNote: "Here's a truth about this step: putting your work out there for strangers to judge is genuinely scary. What if nobody buys? What if someone leaves a bad review? What if people laugh? Those fears are real, and I'm not going to minimize them. But staying hidden costs more than being seen. Write the listing like you're explaining it to a friend who needs exactly this product. Authenticity beats polished copy every time.",
+            minimumViableAction: "Fill in this sentence right now: 'This product is for ______ who want ______ so they can ______.' That one sentence is the foundation of every product listing you write.",
+            sections: [
+              {
+                type: 'bigSisterAdvice',
+                content: "Write your description by answering three questions: Who is this for? What problem does it solve? What will their life look or feel like after using it? Answer those three questions in plain English and you have your listing. No marketing degree required.",
+              },
+            ],
           },
           {
             id: 'l2',
@@ -152,6 +203,14 @@ const ROADMAP_DATA: Record<string, {
             completed: false,
             checklist: ['Create Instagram business account', 'Create TikTok business account', 'Write optimized bios', 'Post 3 intro content pieces', 'Follow 50 accounts in your niche'],
             lesson: 'Post before you launch. Build an audience while you\'re still setting up. Even 200 engaged followers before launch day can lead to your first sales. Your content before launch is your pre-sale marketing.',
+            mentorNote: "Comparison is going to hit hardest right here. You'll look at accounts with 50K followers and feel like you're starting impossibly behind. Everyone with a big following started at zero — including the ones who make it look effortless. The fear of being judged, of posting content and getting silence, of putting your face or brand out there? It's universal. Post anyway. The algorithm rewards consistency, not perfection. Your first posts don't have to be good — they have to exist.",
+            minimumViableAction: "Set up your Instagram business account right now. Just the account. Don't post anything yet, don't worry about the bio — just have the account exist and be in your name.",
+            sections: [
+              {
+                type: 'doItScared',
+                content: "Post your first piece of content before you feel ready. The algorithm doesn't reward perfect — it rewards consistent. Your first posts will feel awkward. That's not a sign you're doing it wrong. That's proof you started. Your future customers need you to show up before you feel confident.",
+              },
+            ],
           },
           {
             id: 'l3',
@@ -162,6 +221,14 @@ const ROADMAP_DATA: Record<string, {
             completed: false,
             checklist: ['Remove Shopify password page', 'Announce on all social platforms', 'Email your personal network', 'Run a launch discount (10-15%)', 'Post launch content every day for 7 days'],
             lesson: 'Your first sale will not come from strangers. It will come from someone who knows, likes, and trusts you. Tell everyone. Post about it everywhere. Text people directly. There is no shame in a public launch  -  only in staying hidden.',
+            mentorNote: "Launch anxiety is one of the most common reasons businesses never actually launch. You find one more thing to fix, one more photo to retake, one more tweak to make. That's perfectionism trying to protect you from the vulnerability of being seen. And 'crickets' on launch day is genuinely one of the most crushing feelings in entrepreneurship — I won't pretend otherwise. But a quiet launch is something you can build from. An un-launched store is a dream that never got its chance. You're ready.",
+            minimumViableAction: "Tell one person about your store today. Text them, DM them, or say it out loud. One person. That counts. That is a real launch action.",
+            sections: [
+              {
+                type: 'quitterWarning',
+                content: "This is where most businesses never actually launch. The founder finds one more thing to fix. Then another. Then another. Here is the truth: there will always be something to fix. A live store with flaws gets sales. A perfect store that never goes live earns nothing. Press the button.",
+              },
+            ],
           },
         ],
       },
@@ -176,8 +243,16 @@ const ROADMAP_DATA: Record<string, {
             xp: 150,
             locked: true,
             completed: false,
-            checklist: ['Set up Meta Business Manager', 'Install Shopify Facebook Pixel', 'Create your first ad creative', 'Set $10/day test budget', 'Analyze results after 7 days'],
+            checklist: ['Set up Meta Business Manager', 'Install the Meta Pixel on your Shopify store — it\'s a small tracking code that helps your ads reach the right people (Shopify has a one-click install in Settings → Apps)', 'Create your first ad creative', 'Set a $10/day test budget (you can pause anytime — this is your learning investment, not a gamble)', 'Analyze results after 7 days'],
             lesson: 'Start with a $10/day budget on a single ad set. Test one variable at a time  -  image, copy, or audience. Never change multiple things at once or you won\'t know what moved the needle. Data after 7 days, then iterate.',
+            mentorNote: "Spending money on ads when your business is new feels terrifying. What if you lose it all? What if it doesn't work? What if you're not smart enough to do this right? Those fears are so common in the female founder community — and they're compounded by the fact that most paid ads education is designed for people with big budgets and marketing degrees. At $10/day, you're buying data, not results. You're learning, not gambling. Reframe this as tuition, not spending.",
+            minimumViableAction: "Set up your Meta Business Manager account at business.facebook.com. Don't create an ad yet — just get the account set up so you're ready when the time comes.",
+            sections: [
+              {
+                type: 'wishIKnew',
+                content: "I wish someone had told me: your first ad campaign will probably not work — and that's the whole point. You're not trying to go viral. You're buying data. You're learning what messaging, images, and audiences respond to your product. Think of your first $10/day as paying tuition at a very practical business school.",
+              },
+            ],
           },
           {
             id: 'g2',
@@ -186,8 +261,16 @@ const ROADMAP_DATA: Record<string, {
             xp: 100,
             locked: true,
             completed: false,
-            checklist: ['Set up Klaviyo (free up to 500)', 'Create a welcome popup with 10% discount', 'Write 3-email welcome sequence', 'Set up abandoned cart emails', 'Send weekly broadcast emails'],
+            checklist: ['Create a free Klaviyo account at klaviyo.com (Klaviyo is an email marketing tool — free for your first 500 subscribers, no credit card required)', 'Create a welcome popup with 10% discount', 'Write 3-email welcome sequence', 'Set up an abandoned cart email — this automatically emails someone who added to cart but didn\'t check out (this one email can recover 10–15% of lost sales)', 'Send weekly broadcast emails'],
             lesson: 'Email converts 3–5× better than social media. Every follower you earn should eventually land on your email list. Social platforms own your audience  -  your email list is yours forever.',
+            mentorNote: "New tools, new systems, new overwhelm — this is where a lot of founders hit a wall. Klaviyo has a learning curve. Email sequences feel complicated. It's easy to feel like 'other people' understand this stuff and you don't. But here's what matters: every email you send is going directly to someone who raised their hand and said 'I want to hear from you.' That's rare and powerful. Start with one email. It doesn't have to be perfect. It just has to land in their inbox.",
+            minimumViableAction: "Create a free Klaviyo account at klaviyo.com. Just the account. You don't have to set up anything today — just have the account so you can connect it to your store.",
+            sections: [
+              {
+                type: 'bigSisterAdvice',
+                content: "Your first welcome email doesn't need to be a masterpiece. Write it like you're texting a friend who just signed up: 'Hey! So glad you're here. Here's what you signed up for and what to expect from me...' That warmth and personality will convert better than any polished corporate copy.",
+              },
+            ],
           },
         ],
       },
@@ -204,6 +287,14 @@ const ROADMAP_DATA: Record<string, {
             completed: false,
             checklist: ['Optimize top 3 products', 'Scale winning ads to $50/day', 'Launch an upsell or bundle', 'Reach out to micro-influencers', 'Review and cut underperforming SKUs'],
             lesson: 'The jump from $1K to $5K is about doubling down on what works. Look at your data  -  what product has the best margin and conversion rate? Pour your energy and budget into that. Cut what isn\'t working without emotional attachment.',
+            mentorNote: "If you're here and you haven't hit $5K yet, please hear this: the gap between where you are and where you want to be is not a sign of failure — it's a sign that you're still in the game. Most founders feel like they're doing everything right and not seeing results, and that discouragement is one of the hardest emotional hurdles in business. The answer is almost never 'work harder' — it's 'work smarter on fewer things.' What's actually working? Do more of that. Everything else can wait.",
+            minimumViableAction: "Open your Shopify analytics right now and find your single best-selling product. Write it down. That one product is your entire focus for the next 30 days.",
+            sections: [
+              {
+                type: 'quitterWarning',
+                content: "The plateau between $1K and $5K/month is where most stores get abandoned. It feels like you've hit a ceiling. You feel like you must be doing something wrong because growth has slowed. You haven't hit a ceiling — you've hit the moment where data-driven focus matters more than scattered hustle. Double down on what's already working.",
+              },
+            ],
           },
         ],
       },
@@ -227,8 +318,16 @@ const ROADMAP_DATA: Record<string, {
             xp: 50,
             locked: false,
             completed: false,
-            checklist: ['List your top 5 skills or knowledge areas', 'Research what sells in your niche', 'Choose: ebook, course, template, or toolkit', 'Validate with a poll or question box'],
+            checklist: ['List your top 5 skills or knowledge areas', 'Research what sells in your niche', 'Choose: ebook, course, template, or toolkit', 'Validate your idea — post an Instagram poll or question box asking: "Would you pay for a guide on [your topic]?" At least a few yes answers means you\'re onto something'],
             lesson: 'The fastest digital product to create is a PDF guide or template pack. Courses take longer but earn more. Done is better than perfect  -  start simple and upgrade later. You can always expand a guide into a course once you have buyers.',
+            mentorNote: "There is a specific kind of impostor syndrome that hits digital product creators, and it sounds like this: 'Who am I to charge for this? Other people know way more than me. No one is going to pay for what I know.' It's one of the most paralyzing thoughts in online business — and almost every single person who has ever sold a digital product felt it before their first sale. You don't need to be the world's leading expert. You need to be a few steps ahead of the person you're helping. That's enough.",
+            minimumViableAction: "Write down one specific problem you already know how to solve — one sentence. 'I know how to help people ______.' That is your first product idea.",
+            sections: [
+              {
+                type: 'bigSisterAdvice',
+                content: "Start with a PDF guide or a checklist — not a full course. You can create a PDF in a weekend. A course can take months, and perfectionism will make it take even longer. Get one product finished and sold first. Expand into a course once you know people want what you're offering.",
+              },
+            ],
           },
           {
             id: 'd2',
@@ -239,6 +338,14 @@ const ROADMAP_DATA: Record<string, {
             completed: false,
             checklist: ['Outline your product content', 'Create in Canva, Notion, or Google Docs', 'Design a professional cover', 'Export as PDF', 'Set your price ($27-$97 for beginners)'],
             lesson: 'Your first product doesn\'t need to be a masterpiece  -  it needs to solve one specific problem for one specific person. Outline first, then write, then design. In that order. The cover matters more than you think; it\'s your first impression.',
+            mentorNote: "Perfectionism will try to destroy this step. You'll outline and re-outline. You'll decide the topic isn't good enough. You'll wonder if it's too basic or too advanced. You'll want to redesign the cover before you've even written the content. I need you to hear this clearly: a finished, imperfect product beats a perfect product that exists only in your head. Get the words down first. Then design. Then launch. Then improve. In that order. Always.",
+            minimumViableAction: "Write a 5-bullet outline for your product right now. Five bullets. That's your whole product structure on day one. You can add more later, but start with five.",
+            sections: [
+              {
+                type: 'quitterWarning',
+                content: "This is where the perfectionism spiral eats people alive. They outline, re-outline, change the topic, decide it's not good enough, redesign the cover before they've written a word, and never finish. Set a hard deadline: 7 days to a finished, imperfect product. Finished and out in the world beats perfect and still in your drafts.",
+              },
+            ],
           },
           {
             id: 'd3',
@@ -257,6 +364,14 @@ const ROADMAP_DATA: Record<string, {
               'Set up your payment info to receive payouts',
             ],
             lesson: 'Stan Store is the tool for Canadian creators and online business owners  -  free to start, and it handles payments, product delivery, email capture, and your bio link all in one place. Here\'s how the funnel works: someone finds you on Instagram → they see your content → they click your bio link → they download your free resource → they join your email list → eventually they buy your paid product. Always create a freebie first (a checklist, PDF guide, or Canva template). Then use Instagram DM automations like "comment GUIDE below" or "DM me the word START" to drive traffic into your Stan Store without paying for ads. This is the exact system that moves someone from a stranger seeing your Reel to a paying customer.',
+            mentorNote: "Tech setup always brings a wave of 'am I doing this right?' anxiety. Funnels and email captures and payment setup — it can feel like you need a degree just to sell a PDF. You don't. Stan Store was built specifically for people who are not tech experts. If you get stuck, their support is genuinely good. Every successful digital product creator fumbled through the setup at the start. You are not behind. You are exactly where you're supposed to be.",
+            minimumViableAction: "Go to stan.store and create your free account. Don't upload anything yet — just have the account exist with your name on it.",
+            sections: [
+              {
+                type: 'doItScared',
+                content: "The tech setup always feels harder than it is until you're inside it. You will probably be confused for about 20–30 minutes, and then something will click. Every single person who uses Stan Store had those same confused 30 minutes. They pushed through. So will you. The confusion is temporary. The store is permanent.",
+              },
+            ],
           },
         ],
       },
@@ -273,6 +388,14 @@ const ROADMAP_DATA: Record<string, {
             completed: false,
             checklist: ['Write 5 launch posts', 'Create a launch reel or TikTok', 'Post daily for launch week', 'Add a limited-time bonus', 'Follow up with DMs to warm audience'],
             lesson: 'Your launch should feel like an event. Create anticipation 3–5 days before, reveal on launch day, then maintain momentum for a week. People buy from energy. The more excited you are, the more your audience will be.',
+            mentorNote: "This is the step that stops most people cold — not because they can't do it, but because launching means being judged by people who actually know you. The fear of family or friends seeing you put yourself out there and failing publicly is deeply real. Most founders underestimate how much this fear holds them back. But here's what's also true: the people in your corner are rooting for you harder than you know. And strangers on the internet? They're either buying or scrolling past. Either way, you're still standing.",
+            minimumViableAction: "Write your launch announcement post right now — but don't post it yet. Just write it. Having it written and ready removes the biggest barrier between you and actually posting.",
+            sections: [
+              {
+                type: 'doItScared',
+                content: "The hardest part of launching a digital product is knowing that people who went to school with you, used to work with you, or follow you for other reasons will see it. That vulnerability is so real. Launch anyway. The people who judge you for trying were never going to support you regardless. And the strangers who need what you made? They're out there waiting.",
+              },
+            ],
           },
         ],
       },
@@ -298,6 +421,14 @@ const ROADMAP_DATA: Record<string, {
             completed: false,
             checklist: ['List what you could talk about for hours', 'Research 3 creators in your niche', 'Define your unique angle', 'Write your content mission statement'],
             lesson: 'You don\'t need to be the most expert person  -  you need to be the most relatable. "Business tips from a 23-year-old building her first brand" is more compelling than "business tips". Your perspective is your product.',
+            mentorNote: "The pressure to pick the 'right' niche before you've even started can feel suffocating. What if it's too small? What if it's too competitive? What if you get bored? Confusion at this stage is not a problem — it's information. You don't need to have it figured out. Your niche often sharpens over time as you create and see what resonates. The creators you admire most? Many of them 'found' their niche after posting consistently for months. Give yourself the same grace.",
+            minimumViableAction: "Post one piece of content today. Even if it doesn't feel 'on brand' yet. Even if it's rough. One post. That's the whole assignment.",
+            sections: [
+              {
+                type: 'wishIKnew',
+                content: "I wish someone had told me: you don't find your niche — you create it by showing up consistently. The creators who seem to have a perfectly defined niche actually just kept posting about the same things until it became their identity. You don't need a perfect niche to start. You need to start to find your niche.",
+              },
+            ],
           },
           {
             id: 'c2',
@@ -308,6 +439,14 @@ const ROADMAP_DATA: Record<string, {
             completed: false,
             checklist: ['Choose your primary platform (TikTok or Instagram)', 'Optimize your bio with keywords', 'Choose a consistent username', 'Create a highlight cover set on Canva', 'Post your intro video'],
             lesson: 'TikTok grows faster for new creators. Instagram has better monetization once established. Pick one to go deep on first. Spreading thin across 5 platforms is how creators plateau at 1,000 followers.',
+            mentorNote: "The fear of being on camera, of saying something stupid, of looking less polished than the accounts you follow — these are real feelings that stop millions of people from ever posting. Here's what's true: nobody starts polished. The creators with pristine aesthetics and confident delivery had a year of cringeworthy content before they found their voice. Your first posts will feel awkward. That's not a sign you're doing it wrong — it's proof you're doing it at all. Show up. Consistently. The rest follows.",
+            minimumViableAction: "Record a 15-second video on your phone today — just you talking about anything related to your topic. Don't post it. Just record it. That's how you start getting comfortable on camera.",
+            sections: [
+              {
+                type: 'bigSisterAdvice',
+                content: "If you're starting from zero followers, choose TikTok first. I know Instagram feels more familiar — but TikTok's algorithm actively distributes content from brand new accounts to people who don't follow you yet. Your first 100–500 followers will come much faster there. Then cross-post everything to Instagram and let it grow alongside.",
+              },
+            ],
           },
         ],
       },
@@ -331,8 +470,16 @@ const ROADMAP_DATA: Record<string, {
             xp: 75,
             locked: false,
             completed: false,
-            checklist: ['List your top 3 marketable skills', 'Define your ideal client', 'Write your service offer in one sentence', 'Set your pricing (start at $500-$1500/project)', 'Create a simple service menu'],
+            checklist: ['List your top 3 marketable skills', 'Define your ideal client', 'Write your service offer in one sentence', 'Set your starting price ($500–$1,500 per project is a normal beginner range — raise it after your first happy client)', 'Create a simple service menu'],
             lesson: 'The more specific your offer, the easier it is to sell. "I help women-owned product brands grow on Instagram" beats "social media manager" every time. Specificity signals expertise.',
+            mentorNote: "Impostor syndrome is loudest here. 'Why would anyone pay me? There are so many people better than me. I don't have enough experience. I should wait until I know more.' These thoughts are so common among women starting service businesses — and they're almost never grounded in reality. You have skills that other people genuinely need and would pay for. The gap between what you know and what you charge for is not a gap in ability — it's a gap in confidence. And confidence is built through action, not waiting.",
+            minimumViableAction: "Fill in this sentence: 'I help ______ do/get ______ so they can ______.' That's your service offer. It doesn't have to be perfect — write it now and refine it later.",
+            sections: [
+              {
+                type: 'bigSisterAdvice',
+                content: "Your offer is not: 'I do social media management.' Your offer is: 'I help female-owned product brands get consistent Instagram growth without spending hours creating content.' The more specific your offer is, the more you can charge for it, and the easier it is for the right clients to say yes immediately.",
+              },
+            ],
           },
           {
             id: 'sv2',
@@ -343,6 +490,14 @@ const ROADMAP_DATA: Record<string, {
             completed: false,
             checklist: ['List 20 people who might need your service', 'Send 10 personalized DMs or emails', 'Offer a discounted first project', 'Ask for a testimonial when done', 'Raise your rates after first client'],
             lesson: 'Your first client will come from your existing network 90% of the time. Don\'t wait to build a following. Reach out to people you already know today. One warm yes beats 100 cold no\'s.',
+            mentorNote: "Reaching out to people and potentially hearing 'no' — or worse, hearing nothing — is one of the scariest parts of starting a service business. Rejection feels personal even when it isn't. The silence of unread messages hits harder than we expect. But every client-based business was built one uncomfortable conversation at a time. Your first 'yes' is closer than it feels. And the people you reach out to? Most of them are rooting for you, even if the timing isn't right.",
+            minimumViableAction: "Write a list of 5 people in your phone or on social media who might know someone who needs your service. Don't message them yet — just make the list. The list is the first step.",
+            sections: [
+              {
+                type: 'quitterWarning',
+                content: "Most service business owners quit at exactly this step — not because they're not good enough, but because reaching out feels too vulnerable. They wait for clients to find them. Clients don't find people who haven't told anyone they exist. You have to make the first move. Everyone who has a client-based business sent uncomfortable messages to get their first one.",
+              },
+            ],
           },
         ],
       },
@@ -366,8 +521,16 @@ const ROADMAP_DATA: Record<string, {
             xp: 50,
             locked: false,
             completed: false,
-            checklist: ['List products you use daily and love', 'Check if each has an affiliate program', 'Apply to 3–5 programs (Amazon.ca, LTK, ShareASale, brand-direct programs)', 'Choose your primary content platform', 'Create a content plan built around your products'],
+            checklist: ['List products you use daily and love', 'Check if each has an affiliate program', 'Apply to 3–5 affiliate programs — they\'re free to join. Good ones to start with: Amazon.ca, LTK (formerly LikeToKnowIt), ShareASale, or email brands you already love and ask if they have an affiliate program', 'Choose your primary content platform', 'Create a content plan built around your products'],
             lesson: 'The most successful affiliates recommend products they actually use. Your audience can tell when you\'re chasing a commission. Authenticity converts  -  a genuine recommendation from a trusted voice outperforms any polished ad. For Canadians: Amazon.ca affiliate program, LTK (formerly Like to Know It), and direct brand affiliate programs all work in Canada. Always disclose affiliate relationships clearly  -  it\'s required by the Canadian Competition Bureau.',
+            mentorNote: "Affiliate marketing has a reputation problem — there's so much hype and so many promises of 'passive income overnight' that it can be hard to know what's real. That skepticism is healthy. But it can also make you hesitant to start because you're not sure it will actually work for you. The difference between affiliates who earn and affiliates who don't is almost always authenticity and consistency. If you genuinely love a product and talk about it honestly to people who trust you, it will convert. Start with what you already use.",
+            minimumViableAction: "Make a list of 5 products you already use and genuinely love. Google each one with the words 'affiliate program' after the name. That's your whole research session for today.",
+            sections: [
+              {
+                type: 'wishIKnew',
+                content: "I wish someone had told me earlier: the most successful affiliate content isn't 'buy this!' — it's genuinely useful content that happens to recommend a product. A tutorial. An honest review. A 'what I use every day.' Lead with the help first, and recommend second. That's what converts and what your audience will actually trust.",
+              },
+            ],
           },
         ],
       },
@@ -401,12 +564,56 @@ const ROADMAP_DATA: Record<string, {
               'Speak with a Canadian accountant about your business structure',
             ],
             lesson: 'Licensing for beauty and wellness businesses in Canada is governed provincially  -  the rules in Ontario, BC, and Alberta are all different. Check your provincial regulatory body (e.g. College of Nurses for medical aesthetics, provincial cosmetology board for esthetics). For medical treatments like injectables, a medical director or RN may be required regardless of province. For insurance, look at Intact Insurance, BFL Canada, or specialty wellness coverage providers. Register your business through Ownr.co  -  it handles provincial and federal incorporation online with no lawyer needed. Do not rely on US-based advice for Canadian licensing  -  always verify with your province directly.',
+            mentorNote: "The regulatory side of beauty and wellness businesses in Canada is genuinely complicated — and that complexity can feel like a wall between you and your dream. It's common to feel overwhelmed, to second-guess whether this path is even possible, or to worry you'll miss something important and face consequences. That fear is not irrational — it's responsible. Take it one checkbox at a time. You don't have to know everything before you start. You just have to start the research. Every licensed spa owner was once exactly where you are right now.",
+            minimumViableAction: "Find the phone number for your province's cosmetology or health regulatory board today. Just find it and write it down. One phone call to them replaces hours of confusing online research.",
+            sections: [
+              {
+                type: 'bigSisterAdvice',
+                content: "The licensing process looks like a maze when you first Google it — especially because the rules are different in every province and the information online is often out of date or US-focused. Here's what actually works: call your provincial regulatory board directly and tell them exactly what services you plan to offer. They will tell you exactly what you need. One call, clear answers.",
+              },
+            ],
           },
         ],
       },
     ],
   },
 }
+
+// ── Mentor section display config ────────────────────────────────────────────
+const SECTION_CONFIGS = {
+  bigSisterAdvice: {
+    icon: '💜',
+    label: 'Big Sister Advice',
+    bg: '#EDE9FE',
+    border: '#C4B5FD',
+    labelColor: '#6D28D9',
+    textColor: '#4C1D95',
+  },
+  quitterWarning: {
+    icon: '🚨',
+    label: 'This Is Where Most People Quit',
+    bg: '#FEF2F2',
+    border: '#FECACA',
+    labelColor: '#DC2626',
+    textColor: '#7F1D1D',
+  },
+  doItScared: {
+    icon: '🔥',
+    label: 'Do This Even If You\'re Scared',
+    bg: '#FEF9C3',
+    border: '#FDE68A',
+    labelColor: '#CA8A04',
+    textColor: '#713F12',
+  },
+  wishIKnew: {
+    icon: '✨',
+    label: 'What I Wish I Knew',
+    bg: '#F0F9FF',
+    border: '#BAE6FD',
+    labelColor: '#0369A1',
+    textColor: '#0C4A6E',
+  },
+} as const
 
 // ──────────────────────────────────────────
 // "Do This Now" — one direct action per step
@@ -947,6 +1154,52 @@ function FocusedStepCard({
             {milestone.description}
           </p>
 
+          {/* Mentor Note */}
+          {milestone.mentorNote && !milestone.locked && (
+            <div className="bg-[#FFF7ED] border border-[#FED7AA] rounded-2xl p-4">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-[#EA580C] mb-2">
+                💗 Big Sister Note
+              </p>
+              <p className="text-sm text-[#7C2D12] leading-relaxed">
+                {milestone.mentorNote}
+              </p>
+            </div>
+          )}
+
+          {/* Named mentor sections */}
+          {!milestone.locked && milestone.sections?.map((section, i) => {
+            const cfg = SECTION_CONFIGS[section.type]
+            return (
+              <div
+                key={i}
+                className="rounded-2xl p-4 border"
+                style={{ background: cfg.bg, borderColor: cfg.border }}
+              >
+                <p
+                  className="text-[10px] font-bold uppercase tracking-widest mb-2"
+                  style={{ color: cfg.labelColor }}
+                >
+                  {cfg.icon} {cfg.label}
+                </p>
+                <p className="text-sm leading-relaxed" style={{ color: cfg.textColor }}>
+                  {section.content}
+                </p>
+              </div>
+            )
+          })}
+
+          {/* Minimum Viable Action */}
+          {!milestone.locked && milestone.minimumViableAction && (
+            <div className="rounded-2xl p-4 border border-[#BBF7D0]" style={{ background: '#F0FDF4' }}>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-[#15803D] mb-2">
+                ⚡ Minimum Viable Action
+              </p>
+              <p className="text-sm leading-relaxed text-[#14532D]">
+                {milestone.minimumViableAction}
+              </p>
+            </div>
+          )}
+
           {/* Do This Now CTA */}
           {!milestone.locked && !completed && STEP_ACTIONS[milestone.id] && (
             <a
@@ -1008,7 +1261,7 @@ function FocusedStepCard({
                 className="w-full flex items-center gap-2.5 py-1 text-left"
               >
                 <span className="text-lg leading-none">💬</span>
-                <span className="text-sm font-semibold text-[#7C3AED] flex-1">Coach&apos;s note</span>
+                <span className="text-sm font-semibold text-[#7C3AED] flex-1">What I Wish I Knew</span>
                 <motion.div animate={{ rotate: showCoach ? 180 : 0 }} transition={{ duration: 0.2 }}>
                   <ChevronDown className="w-4 h-4 text-[#A1A1AA]" />
                 </motion.div>
