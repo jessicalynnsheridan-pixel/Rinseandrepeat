@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { TrendingUp, TrendingDown, DollarSign, Plus, ReceiptText } from 'lucide-react'
+import { Plus, ReceiptText, Loader2 } from 'lucide-react'
 import { cn, formatCurrency } from '@/lib/utils'
 import { Sidebar } from '@/components/navigation/Sidebar'
 import { MobileNav } from '@/components/navigation/MobileNav'
@@ -16,13 +16,8 @@ interface Entry {
   id: string
   source: string
   amount: number
-  date: string
-  category: string
-}
-
-interface PeriodData {
-  entries: Entry[]
-  goal: number
+  logged_date: string   // 'YYYY-MM-DD'
+  category: string      // stored in notes field in DB
 }
 
 // ── Revenue Celebration Modal ────────────────────────────────────────────────
@@ -41,7 +36,6 @@ function RevenueCelebration({ amount, onDone }: { amount: number; onDone: () => 
     { x: 92, color: '#7C3AED', delay: 0.22 },
   ]
 
-  // Auto-dismiss after 3 seconds
   useEffect(() => {
     const t = setTimeout(onDone, 3000)
     return () => clearTimeout(t)
@@ -55,7 +49,6 @@ function RevenueCelebration({ amount, onDone }: { amount: number; onDone: () => 
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
       onClick={onDone}
     >
-      {/* Confetti */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         {particles.map((p, i) => (
           <motion.div
@@ -69,7 +62,6 @@ function RevenueCelebration({ amount, onDone }: { amount: number; onDone: () => 
         ))}
       </div>
 
-      {/* Card */}
       <motion.div
         initial={{ scale: 0.7, opacity: 0, y: 30 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -111,104 +103,163 @@ function RevenueCelebration({ amount, onDone }: { amount: number; onDone: () => 
   )
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Constants ────────────────────────────────────────────────────────────────
 
 const CATEGORY_COLORS: Record<string, string> = {
-  product: '#7C3AED',
-  digital: '#16A34A',
-  service: '#E5974A',
+  product:   '#7C3AED',
+  digital:   '#16A34A',
+  service:   '#E5974A',
   affiliate: '#C89070',
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
-  product: 'Physical Product',
-  digital: 'Digital Product',
-  service: 'Service / Coaching',
+  product:   'Physical Product',
+  digital:   'Digital Product',
+  service:   'Service / Coaching',
   affiliate: 'Affiliate',
 }
 
-// Storage key is scoped per user so no two accounts share revenue data
-const revenueKey = (userId: string) => `${userId}_revenue_v1`
+// ── Period helpers ───────────────────────────────────────────────────────────
 
-const EMPTY_PERIOD = (): PeriodData => ({ entries: [], goal: 5000 })
-
-function loadRevenue(userId: string): Record<Period, PeriodData> {
-  try {
-    const raw = localStorage.getItem(revenueKey(userId))
-    if (raw) return JSON.parse(raw)
-  } catch { /* ignore */ }
-  return { week: EMPTY_PERIOD(), month: EMPTY_PERIOD(), year: { ...EMPTY_PERIOD(), goal: 50000 } }
+function periodStart(period: Period): string {
+  const today = new Date()
+  if (period === 'week') {
+    const d = new Date(today)
+    d.setDate(today.getDate() - ((today.getDay() + 6) % 7)) // Monday
+    return d.toISOString().split('T')[0]
+  }
+  if (period === 'month') {
+    return new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0]
+  }
+  return new Date(today.getFullYear(), 0, 1).toISOString().split('T')[0]
 }
+
+function formatDate(dateStr: string): string {
+  const [y, m, d] = dateStr.split('-').map(Number)
+  return new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+
+// Goal defaults per period — stored in localStorage (display preference only)
+const GOAL_DEFAULTS: Record<Period, number> = { week: 1000, month: 5000, year: 50000 }
+const goalsKey = (uid: string) => `${uid}_revenue_goals_v2`
+
+// ── Page ─────────────────────────────────────────────────────────────────────
 
 export default function RevenuePage() {
   const { profile, signOut, user } = useUser()
   const supabase = createClientComponentClient()
-  const [period, setPeriod] = useState<Period>('month')
+
+  const [period, setPeriod]   = useState<Period>('month')
+  const [entries, setEntries] = useState<Entry[]>([])
+  const [goals, setGoals]     = useState<Record<Period, number>>(GOAL_DEFAULTS)
+  const [loading, setLoading] = useState(true)
   const [showAdd, setShowAdd] = useState(false)
   const [newEntry, setNewEntry] = useState({ source: '', amount: '', category: 'service' })
-  const [revenueData, setRevenueData] = useState<Record<Period, PeriodData>>({
-    week: EMPTY_PERIOD(),
-    month: EMPTY_PERIOD(),
-    year: { ...EMPTY_PERIOD(), goal: 50000 },
-  })
-  const [hydrated, setHydrated] = useState(false)
+  const [saving, setSaving]   = useState(false)
   const [celebrationAmount, setCelebrationAmount] = useState<number | null>(null)
 
-  // Load user's real revenue data from localStorage
+  // ── Load goals from localStorage (just a display preference) ──────────────
   useEffect(() => {
     if (!user?.id) return
-    setRevenueData(loadRevenue(user.id))
-    setHydrated(true)
+    try {
+      const raw = localStorage.getItem(goalsKey(user.id))
+      if (raw) setGoals(JSON.parse(raw))
+    } catch { /* ignore */ }
   }, [user?.id])
 
-  // Persist on every change
-  useEffect(() => {
-    if (!user?.id || !hydrated) return
+  // ── Fetch all revenue logs from Supabase ──────────────────────────────────
+  const fetchRevenue = useCallback(async () => {
+    if (!user?.id) return
+    setLoading(true)
     try {
-      localStorage.setItem(revenueKey(user.id), JSON.stringify(revenueData))
-    } catch { /* ignore */ }
-  }, [revenueData, user?.id, hydrated])
+      // Fetch the whole current year so period filters work client-side instantly
+      const yearStart = new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0]
+      const { data, error } = await supabase
+        .from('revenue_logs')
+        .select('id, source, amount, notes, logged_date')
+        .eq('user_id', user.id)
+        .gte('logged_date', yearStart)
+        .order('logged_date', { ascending: false })
+        .order('created_at', { ascending: false })
 
-  const data = revenueData[period]
-  const total = data.entries.reduce((sum, e) => sum + e.amount, 0)
-  const progressPct = data.goal > 0 ? Math.min(100, Math.round((total / data.goal) * 100)) : 0
+      if (error) throw error
 
-  // Simple period-over-period change placeholder (requires history we don't store yet)
-  const hasEntries = data.entries.length > 0
-
-  function addEntry() {
-    if (!newEntry.source || !newEntry.amount) return
-    const entry: Entry = {
-      id: Date.now().toString(),
-      source: newEntry.source,
-      amount: parseFloat(newEntry.amount),
-      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      category: newEntry.category,
+      setEntries(
+        (data ?? []).map(row => ({
+          id:          row.id,
+          source:      row.source ?? '',
+          amount:      parseFloat(row.amount),
+          logged_date: row.logged_date,
+          category:    row.notes ?? 'service',
+        }))
+      )
+    } catch (err) {
+      console.error('Failed to load revenue:', err)
+    } finally {
+      setLoading(false)
     }
-    setRevenueData(prev => ({
-      ...prev,
-      [period]: {
-        ...prev[period],
-        entries: [entry, ...prev[period].entries],
-      },
-    }))
-    const amount = parseFloat(newEntry.amount)
-    setNewEntry({ source: '', amount: '', category: 'service' })
-    setShowAdd(false)
-    // Trigger celebration after a brief delay so the form close animation plays first
-    setTimeout(() => setCelebrationAmount(amount), 200)
+  }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
-    // Award XP + set earn ring
-    if (user?.id) {
+  useEffect(() => { fetchRevenue() }, [fetchRevenue])
+
+  // ── Derived: entries filtered to selected period ──────────────────────────
+  const start   = periodStart(period)
+  const visible = entries.filter(e => e.logged_date >= start)
+  const total   = visible.reduce((s, e) => s + e.amount, 0)
+  const goal    = goals[period]
+  const pct     = goal > 0 ? Math.min(100, Math.round((total / goal) * 100)) : 0
+
+  // ── Add entry ─────────────────────────────────────────────────────────────
+  async function addEntry() {
+    if (!newEntry.source.trim() || !newEntry.amount || !user?.id || saving) return
+    setSaving(true)
+
+    try {
+      const today = new Date().toISOString().split('T')[0]
+      const { data, error } = await supabase
+        .from('revenue_logs')
+        .insert({
+          user_id:     user.id,
+          source:      newEntry.source.trim(),
+          amount:      parseFloat(newEntry.amount),
+          notes:       newEntry.category,  // repurpose notes to store category
+          logged_date: today,
+        })
+        .select('id, source, amount, notes, logged_date')
+        .single()
+
+      if (error) throw error
+
+      const entry: Entry = {
+        id:          data.id,
+        source:      data.source ?? '',
+        amount:      parseFloat(data.amount),
+        logged_date: data.logged_date,
+        category:    data.notes ?? 'service',
+      }
+
+      setEntries(prev => [entry, ...prev])
+      const amount = parseFloat(newEntry.amount)
+      setNewEntry({ source: '', amount: '', category: 'service' })
+      setShowAdd(false)
+
+      setTimeout(() => setCelebrationAmount(amount), 200)
+
+      // Award XP + earn ring
       const xp = amount >= 1000 ? 50 : amount >= 100 ? 25 : 15
       void supabase.rpc('award_xp', { p_user_id: user.id, p_xp: xp })
       setRing(user.id, 'earn')
+    } catch (err) {
+      console.error('Failed to save revenue entry:', err)
+    } finally {
+      setSaving(false)
     }
   }
 
+  // ── Render ────────────────────────────────────────────────────────────────
+
   return (
     <div className="flex min-h-screen bg-[#FAFAFA]">
-      {/* Revenue celebration overlay */}
       <AnimatePresence>
         {celebrationAmount !== null && (
           <RevenueCelebration
@@ -224,7 +275,9 @@ export default function RevenuePage() {
         <div className="max-w-3xl mx-auto px-4 py-8 md:px-8">
 
           {/* Header */}
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="flex items-start justify-between mb-8">
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+            className="flex items-start justify-between mb-8"
+          >
             <div>
               <h1 className="text-2xl font-display font-semibold text-[#18181B] tracking-tight">Revenue</h1>
               <p className="text-sm text-[#71717A] mt-1">Track every dollar you earn.</p>
@@ -259,8 +312,12 @@ export default function RevenuePage() {
               className="card p-5"
             >
               <p className="text-xs font-semibold uppercase tracking-widest text-[#A1A1AA] mb-1">Total Earned</p>
-              <p className="text-2xl font-display font-semibold text-[#18181B]">{formatCurrency(total)}</p>
-              {!hasEntries && (
+              {loading ? (
+                <div className="h-8 w-24 bg-[#F4F4F5] rounded-lg animate-pulse mt-1" />
+              ) : (
+                <p className="text-2xl font-display font-semibold text-[#18181B]">{formatCurrency(total)}</p>
+              )}
+              {!loading && visible.length === 0 && (
                 <p className="text-xs text-[#A1A1AA] mt-1">No income logged yet</p>
               )}
             </motion.div>
@@ -269,17 +326,15 @@ export default function RevenuePage() {
               className="card p-5"
             >
               <p className="text-xs font-semibold uppercase tracking-widest text-[#A1A1AA] mb-1">Goal</p>
-              <p className="text-2xl font-display font-semibold text-[#18181B]">{formatCurrency(data.goal)}</p>
+              <p className="text-2xl font-display font-semibold text-[#18181B]">{formatCurrency(goal)}</p>
               <div className="mt-2">
-                <div className="flex justify-between mb-1">
-                  <span className="text-xs text-[#A1A1AA]">{progressPct}% reached</span>
-                </div>
-                <div className="w-full h-1.5 bg-[#F4F4F5] rounded-full overflow-hidden">
+                <span className="text-xs text-[#A1A1AA]">{pct}% reached</span>
+                <div className="w-full h-1.5 bg-[#F4F4F5] rounded-full overflow-hidden mt-1">
                   <motion.div
                     className="h-full rounded-full"
-                    style={{ backgroundColor: progressPct >= 80 ? '#16A34A' : progressPct >= 50 ? '#E5974A' : '#7C3AED' }}
+                    style={{ backgroundColor: pct >= 80 ? '#16A34A' : pct >= 50 ? '#E5974A' : '#7C3AED' }}
                     initial={{ width: 0 }}
-                    animate={{ width: `${progressPct}%` }}
+                    animate={{ width: `${pct}%` }}
                     transition={{ duration: 0.7, ease: 'easeOut' }}
                   />
                 </div>
@@ -288,87 +343,106 @@ export default function RevenuePage() {
           </div>
 
           {/* Add Entry Form */}
-          {showAdd && (
-            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="card p-5 mb-6">
-              <h3 className="text-sm font-semibold text-[#18181B] mb-4">Log Income</h3>
-              <div className="space-y-3">
-                <div>
-                  <label className="text-xs font-medium text-[#71717A] block mb-1">Source / Description</label>
-                  <input
-                    type="text"
-                    value={newEntry.source}
-                    onChange={e => setNewEntry(p => ({ ...p, source: e.target.value }))}
-                    placeholder="e.g. Shopify sale, coaching call..."
-                    className="input-field text-sm"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
+          <AnimatePresence>
+            {showAdd && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}
+                className="card p-5 mb-6"
+              >
+                <h3 className="text-sm font-semibold text-[#18181B] mb-4">Log Income</h3>
+                <div className="space-y-3">
                   <div>
-                    <label className="text-xs font-medium text-[#71717A] block mb-1">Amount ($)</label>
+                    <label className="text-xs font-medium text-[#71717A] block mb-1">Source / Description</label>
                     <input
-                      type="number"
-                      value={newEntry.amount}
-                      onChange={e => setNewEntry(p => ({ ...p, amount: e.target.value }))}
-                      placeholder="0"
+                      type="text"
+                      value={newEntry.source}
+                      onChange={e => setNewEntry(p => ({ ...p, source: e.target.value }))}
+                      onKeyDown={e => e.key === 'Enter' && addEntry()}
+                      placeholder="e.g. Shopify sale, coaching call..."
                       className="input-field text-sm"
                     />
                   </div>
-                  <div>
-                    <label className="text-xs font-medium text-[#71717A] block mb-1">Category</label>
-                    <select
-                      value={newEntry.category}
-                      onChange={e => setNewEntry(p => ({ ...p, category: e.target.value }))}
-                      className="input-field text-sm"
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs font-medium text-[#71717A] block mb-1">Amount ($)</label>
+                      <input
+                        type="number"
+                        value={newEntry.amount}
+                        onChange={e => setNewEntry(p => ({ ...p, amount: e.target.value }))}
+                        placeholder="0"
+                        className="input-field text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-[#71717A] block mb-1">Category</label>
+                      <select
+                        value={newEntry.category}
+                        onChange={e => setNewEntry(p => ({ ...p, category: e.target.value }))}
+                        className="input-field text-sm"
+                      >
+                        {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
+                          <option key={key} value={key}>{label}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 pt-1">
+                    <button onClick={() => setShowAdd(false)} className="btn-outline flex-1 text-sm py-2">Cancel</button>
+                    <button
+                      onClick={addEntry}
+                      disabled={!newEntry.source.trim() || !newEntry.amount || saving}
+                      className="btn-primary flex-1 text-sm py-2 gap-2"
                     >
-                      {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
-                        <option key={key} value={key}>{label}</option>
-                      ))}
-                    </select>
+                      {saving && <Loader2 className="w-3 h-3 animate-spin" />}
+                      Save Entry
+                    </button>
                   </div>
                 </div>
-                <div className="flex gap-2 pt-1">
-                  <button onClick={() => setShowAdd(false)} className="btn-outline flex-1 text-sm py-2">Cancel</button>
-                  <button
-                    onClick={addEntry}
-                    disabled={!newEntry.source || !newEntry.amount}
-                    className="btn-primary flex-1 text-sm py-2"
-                  >
-                    Save Entry
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          )}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-          {/* Entries / Empty state */}
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="card p-5">
+          {/* Entries / Empty / Loading */}
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+            className="card p-5"
+          >
             <p className="text-xs font-semibold uppercase tracking-widest text-[#A1A1AA] mb-4">Income Breakdown</p>
 
-            {!hasEntries ? (
-              /* Empty state  -  new users always start here */
+            {loading ? (
+              <div className="space-y-3 py-2">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="flex items-center gap-3 animate-pulse">
+                    <div className="w-2 h-2 rounded-full bg-[#F4F4F5]" />
+                    <div className="flex-1 h-4 bg-[#F4F4F5] rounded" />
+                    <div className="w-16 h-4 bg-[#F4F4F5] rounded" />
+                  </div>
+                ))}
+              </div>
+            ) : visible.length === 0 ? (
               <div className="py-8 text-center">
                 <div className="w-10 h-10 rounded-2xl bg-[#F4F4F5] flex items-center justify-center mx-auto mb-3">
                   <ReceiptText className="w-5 h-5 text-[#A1A1AA]" strokeWidth={1.5} />
                 </div>
                 <p className="text-sm font-medium text-[#3F3F46] mb-1">No income logged yet.</p>
                 <p className="text-xs text-[#A1A1AA]">
-                  Hit "Log Income" above every time you earn.<br />Watch your progress build from zero.
+                  Hit &ldquo;Log Income&rdquo; above every time you earn.<br />Watch your progress build from zero.
                 </p>
               </div>
             ) : (
               <div className="space-y-3">
-                {data.entries.map((entry, i) => {
-                  const pct = total > 0 ? Math.round((entry.amount / total) * 100) : 0
+                {visible.map((entry, i) => {
+                  const pctBar = total > 0 ? Math.round((entry.amount / total) * 100) : 0
                   return (
                     <div key={entry.id}>
                       <div className="flex items-center justify-between mb-1.5">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: CATEGORY_COLORS[entry.category] ?? '#A1A1AA' }} />
-                          <span className="text-sm font-medium text-[#18181B]">{entry.source}</span>
-                          <span className="text-xs text-[#A1A1AA]">{entry.date}</span>
+                        <div className="flex items-center gap-2 min-w-0">
+                          <div className="w-2 h-2 rounded-full flex-shrink-0"
+                            style={{ backgroundColor: CATEGORY_COLORS[entry.category] ?? '#A1A1AA' }} />
+                          <span className="text-sm font-medium text-[#18181B] truncate">{entry.source}</span>
+                          <span className="text-xs text-[#A1A1AA] flex-shrink-0">{formatDate(entry.logged_date)}</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-[#A1A1AA]">{pct}%</span>
+                        <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                          <span className="text-xs text-[#A1A1AA]">{pctBar}%</span>
                           <span className="text-sm font-semibold text-[#18181B]">{formatCurrency(entry.amount)}</span>
                         </div>
                       </div>
@@ -377,8 +451,8 @@ export default function RevenuePage() {
                           className="h-full rounded-full"
                           style={{ backgroundColor: CATEGORY_COLORS[entry.category] ?? '#A1A1AA' }}
                           initial={{ width: 0 }}
-                          animate={{ width: `${pct}%` }}
-                          transition={{ duration: 0.6, delay: i * 0.08, ease: 'easeOut' }}
+                          animate={{ width: `${pctBar}%` }}
+                          transition={{ duration: 0.6, delay: i * 0.06, ease: 'easeOut' }}
                         />
                       </div>
                     </div>
