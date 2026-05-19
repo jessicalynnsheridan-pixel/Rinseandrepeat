@@ -988,6 +988,168 @@ function QuickActions() {
   )
 }
 
+// ─── DAY COMPLETE OVERLAY ─────────────────────────────────────────────────
+
+function DayCompleteOverlay({ onDone }: { onDone: () => void }) {
+  useEffect(() => {
+    const t = setTimeout(onDone, 5000)
+    return () => clearTimeout(t)
+  }, [onDone])
+
+  const particles = ['#7C3AED','#A78BFA','#F97316','#FFD700','#16A34A','#E8B4B8']
+    .flatMap((c, i) => [
+      { x: 8 + i * 15, color: c, delay: i * 0.06, size: 9 },
+      { x: 4 + i * 17, color: c, delay: i * 0.09 + 0.12, size: 6 },
+    ])
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[60] flex items-center justify-center"
+      onClick={onDone}
+    >
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" />
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        {particles.map((p, i) => (
+          <motion.div
+            key={i}
+            initial={{ y: '-5vh', x: `${p.x}vw`, opacity: 1 }}
+            animate={{ y: '110vh', opacity: 0 }}
+            transition={{ duration: 2.5, delay: p.delay, ease: [0.2, 0.8, 0.9, 1] }}
+            className="absolute rounded-sm"
+            style={{ width: p.size, height: p.size * 0.6, backgroundColor: p.color }}
+          />
+        ))}
+      </div>
+      <motion.div
+        initial={{ scale: 0.7, opacity: 0, y: 40 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+        className="relative bg-[#18181B] rounded-3xl p-8 text-center max-w-sm w-full mx-4 border border-[#3F3F46]"
+        onClick={e => e.stopPropagation()}
+      >
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: [0, 1.25, 1] }}
+          transition={{ delay: 0.15, duration: 0.6 }}
+          className="w-20 h-20 rounded-3xl bg-gradient-to-br from-[#7C3AED] to-[#5B21B6] flex items-center justify-center mx-auto mb-5 shadow-[0_0_48px_rgba(124,58,237,0.5)]"
+        >
+          <Crown className="w-10 h-10 text-white" />
+        </motion.div>
+        <p className="text-[10px] font-bold uppercase tracking-widest text-[#7C3AED] mb-2">CEO Day Unlocked</p>
+        <p className="text-2xl font-bold text-white mb-2">You closed all 3 rings. 👑</p>
+        <p className="text-sm text-[#71717A] leading-relaxed mb-1">You built. You earned. You grew.</p>
+        <p className="text-sm text-[#71717A]">That&apos;s what separates the ones who make it.</p>
+        <div className="flex items-center justify-center gap-4 mt-5">
+          {[
+            { label: 'Build', color: '#7C3AED' },
+            { label: 'Earn', color: '#16A34A' },
+            { label: 'Grow', color: '#F97316' },
+          ].map(r => (
+            <div key={r.label} className="flex flex-col items-center gap-1">
+              <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: r.color }}>
+                <Check className="w-4 h-4 text-white" strokeWidth={3} />
+              </div>
+              <span className="text-[10px] font-semibold text-[#71717A]">{r.label}</span>
+            </div>
+          ))}
+        </div>
+        <p className="text-xs text-[#52525B] mt-5">Tap anywhere to continue</p>
+      </motion.div>
+    </motion.div>
+  )
+}
+
+// ─── LEVEL UP OVERLAY ─────────────────────────────────────────────────────
+
+const LEVEL_META: Record<string, { icon: string; color: string; message: string }> = {
+  Founder: { icon: '🚀', color: '#16A34A', message: "You're no longer an Intern. Act like the Founder you are." },
+  CEO: { icon: '👑', color: '#7C3AED', message: "You've earned the CEO title. Most never get here." },
+  Empire: { icon: '💎', color: '#F97316', message: "Empire level. You're in a category of your own." },
+}
+
+function LevelUpOverlay({ newLevel, onDone }: { newLevel: string; onDone: () => void }) {
+  useEffect(() => {
+    const t = setTimeout(onDone, 5000)
+    return () => clearTimeout(t)
+  }, [onDone])
+
+  const meta = LEVEL_META[newLevel] ?? { icon: '⭐', color: '#7C3AED', message: 'You leveled up!' }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm"
+      onClick={onDone}
+    >
+      <motion.div
+        initial={{ scale: 0.6, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 22 }}
+        className="relative bg-white rounded-3xl p-8 text-center max-w-sm w-full mx-4 shadow-2xl"
+        onClick={e => e.stopPropagation()}
+      >
+        <motion.div
+          initial={{ scale: 0, rotate: -20 }}
+          animate={{ scale: [0, 1.3, 1], rotate: 0 }}
+          transition={{ delay: 0.1, duration: 0.7, type: 'spring' }}
+          className="text-6xl mb-4"
+        >
+          {meta.icon}
+        </motion.div>
+        <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: meta.color }}>
+          Level Up
+        </p>
+        <p className="text-3xl font-bold text-[#18181B] mb-3">{newLevel}</p>
+        <p className="text-sm text-[#71717A] leading-relaxed">{meta.message}</p>
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: '100%' }}
+          transition={{ delay: 0.3, duration: 1.5 }}
+          className="h-1 rounded-full mt-6"
+          style={{ backgroundColor: meta.color }}
+        />
+        <p className="text-xs text-[#A1A1AA] mt-3">Tap to continue</p>
+      </motion.div>
+    </motion.div>
+  )
+}
+
+// ─── PROGRESS NARRATIVE ───────────────────────────────────────────────────
+
+function ProgressNarrative({ completedCount, roadmapLabel }: { completedCount: number; roadmapLabel: string }) {
+  const milestones = [
+    { at: 5,  headline: 'You\'ve done 5 steps.', sub: 'Most people who "want to start a business" never do. You\'re already ahead of them.' },
+    { at: 10, headline: '10 steps. This is where most quit.', sub: 'Statistically, 80% of people who start a roadmap drop off before step 10. You kept going.' },
+    { at: 20, headline: '20 steps completed.', sub: 'You\'re building something real now. Look back at Day 1 — you knew nothing. Look at you now.' },
+    { at: 35, headline: 'You\'re in the top 5%.', sub: 'Fewer than 1 in 20 people who start ever get this far. The ones who do? They\'re the ones who make it.' },
+  ]
+  const milestone = [...milestones].reverse().find(m => completedCount >= m.at)
+  if (!milestone) return null
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-gradient-to-br from-[#18181B] to-[#27272A] rounded-2xl p-5 border border-[#3F3F46]"
+    >
+      <p className="text-[10px] font-bold uppercase tracking-widest text-[#7C3AED] mb-2">Look how far you&apos;ve come</p>
+      <p className="text-base font-bold text-white leading-snug mb-1">{milestone.headline}</p>
+      <p className="text-sm text-[#71717A] leading-relaxed">{milestone.sub}</p>
+      <div className="flex items-center gap-2 mt-3 pt-3 border-t border-[#3F3F46]">
+        <Trophy className="w-3.5 h-3.5 text-[#7C3AED]" />
+        <span className="text-xs text-[#52525B]">{completedCount} steps on {roadmapLabel}</span>
+      </div>
+    </motion.div>
+  )
+}
+
 // ─── PAGE ──────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
@@ -1030,10 +1192,83 @@ export default function DashboardPage() {
 
   const brief = getDailyBrief(firstName, streak, days, profile?.business_type ?? null, hour)
 
+  // ── Day Complete detection (all 3 rings filled) ────────────────────────────
+  const [dayComplete, setDayComplete] = useState(false)
+  const [levelUp, setLevelUp] = useState<string | null>(null)
+  const prevLevelRef = useRef<string | null>(null)
+  const [completedStepCount, setCompletedStepCount] = useState(0)
+
+  // Detect ring completion
+  useEffect(() => {
+    if (!user?.id) return
+    const checkRings = () => {
+      try {
+        const raw = localStorage.getItem(ringsStorageKey(user.id))
+        if (!raw) return
+        const r = JSON.parse(raw)
+        if (r.build && r.earn && r.grow) {
+          const shownKey = `${user.id}_dayComplete_${todayKey()}`
+          if (!localStorage.getItem(shownKey)) {
+            localStorage.setItem(shownKey, '1')
+            setTimeout(() => setDayComplete(true), 600)
+          }
+        }
+      } catch { /* ignore */ }
+    }
+    checkRings()
+    const onVisible = () => { if (!document.hidden) checkRings() }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => document.removeEventListener('visibilitychange', onVisible)
+  }, [user?.id])
+
+  // Detect XP level-up
+  function getLevel(xpVal: number): string {
+    if (xpVal >= 5000) return 'Empire'
+    if (xpVal >= 2000) return 'CEO'
+    if (xpVal >= 500) return 'Founder'
+    return 'Intern'
+  }
+  useEffect(() => {
+    const current = getLevel(xp)
+    if (prevLevelRef.current !== null && prevLevelRef.current !== current) {
+      setLevelUp(current)
+    }
+    prevLevelRef.current = current
+  }, [xp])
+
+  // Load completed step count for progress narrative
+  useEffect(() => {
+    if (!user?.id) return
+    try {
+      const raw = localStorage.getItem(`${user.id}_roadmap_${roadmapSlug}_v1`)
+      if (raw) {
+        const saved = JSON.parse(raw)
+        setCompletedStepCount((saved.completed ?? []).length)
+      }
+    } catch { /* ignore */ }
+  }, [user?.id, roadmapSlug])
+
+  // Also check rings when all habits done
   const handleAllHabitsDone = useCallback(() => {
     setHabitsAllDone(true)
     setCelebration('all_habits')
-  }, [])
+    // Re-check rings now that grow is potentially set
+    if (!user?.id) return
+    setTimeout(() => {
+      try {
+        const raw = localStorage.getItem(ringsStorageKey(user.id))
+        if (!raw) return
+        const r = JSON.parse(raw)
+        if (r.build && r.earn && r.grow) {
+          const shownKey = `${user.id}_dayComplete_${todayKey()}`
+          if (!localStorage.getItem(shownKey)) {
+            localStorage.setItem(shownKey, '1')
+            setTimeout(() => setDayComplete(true), 2000)
+          }
+        }
+      } catch { /* ignore */ }
+    }, 500)
+  }, [user?.id])
 
   if (loading) {
     return (
@@ -1052,6 +1287,58 @@ export default function DashboardPage() {
     )
   }
 
+  // ── Radically simplified Day 1-3 experience ─────────────────────────────
+  if (days <= 3) {
+    return (
+      <div className="min-h-screen bg-[#FAFAFA]">
+        <Sidebar profile={profile} onSignOut={signOut} />
+        <AnimatePresence>
+          {celebration && (
+            <CelebrationOverlay type={celebration} streak={streak} onDone={() => setCelebration(null)} />
+          )}
+        </AnimatePresence>
+        <div className="lg:pl-64 pb-24 lg:pb-8">
+          <div className="max-w-lg mx-auto px-4 pt-10 pb-6 space-y-5">
+            {/* Identity header */}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center pb-2"
+            >
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#EDE9FE] text-[#7C3AED] text-xs font-bold mb-3">
+                <Crown className="w-3 h-3" />
+                Day {days + 1} of your CEO era
+              </div>
+              <h1 className="text-2xl font-bold text-[#18181B]">
+                Hey {firstName ?? 'CEO'} 👋
+              </h1>
+              <p className="text-sm text-[#71717A] mt-1">
+                You have one job today.
+              </p>
+            </motion.div>
+
+            {/* ONE mission — the beginner guide */}
+            <BeginnerGuide
+              firstName={firstName}
+              roadmapSlug={roadmapSlug}
+              userId={user?.id}
+            />
+
+            {/* Habits (if any exist) */}
+            <InlineHabits userId={user?.id} onAllDone={handleAllHabitsDone} />
+
+            {/* Social proof */}
+            <CommunityPulse />
+
+            {/* Daily truth */}
+            <DailyTruth />
+          </div>
+        </div>
+        <MobileNav />
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-[#FAFAFA]">
       <Sidebar profile={profile} onSignOut={signOut} />
@@ -1064,6 +1351,20 @@ export default function DashboardPage() {
             streak={streak}
             onDone={() => setCelebration(null)}
           />
+        )}
+      </AnimatePresence>
+
+      {/* Day complete overlay */}
+      <AnimatePresence>
+        {dayComplete && (
+          <DayCompleteOverlay onDone={() => setDayComplete(false)} />
+        )}
+      </AnimatePresence>
+
+      {/* Level-up overlay */}
+      <AnimatePresence>
+        {levelUp && (
+          <LevelUpOverlay newLevel={levelUp} onDone={() => setLevelUp(null)} />
         )}
       </AnimatePresence>
 
@@ -1117,6 +1418,14 @@ export default function DashboardPage() {
 
           {/* ── THE ONE THING (shown after day 7) ── */}
           {days > 7 && <TheOneThing roadmapSlug={roadmapSlug} userId={user?.id} />}
+
+          {/* ── Progress narrative (after 5+ completed steps) ── */}
+          {completedStepCount >= 5 && (
+            <ProgressNarrative
+              completedCount={completedStepCount}
+              roadmapLabel={(ROADMAP_META[roadmapSlug] ?? ROADMAP_META[DEFAULT_ROADMAP]).label}
+            />
+          )}
 
           {/* ── Inline habits ── */}
           <InlineHabits userId={user?.id} onAllDone={handleAllHabitsDone} />

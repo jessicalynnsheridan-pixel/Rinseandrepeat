@@ -811,6 +811,7 @@ function FocusedStepCard({
   const [showCoach, setShowCoach] = useState(false)
   const [showWorkspace, setShowWorkspace] = useState(false)
   const [celebrating, setCelebrating] = useState(false)
+  const [showSharePrompt, setShowSharePrompt] = useState(false)
 
   useEffect(() => { setCompleted(isCompleted) }, [isCompleted])
   useEffect(() => { setChecked(savedChecklist) }, [milestone.id]) // eslint-disable-line
@@ -831,12 +832,52 @@ function FocusedStepCard({
     setCompleted(true)
     setCelebrating(true)
     onComplete()
+    setTimeout(() => setShowSharePrompt(true), 2200)
   }
 
   return (
     <>
       <AnimatePresence>
         {celebrating && <XPBurst xp={milestone.xp} onDone={() => setCelebrating(false)} />}
+      </AnimatePresence>
+
+      {/* Community share prompt */}
+      <AnimatePresence>
+        {showSharePrompt && (
+          <motion.div
+            initial={{ opacity: 0, y: 60 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 60 }}
+            transition={{ type: 'spring', stiffness: 280, damping: 24 }}
+            className="fixed bottom-24 lg:bottom-8 left-4 right-4 z-50 max-w-sm mx-auto"
+          >
+            <div className="bg-[#18181B] rounded-2xl p-4 border border-[#3F3F46] shadow-2xl">
+              <p className="text-white text-sm font-bold mb-1">🎉 Step complete!</p>
+              <p className="text-[#71717A] text-xs mb-3">Share your win with the community. Someone needs to see this today.</p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    setShowSharePrompt(false)
+                    const msg = `Just completed "${milestone.title}" on my roadmap! 🚀 #CEOera`
+                    if (typeof window !== 'undefined') {
+                      sessionStorage.setItem('community_prefill', msg)
+                    }
+                    window.location.href = '/community'
+                  }}
+                  className="flex-1 py-2 rounded-xl bg-[#7C3AED] text-white text-xs font-bold hover:bg-[#5B21B6] transition-colors"
+                >
+                  Share win →
+                </button>
+                <button
+                  onClick={() => setShowSharePrompt(false)}
+                  className="px-4 py-2 rounded-xl bg-[#27272A] text-[#71717A] text-xs font-medium hover:bg-[#3F3F46] transition-colors"
+                >
+                  Skip
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
       </AnimatePresence>
 
       <motion.div
@@ -861,7 +902,7 @@ function FocusedStepCard({
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
               <p className="text-[#52525B] text-xs font-semibold uppercase tracking-widest mb-2">
-                Step {index + 1} of {total}
+                Step {index + 1}
               </p>
               <h2 className="text-white text-[22px] font-bold leading-tight">
                 {milestone.title}

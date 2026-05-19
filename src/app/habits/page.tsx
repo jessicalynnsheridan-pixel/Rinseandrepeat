@@ -318,19 +318,48 @@ export default function HabitsPage() {
             </motion.div>
           )}
 
-          {/* Empty state  -  shown to brand-new users with no habits yet */}
+          {/* First-time setup: opt-out suggestion flow */}
           {habits.length === 0 && hydrated && (
             <motion.div
               initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
-              className="bg-white rounded-2xl border border-[#F4F4F5] p-8 mb-5 text-center"
+              className="bg-white rounded-2xl border border-[#F4F4F5] overflow-hidden mb-5"
             >
-              <div className="w-12 h-12 rounded-2xl bg-[#EDE9FE] flex items-center justify-center mx-auto mb-3">
-                <Target className="w-6 h-6 text-[#7C3AED]" strokeWidth={1.5} />
+              <div className="px-5 pt-5 pb-4" style={{ background: 'linear-gradient(135deg, #18181B 0%, #27272A 100%)' }}>
+                <p className="text-[#A78BFA] text-[10px] font-bold uppercase tracking-widest mb-1.5">Suggested for you</p>
+                <h3 className="text-white text-base font-bold leading-snug">
+                  Here are habits that work for {profile?.business_type ? profile.business_type.charAt(0).toUpperCase() + profile.business_type.slice(1) : 'your'} businesses.
+                </h3>
+                <p className="text-[#71717A] text-xs mt-1">Tap to add. Skip the ones that don&apos;t fit.</p>
               </div>
-              <h3 className="text-sm font-semibold text-[#18181B] mb-1">No habits yet  -  let's change that.</h3>
-              <p className="text-xs text-[#A1A1AA] leading-relaxed max-w-xs mx-auto">
-                Add your first daily habit below. Consistency is the only strategy that never fails.
-              </p>
+              <div className="p-4 space-y-2">
+                {suggestions.slice(0, 5).map((s, i) => (
+                  <motion.div
+                    key={s}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.05 }}
+                    className="flex items-center gap-3"
+                  >
+                    <button
+                      onClick={() => addHabit(s)}
+                      className="flex-1 flex items-center gap-3 p-3 rounded-xl bg-[#FAFAFA] hover:bg-[#EDE9FE] text-left transition-all group"
+                    >
+                      <div className="w-5 h-5 rounded-full border-2 border-[#D4D4D8] group-hover:border-[#7C3AED] flex items-center justify-center flex-shrink-0 transition-colors">
+                        <Plus className="w-2.5 h-2.5 text-[#A1A1AA] group-hover:text-[#7C3AED] transition-colors" />
+                      </div>
+                      <span className="text-sm font-medium text-[#3F3F46] group-hover:text-[#18181B] transition-colors">{s}</span>
+                    </button>
+                  </motion.div>
+                ))}
+              </div>
+              <div className="px-4 pb-4">
+                <button
+                  onClick={() => setShowAdd(true)}
+                  className="text-xs text-[#A1A1AA] hover:text-[#7C3AED] transition-colors"
+                >
+                  + Add a custom habit instead
+                </button>
+              </div>
             </motion.div>
           )}
 
