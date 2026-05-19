@@ -13,6 +13,7 @@ import { cn, formatCurrency } from '@/lib/utils'
 import { Sidebar } from '@/components/navigation/Sidebar'
 import { MobileNav } from '@/components/navigation/MobileNav'
 import { useUser } from '@/components/providers/UserProvider'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 
@@ -895,33 +896,180 @@ function DailyTruth() {
 
 // ─── BEGINNER GUIDE (days 0–7) ────────────────────────────────────────────
 
+const GUIDE_MISSIONS = [
+  {
+    id: 'roadmap',
+    emoji: '🗺️',
+    title: 'Choose your path',
+    subtitle: 'Pick the roadmap that matches your business idea',
+    xp: 50,
+    href: '/roadmaps',
+    badge: 'START HERE',
+  },
+  {
+    id: 'step1',
+    emoji: '⚡',
+    title: 'Complete your first roadmap step',
+    subtitle: 'Open your roadmap and finish Step 1',
+    xp: 100,
+    href: '/roadmaps/shopify',
+    badge: null,
+  },
+  {
+    id: 'habit',
+    emoji: '💪',
+    title: 'Build your first daily habit',
+    subtitle: 'Add one habit to track every day',
+    xp: 75,
+    href: '/habits',
+    badge: null,
+  },
+  {
+    id: 'brief',
+    emoji: '☀️',
+    title: 'Check your Daily Brief',
+    subtitle: 'Start your morning CEO ritual',
+    xp: 25,
+    href: '/daily',
+    badge: null,
+  },
+  {
+    id: 'revenue',
+    emoji: '💰',
+    title: 'Log your first dollar',
+    subtitle: 'Track any income — even $1 counts',
+    xp: 75,
+    href: '/revenue',
+    badge: 'MONEY MOVE',
+  },
+  {
+    id: 'ai',
+    emoji: '🤖',
+    title: 'Ask your AI business coach',
+    subtitle: 'Get personalized advice for your business',
+    xp: 50,
+    href: '/ai-assistant',
+    badge: null,
+  },
+  {
+    id: 'community',
+    emoji: '👭',
+    title: 'Introduce yourself to the community',
+    subtitle: 'Post your first win — someone needs to see it',
+    xp: 100,
+    href: '/community',
+    badge: 'BONUS XP',
+  },
+] as const
+
+type MissionId = typeof GUIDE_MISSIONS[number]['id']
+
+const GUIDE_LEVELS = [
+  { label: 'Rookie', min: 0, color: '#A1A1AA' },
+  { label: 'In Training', min: 75, color: '#C4A264' },
+  { label: 'Almost CEO', min: 225, color: '#7C3AED' },
+  { label: 'CEO Ready 👑', min: 375, color: '#F59E0B' },
+]
+
+function getLevel(xp: number) {
+  return [...GUIDE_LEVELS].reverse().find(l => xp >= l.min) ?? GUIDE_LEVELS[0]
+}
+
 function BeginnerGuide({ firstName, roadmapSlug, userId }: { firstName?: string; roadmapSlug: string; userId?: string }) {
   const router = useRouter()
-  const meta = ROADMAP_META[roadmapSlug] ?? ROADMAP_META[DEFAULT_ROADMAP]
+  const supabase = createClientComponentClient()
+  const [completions, setCompletions] = useState<Set<MissionId>>(new Set())
+  const [loading, setLoading] = useState(true)
+  const [showAll, setShowAll] = useState(false)
+  const [celebrating, setCelebrating] = useState<MissionId | null>(null)
 
-  const steps = [
-    { emoji: '🗺️', label: 'Pick your roadmap', done: !!roadmapSlug && roadmapSlug !== DEFAULT_ROADMAP, href: '/roadmaps' },
-    { emoji: '📋', label: 'Open Step 1 of your roadmap', done: false, href: `/roadmaps/${roadmapSlug}` },
-    { emoji: '💪', label: 'Set your first daily habit', done: false, href: '/habits' },
-  ]
+  useEffect(() => {
+    if (!userId) { setLoading(false); return }
 
-  // Check if step 1 of roadmap is done
-  if (userId) {
-    try {
-      const raw = localStorage.getItem(`${userId}_roadmap_${roadmapSlug}_v1`)
-      if (raw) {
-        const saved = JSON.parse(raw)
-        if ((saved.completed ?? []).length > 0) steps[1].done = true
+    async function checkCompletions() {
+      const done = new Set<MissionId>()
+
+      // Roadmap selected (not the default placeholder)
+      if (roadmapSlug && roadmapSlug !== 'shopify') {
+        done.add('roadmap')
       }
-      const habRaw = localStorage.getItem(`${userId}_habits_v1`)
-      if (habRaw) {
-        const habits = JSON.parse(habRaw)
-        if (habits.length > 0) steps[2].done = true
-      }
-    } catch { /* ignore */ }
+
+      // Step 1 completed — check localStorage first, then Supabase
+      try {
+        const raw = localStorage.getItem(`${userId}_roadmap_${roadmapSlug}_v1`)
+        if (raw) {
+          const saved = JSON.parse(raw) as { completed?: string[]; completedIds?: string[] }
+          const ids = saved.completed ?? saved.completedIds ?? []
+          if (ids.length > 0) done.add('step1')
+        }
+      } catch { /* ignore */ }
+
+      // Visit-based missions — set when user clicks the mission
+      try {
+        if (localStorage.getItem(`${userId}_guide_brief`)) done.add('brief')
+        if (localStorage.getItem(`${userId}_guide_ai`)) done.add('ai')
+      } catch { /* ignore */ }
+
+      // Supabase-backed missions
+      try {
+        const [habitRes, revenueRes, communityRes, roadmapRes] = await Promise.all([
+          supabase.from('habits').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('is_active', true),
+          supabase.from('revenue_logs').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+          supabase.from('community_posts').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('is_active', true),
+          supabase.from('roadmap_progress').select('completed_ids').eq('user_id', userId).maybeSingle(),
+        ])
+        if ((habitRes.count ?? 0) > 0) done.add('habit')
+        if ((revenueRes.count ?? 0) > 0) done.add('revenue')
+        if ((communityRes.count ?? 0) > 0) done.add('community')
+        // Also check Supabase roadmap progress for step1
+        if (roadmapRes.data) {
+          const ids = (roadmapRes.data.completed_ids as string[]) ?? []
+          if (ids.length > 0) done.add('step1')
+        }
+      } catch { /* ignore — offline */ }
+
+      setCompletions(done)
+      setLoading(false)
+    }
+
+    void checkCompletions()
+  }, [userId, roadmapSlug]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleMissionClick = (mission: typeof GUIDE_MISSIONS[number]) => {
+    // Mark visit-based missions done immediately on click
+    if (mission.id === 'brief' || mission.id === 'ai') {
+      try { localStorage.setItem(`${userId}_guide_${mission.id}`, '1') } catch { /* ignore */ }
+      setCompletions(prev => new Set(Array.from(prev).concat(mission.id)))
+    }
+    // Roadmap slug fix: navigate to actual roadmap
+    const href = mission.id === 'step1' && roadmapSlug ? `/roadmaps/${roadmapSlug}` : mission.href
+    router.push(href)
   }
 
-  const nextStep = steps.find(s => !s.done)
+  const totalXP = GUIDE_MISSIONS.filter(m => completions.has(m.id)).reduce((sum, m) => sum + m.xp, 0)
+  const maxXP = GUIDE_MISSIONS.reduce((sum, m) => sum + m.xp, 0)
+  const xpPct = Math.round((totalXP / maxXP) * 100)
+  const level = getLevel(totalXP)
+  const allDone = completions.size >= GUIDE_MISSIONS.length
+
+  // Find next mission
+  const nextMission = GUIDE_MISSIONS.find(m => !completions.has(m.id))
+
+  // Missions to show: always show done + next, rest behind "show all"
+  const visibleMissions = showAll
+    ? GUIDE_MISSIONS
+    : GUIDE_MISSIONS.filter(m => completions.has(m.id) || m.id === nextMission?.id || GUIDE_MISSIONS.indexOf(m) <= (GUIDE_MISSIONS.findIndex(m2 => m2.id === nextMission?.id)))
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-2xl border border-[#F0F0F0] overflow-hidden animate-pulse">
+        <div className="h-28 bg-[#18181B]" />
+        <div className="p-4 space-y-2">
+          {[0, 1, 2].map(i => <div key={i} className="h-14 bg-[#F4F4F5] rounded-xl" />)}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <motion.div
@@ -929,61 +1077,182 @@ function BeginnerGuide({ firstName, roadmapSlug, userId }: { firstName?: string;
       animate={{ opacity: 1, y: 0 }}
       className="bg-white rounded-2xl border border-[#F0F0F0] overflow-hidden shadow-sm"
     >
-      {/* Header */}
+      {/* ── Game header ── */}
       <div className="px-5 pt-5 pb-4" style={{ background: 'linear-gradient(135deg, #18181B 0%, #27272A 100%)' }}>
-        <p className="text-[#A78BFA] text-xs font-bold uppercase tracking-widest mb-1.5">Your Start Here Guide</p>
-        <h2 className="text-white text-lg font-bold leading-snug">
-          Hey {firstName ?? 'CEO'} 👋 Let's get you set up in 3 steps.
-        </h2>
-        <p className="text-[#71717A] text-xs mt-1.5">
-          Don't overthink it. Just follow the steps below, one at a time.
-        </p>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-black uppercase tracking-widest text-[#A78BFA]">🎮 CEO Training</span>
+          </div>
+          <span
+            className="text-[10px] font-bold px-2.5 py-1 rounded-full"
+            style={{ background: level.color + '25', color: level.color }}
+          >
+            {level.label}
+          </span>
+        </div>
+
+        {/* XP bar */}
+        <div className="mb-2">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[11px] text-[#71717A]">{completions.size} of {GUIDE_MISSIONS.length} missions complete</span>
+            <span className="text-[11px] font-bold text-[#A78BFA]">{totalXP} / {maxXP} XP</span>
+          </div>
+          <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+            <motion.div
+              className="h-full rounded-full"
+              style={{ background: 'linear-gradient(90deg, #7C3AED, #A78BFA)' }}
+              initial={{ width: 0 }}
+              animate={{ width: `${xpPct}%` }}
+              transition={{ duration: 0.8, ease: 'easeOut' }}
+            />
+          </div>
+        </div>
+
+        {allDone ? (
+          <p className="text-white text-sm font-bold mt-2">👑 All missions complete. You&apos;re built different.</p>
+        ) : (
+          <p className="text-[#71717A] text-xs mt-1">
+            Complete missions to level up. One step at a time.
+          </p>
+        )}
       </div>
 
-      {/* Steps */}
+      {/* ── Mission list ── */}
       <div className="p-4 space-y-2">
-        {steps.map((step, i) => (
-          <button
-            key={i}
-            onClick={() => router.push(step.href)}
-            className={cn(
-              'w-full flex items-center gap-3 p-3.5 rounded-xl text-left transition-all',
-              step.done ? 'bg-[#F0FDF4]' : nextStep?.label === step.label ? 'bg-[#EDE9FE] ring-1 ring-[#7C3AED]/20' : 'bg-[#F9F9F9] opacity-60'
-            )}
+        {allDone ? (
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="rounded-2xl p-5 text-center"
+            style={{ background: 'linear-gradient(135deg, #EDE9FE, #F5F3FF)' }}
           >
-            <div className={cn(
-              'w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-sm',
-              step.done ? 'bg-[#16A34A]' : nextStep?.label === step.label ? 'bg-[#7C3AED]' : 'bg-[#E4E4E7]'
-            )}>
-              {step.done ? <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} /> : <span>{step.emoji}</span>}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className={cn(
-                'text-sm font-semibold',
-                step.done ? 'text-[#15803D] line-through' : nextStep?.label === step.label ? 'text-[#18181B]' : 'text-[#A1A1AA]'
-              )}>
-                {i + 1}. {step.label}
-              </p>
-            </div>
-            {!step.done && nextStep?.label === step.label && (
-              <span className="text-[10px] font-bold text-[#7C3AED] bg-white px-2 py-1 rounded-full flex-shrink-0">
-                Do this now →
-              </span>
+            <div className="text-4xl mb-2">👑</div>
+            <p className="text-[#4C1D95] font-bold text-base">Training complete, {firstName ?? 'CEO'}!</p>
+            <p className="text-[#7C3AED] text-xs mt-1">You&apos;ve earned {totalXP} XP. Your CEO era has officially started.</p>
+          </motion.div>
+        ) : (
+          <>
+            {GUIDE_MISSIONS.map((mission, i) => {
+              const done = completions.has(mission.id)
+              const isNext = mission.id === nextMission?.id
+              const isLocked = !done && !isNext && !showAll && i > (GUIDE_MISSIONS.findIndex(m => m.id === nextMission?.id))
+
+              return (
+                <motion.button
+                  key={mission.id}
+                  layout
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: isLocked ? 0.4 : 1, y: 0 }}
+                  transition={{ delay: i * 0.04 }}
+                  onClick={() => !isLocked && handleMissionClick(mission)}
+                  disabled={isLocked}
+                  className={cn(
+                    'w-full flex items-center gap-3 p-3.5 rounded-2xl text-left transition-all relative overflow-hidden',
+                    done
+                      ? 'bg-[#F0FDF4] border border-[#BBF7D0]'
+                      : isNext
+                      ? 'bg-[#EDE9FE] border border-[#C4B5FD] ring-2 ring-[#7C3AED]/10'
+                      : 'bg-[#FAFAFA] border border-[#F4F4F5]'
+                  )}
+                >
+                  {/* Pulse glow on next mission */}
+                  {isNext && (
+                    <motion.div
+                      className="absolute inset-0 rounded-2xl pointer-events-none"
+                      animate={{ opacity: [0, 0.15, 0] }}
+                      transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                      style={{ background: '#7C3AED' }}
+                    />
+                  )}
+
+                  {/* Icon circle */}
+                  <div className={cn(
+                    'w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-lg',
+                    done ? 'bg-[#16A34A]' : isNext ? 'bg-[#7C3AED]' : 'bg-[#E4E4E7]'
+                  )}>
+                    {done
+                      ? <Check className="w-4 h-4 text-white" strokeWidth={3} />
+                      : <span>{mission.emoji}</span>
+                    }
+                  </div>
+
+                  {/* Text */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className={cn(
+                        'text-sm font-bold leading-snug',
+                        done ? 'text-[#15803D] line-through decoration-[#15803D]/50' : isNext ? 'text-[#18181B]' : 'text-[#71717A]'
+                      )}>
+                        {mission.title}
+                      </p>
+                      {mission.badge && !done && (
+                        <span className={cn(
+                          'text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full',
+                          mission.badge === 'START HERE' ? 'bg-[#FEF9C3] text-[#854D0E]' :
+                          mission.badge === 'MONEY MOVE' ? 'bg-[#DCFCE7] text-[#166534]' :
+                          'bg-[#EDE9FE] text-[#5B21B6]'
+                        )}>
+                          {mission.badge}
+                        </span>
+                      )}
+                    </div>
+                    {isNext && (
+                      <p className="text-xs text-[#52525B] mt-0.5 leading-snug">{mission.subtitle}</p>
+                    )}
+                    {done && (
+                      <p className="text-[10px] text-[#86EFAC] font-semibold mt-0.5">+{mission.xp} XP earned ✓</p>
+                    )}
+                  </div>
+
+                  {/* XP badge for upcoming */}
+                  {!done && (
+                    <span className={cn(
+                      'text-[10px] font-bold px-2 py-1 rounded-full flex-shrink-0',
+                      isNext ? 'bg-[#7C3AED] text-white' : 'bg-[#E4E4E7] text-[#A1A1AA]'
+                    )}>
+                      +{mission.xp} XP
+                    </span>
+                  )}
+                </motion.button>
+              )
+            })}
+
+            {/* Show more/less toggle */}
+            {!showAll && GUIDE_MISSIONS.filter(m => !completions.has(m.id)).length > 1 && (
+              <button
+                onClick={() => setShowAll(true)}
+                className="w-full py-2 text-xs font-semibold text-[#7C3AED] hover:text-[#5B21B6] transition-colors"
+              >
+                See all {GUIDE_MISSIONS.length} missions ↓
+              </button>
             )}
-          </button>
-        ))}
+            {showAll && (
+              <button
+                onClick={() => setShowAll(false)}
+                className="w-full py-2 text-xs font-semibold text-[#A1A1AA] hover:text-[#71717A] transition-colors"
+              >
+                Show less ↑
+              </button>
+            )}
+          </>
+        )}
       </div>
 
-      {/* CTA */}
-      {nextStep && (
+      {/* ── Active mission CTA ── */}
+      {nextMission && !allDone && (
         <div className="px-4 pb-4">
-          <button
-            onClick={() => router.push(nextStep.href)}
-            className="w-full py-3.5 rounded-xl text-white font-bold text-sm"
-            style={{ background: 'linear-gradient(135deg, #7C3AED, #8B5CF6)' }}
+          <motion.button
+            whileTap={{ scale: 0.97 }}
+            onClick={() => handleMissionClick(nextMission)}
+            className="w-full py-3.5 rounded-2xl text-white font-bold text-sm flex items-center justify-center gap-2"
+            style={{ background: 'linear-gradient(135deg, #7C3AED 0%, #8B5CF6 100%)', boxShadow: '0 4px 20px rgba(124, 58, 237, 0.3)' }}
           >
-            {nextStep.emoji} Start: {nextStep.label} →
-          </button>
+            <span>{nextMission.emoji}</span>
+            <span>Start mission: {nextMission.title} →</span>
+          </motion.button>
+          <p className="text-center text-[10px] text-[#A1A1AA] mt-2">
+            {GUIDE_MISSIONS.length - completions.size} mission{GUIDE_MISSIONS.length - completions.size !== 1 ? 's' : ''} left · {maxXP - totalXP} XP remaining
+          </p>
         </div>
       )}
     </motion.div>
