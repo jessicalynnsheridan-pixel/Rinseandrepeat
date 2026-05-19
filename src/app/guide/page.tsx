@@ -16,7 +16,7 @@ const storageKey = (userId: string) => `${userId}_claude_guide_v1`
 // ── Context template component ─────────────────────────────────────────────────
 const TEMPLATE_TEXT = `Hi Claude! Here's some context about me:
 - My business: [what you sell or do]
-- My customers: [who buys from you — age, interests, problem they have]
+- My customers: [who buys from you - age, interests, problem they have]
 - My goal right now: [what you're working on this month]
 - My experience level: Beginner entrepreneur
 
@@ -103,7 +103,7 @@ const POWER_PROMPTS = [
   {
     emoji: '💡',
     label: 'Content ideas',
-    prompt: 'My business is [your business]. Give me 20 content ideas I could post about — a mix of educational tips, behind the scenes, and personal story content.',
+    prompt: 'My business is [your business]. Give me 20 content ideas I could post about - a mix of educational tips, behind the scenes, and personal story content.',
     color: '#FEF2F2',
     border: '#FECACA',
     text: '#7F1D1D',
@@ -127,11 +127,23 @@ const POWER_PROMPTS = [
 ]
 
 // ── Power prompts grid ─────────────────────────────────────────────────────────
-function PowerPromptsGrid({ tryPrompt }: { tryPrompt: (p: string) => void }) {
+function PowerPromptsGrid({ tryPrompt, isGuest }: { tryPrompt: (p: string) => void; isGuest: boolean }) {
+  const [copiedLabel, setCopiedLabel] = useState<string | null>(null)
+
+  function handleAction(p: typeof POWER_PROMPTS[0]) {
+    if (isGuest) {
+      navigator.clipboard.writeText(p.prompt).catch(() => {})
+      setCopiedLabel(p.label)
+      setTimeout(() => setCopiedLabel(null), 3000)
+    } else {
+      tryPrompt(p.prompt)
+    }
+  }
+
   return (
     <div className="space-y-3">
       <p className="text-sm text-[#3F3F46] leading-relaxed">
-        These are proven prompts that work great for entrepreneurs. Fill in the <span className="bg-[#EDE9FE] text-[#7C3AED] px-1 rounded font-medium">[brackets]</span> with your details, then tap <strong>Try this</strong> to send it to Claude.
+        Fill in the <span className="bg-[#EDE9FE] text-[#7C3AED] px-1 rounded font-medium">[brackets]</span> with your details, then {isGuest ? 'copy it and paste into Claude.ai' : 'tap Try this to send it to Claude'}.
       </p>
       <div className="grid grid-cols-1 gap-2">
         {POWER_PROMPTS.map(p => (
@@ -149,13 +161,31 @@ function PowerPromptsGrid({ tryPrompt }: { tryPrompt: (p: string) => void }) {
                   &quot;{p.prompt}&quot;
                 </p>
               </div>
-              <button
-                onClick={() => tryPrompt(p.prompt)}
-                className="flex-shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-xl text-white text-[10px] font-bold transition-all active:scale-95"
-                style={{ background: '#18181B' }}
-              >
-                Try this <ArrowRight className="w-3 h-3" />
-              </button>
+              <div className="flex-shrink-0 flex flex-col items-end gap-1">
+                <button
+                  onClick={() => handleAction(p)}
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-white text-[10px] font-bold transition-all active:scale-95"
+                  style={{ background: copiedLabel === p.label ? '#16A34A' : '#18181B' }}
+                >
+                  {copiedLabel === p.label ? (
+                    <><CheckCheck className="w-3 h-3" /> Copied!</>
+                  ) : isGuest ? (
+                    <><Copy className="w-3 h-3" /> Copy</>
+                  ) : (
+                    <>Try this <ArrowRight className="w-3 h-3" /></>
+                  )}
+                </button>
+                {copiedLabel === p.label && (
+                  <a
+                    href="https://claude.ai"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[9px] font-semibold text-[#7C3AED] hover:underline"
+                  >
+                    Open Claude.ai →
+                  </a>
+                )}
+              </div>
             </div>
           </div>
         ))}
@@ -178,7 +208,7 @@ const LESSONS = [
     content: (
       <div className="space-y-4">
         <p className="text-sm text-[#3F3F46] leading-relaxed">
-          Claude is an AI — which basically means she&apos;s a really, really smart text conversation that never gets tired, never judges you, and is available at 3am when you&apos;re spiralling about your business idea.
+          Claude is an AI, which basically means she&apos;s a really, really smart text conversation that never gets tired, never judges you, and is available at 3am when you&apos;re spiralling about your business idea.
         </p>
         <div className="bg-[#F8F8FF] rounded-2xl p-4 border border-[#E0E0FF]">
           <p className="text-[10px] font-bold uppercase tracking-widest text-[#7C3AED] mb-3">💬 Example conversation</p>
@@ -198,7 +228,7 @@ const LESSONS = [
         <div className="bg-[#FFF7ED] rounded-2xl p-4 border border-[#FED7AA]">
           <p className="text-[10px] font-bold uppercase tracking-widest text-[#EA580C] mb-2">💗 Good to know</p>
           <p className="text-sm text-[#7C2D12] leading-relaxed">
-            Claude won&apos;t remember your previous conversations. Every new chat starts fresh — so always give her a quick reminder of who you are and what your business is.
+            Claude won&apos;t remember your previous conversations. Every new chat starts fresh, so always give her a quick reminder of who you are and what your business is.
           </p>
         </div>
       </div>
@@ -207,7 +237,7 @@ const LESSONS = [
   {
     id: 'be-specific',
     emoji: '🎯',
-    title: 'Be specific — she loves details',
+    title: 'Be specific: she loves details',
     subtitle: 'The more context you give, the better the answer',
     xp: 50,
     color: '#FEF9C3',
@@ -243,7 +273,7 @@ const LESSONS = [
     id: 'give-context',
     emoji: '📋',
     title: 'Your business context template',
-    subtitle: 'Copy this once — paste it at the start of every chat',
+    subtitle: 'Copy this once and paste it at the start of every chat',
     xp: 50,
     color: '#F0FDF4',
     borderColor: '#BBF7D0',
@@ -267,7 +297,7 @@ const LESSONS = [
     id: 'keep-going',
     emoji: '🔄',
     title: 'Keep the conversation going',
-    subtitle: 'You can refine, ask again, or go deeper — she never gets annoyed',
+    subtitle: 'You can refine, ask again, or go deeper. She never gets annoyed.',
     xp: 50,
     color: '#F0F9FF',
     borderColor: '#BAE6FD',
@@ -282,7 +312,7 @@ const LESSONS = [
           <div className="space-y-2">
             {[
               { role: 'user', text: 'Write me an Instagram caption for my new candle launch' },
-              { role: 'ai',   text: '✨ New arrival alert! Our autumn soy candles are here — hand-poured with love, scented to feel like a warm hug. Shop now (link in bio)' },
+              { role: 'ai',   text: '✨ New arrival alert! Our autumn soy candles are here, hand-poured with love, scented to feel like a warm hug. Shop now (link in bio)' },
               { role: 'user', text: 'I like it but make it shorter and add an emoji at the start' },
               { role: 'ai',   text: '🍂 New candles just dropped. Hand-poured soy, autumn scents, made with love. Link in bio.' },
               { role: 'user', text: 'Perfect! Now give me 4 more in that same style' },
@@ -415,7 +445,7 @@ function EmailGate({ onUnlock }: { onUnlock: (guestId: string) => void }) {
               onChange={e => setEmail(e.target.value)}
               placeholder="your@email.com"
               required
-              className="w-full pl-10 pr-4 py-3.5 rounded-2xl border border-[#E4E4E7] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 focus:border-[#7C3AED] transition-all"
+              className="w-full pl-10 pr-4 py-3.5 rounded-2xl border border-[#E4E4E7] bg-white text-base focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 focus:border-[#7C3AED] transition-all"
             />
           </div>
           <motion.button
@@ -645,7 +675,7 @@ export default function ClaudeGuidePage() {
                           <div className="border-t border-[#F4F4F5] pt-4">
                             {/* Lesson content or power prompts */}
                             {lesson.id === 'power-prompts' ? (
-                              <PowerPromptsGrid tryPrompt={tryPrompt} />
+                              <PowerPromptsGrid tryPrompt={tryPrompt} isGuest={isGuest} />
                             ) : (
                               lesson.content
                             )}
