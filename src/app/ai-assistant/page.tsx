@@ -77,6 +77,18 @@ export default function AIAssistantPage() {
     { id: '0', role: 'assistant', content: greeting },
   ])
   const [input, setInput] = useState('')
+
+  // Read prefill from guide page
+  useEffect(() => {
+    try {
+      const prefill = sessionStorage.getItem('ai_prefill')
+      if (prefill) {
+        sessionStorage.removeItem('ai_prefill')
+        setInput(prefill)
+      }
+    } catch { /* private mode */ }
+  }, [])
+
   const [isLoading, setIsLoading] = useState(false)
   const [queriesUsed, setQueriesUsed] = useState(0)
   const bottomRef = useRef<HTMLDivElement>(null)

@@ -37,6 +37,7 @@ const navItems = [
   { href: '/roadmaps',     label: 'Roadmaps',         icon: Map },
   { href: '/vault',        label: 'Resource Vault',   icon: BookOpen },
   { href: '/ai-assistant', label: 'AI Assistant',     icon: Bot, badge: 'NEW' },
+  { href: '/guide',        label: 'Claude Guide',     icon: Sparkles, badge: 'NEW' },
   { href: '/habits',       label: 'Habits',           icon: Flame },
   { href: '/revenue',      label: 'Revenue',          icon: TrendingUp },
   { href: '/calculators',  label: 'Calculators',      icon: Calculator },
