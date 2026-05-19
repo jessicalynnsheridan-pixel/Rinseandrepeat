@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useRouter } from 'next/navigation'
-import { Check, ChevronDown, Sparkles, ArrowRight, Copy, CheckCheck } from 'lucide-react'
+import { Check, ChevronDown, Sparkles, ArrowRight, Copy, CheckCheck, Mail, Crown, Lock } from 'lucide-react'
+import Link from 'next/link'
 import { Sidebar } from '@/components/navigation/Sidebar'
 import { MobileNav } from '@/components/navigation/MobileNav'
 import { useUser } from '@/components/providers/UserProvider'
@@ -330,28 +331,169 @@ const LESSONS = [
   },
 ]
 
+// ── Email gate (public visitors) ───────────────────────────────────────────────
+function EmailGate({ onUnlock }: { onUnlock: (guestId: string) => void }) {
+  const [email, setEmail] = useState('')
+  const [status, setStatus] = useState<'idle' | 'loading'>('idle')
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!email.trim()) return
+    setStatus('loading')
+    const id = `guest_${Math.random().toString(36).slice(2, 10)}`
+    try {
+      await fetch('/api/guide-lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim(), guestId: id }),
+      })
+    } catch { /* proceed anyway so the funnel never breaks */ }
+    try {
+      localStorage.setItem('guide_guest_id', id)
+      localStorage.setItem('guide_guest_email', email.trim())
+    } catch { /* ignore */ }
+    onUnlock(id)
+  }
+
+  return (
+    <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center px-5 py-12">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="max-w-sm w-full space-y-6"
+      >
+        {/* Logo */}
+        <Link href="/" className="flex items-center gap-2.5">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#8B5CF6] to-[#6D28D9] flex items-center justify-center shadow-[0_0_20px_rgba(124,58,237,0.25)]">
+            <Crown className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <p className="font-bold text-sm leading-none text-[#18181B]">Rinse &amp; Repeat</p>
+            <p className="text-[10px] font-semibold text-[#7C3AED] uppercase tracking-widest leading-none mt-0.5">CEO</p>
+          </div>
+        </Link>
+
+        <div>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EDE9FE] text-[#7C3AED] text-xs font-semibold mb-3">
+            <Sparkles className="w-3 h-3" /> Free Guide
+          </div>
+          <h1 className="text-3xl font-bold text-[#18181B] leading-tight mb-3">
+            How to Use Claude AI<br />
+            <span className="text-[#7C3AED]">for Your Business</span>
+          </h1>
+          <p className="text-[#71717A] leading-relaxed text-sm">
+            5 quick missions. No tech experience needed. Learn to use AI so it actually saves you hours every week.
+          </p>
+        </div>
+
+        {/* What's inside */}
+        <div className="bg-[#18181B] rounded-2xl p-5 space-y-2.5">
+          {[
+            'What Claude is and why it matters for you',
+            'How to talk to it so it gives great answers',
+            'Your personal context template (copy it once, use forever)',
+            '8 proven prompts for Instagram, emails & pricing',
+            'What Claude can\'t do (so you don\'t waste time)',
+          ].map(item => (
+            <div key={item} className="flex items-center gap-3">
+              <div className="w-4 h-4 rounded-full bg-[#7C3AED]/30 flex items-center justify-center flex-shrink-0">
+                <Check className="w-2.5 h-2.5 text-[#A78BFA]" strokeWidth={3} />
+              </div>
+              <span className="text-sm text-[#D4D4D8]">{item}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Email form */}
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <div className="relative">
+            <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A1A1AA]" />
+            <input
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="your@email.com"
+              required
+              className="w-full pl-10 pr-4 py-3.5 rounded-2xl border border-[#E4E4E7] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 focus:border-[#7C3AED] transition-all"
+            />
+          </div>
+          <motion.button
+            type="submit"
+            disabled={status === 'loading' || !email.trim()}
+            whileTap={{ scale: 0.97 }}
+            className="w-full py-3.5 rounded-2xl bg-[#7C3AED] hover:bg-[#5B21B6] text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+          >
+            {status === 'loading' ? (
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 0.9, repeat: Infinity, ease: 'linear' }}
+                className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full"
+              />
+            ) : (
+              <>
+                <Lock className="w-4 h-4" />
+                Unlock the free guide
+              </>
+            )}
+          </motion.button>
+          <p className="text-[10px] text-[#A1A1AA] text-center">No spam. Unsubscribe any time.</p>
+        </form>
+
+        <p className="text-xs text-center text-[#A1A1AA]">
+          Already have an account?{' '}
+          <Link href="/login" className="text-[#7C3AED] font-semibold hover:underline">Sign in</Link>
+        </p>
+      </motion.div>
+    </div>
+  )
+}
+
 // ── Main page ──────────────────────────────────────────────────────────────────
 export default function ClaudeGuidePage() {
   const { user, profile, signOut } = useUser()
   const router = useRouter()
   const [completed, setCompleted] = useState<Set<string>>(new Set())
   const [expanded, setExpanded] = useState<string | null>('what-is-claude')
+  const [gatePhase, setGatePhase] = useState<'checking' | 'gate' | 'open'>('checking')
+  const [guestId, setGuestId] = useState<string | null>(null)
 
-  // Load progress
+  const effectiveId = user?.id ?? guestId
+
+  // Determine gate phase and load progress
   useEffect(() => {
-    if (!user?.id) return
-    try {
-      const raw = localStorage.getItem(storageKey(user.id))
-      if (raw) setCompleted(new Set(JSON.parse(raw) as string[]))
-    } catch { /* ignore */ }
+    if (user?.id) {
+      setGatePhase('open')
+      try {
+        const raw = localStorage.getItem(storageKey(user.id))
+        if (raw) setCompleted(new Set(JSON.parse(raw) as string[]))
+      } catch { /* ignore */ }
+      return
+    }
+    const storedId = localStorage.getItem('guide_guest_id')
+    if (storedId) {
+      setGuestId(storedId)
+      setGatePhase('open')
+      try {
+        const raw = localStorage.getItem(storageKey(storedId))
+        if (raw) setCompleted(new Set(JSON.parse(raw) as string[]))
+      } catch { /* ignore */ }
+    } else {
+      setGatePhase('gate')
+    }
   }, [user?.id])
+
+  function handleUnlock(id: string) {
+    setGuestId(id)
+    setGatePhase('open')
+  }
 
   // Save progress
   const markDone = (id: string) => {
-    if (!user?.id) return
+    if (!effectiveId) return
     setCompleted(prev => {
       const next = new Set(Array.from(prev).concat(id))
-      try { localStorage.setItem(storageKey(user.id!), JSON.stringify(Array.from(next))) } catch { /* ignore */ }
+      try { localStorage.setItem(storageKey(effectiveId), JSON.stringify(Array.from(next))) } catch { /* ignore */ }
       return next
     })
     // Auto-expand next lesson
@@ -368,11 +510,12 @@ export default function ClaudeGuidePage() {
   const maxXP = LESSONS.reduce((s, l) => s + l.xp, 0)
   const allDone = completed.size >= LESSONS.length
 
-  return (
-    <div className="flex min-h-screen bg-[#FAFAFA]">
-      <Sidebar profile={profile} onSignOut={signOut} />
+  if (gatePhase === 'checking') return <div className="min-h-screen bg-[#FAFAFA]" />
+  if (gatePhase === 'gate') return <EmailGate onUnlock={handleUnlock} />
 
-      <main className="flex-1 lg:pl-64 pb-24 lg:pb-8">
+  const isGuest = !user?.id
+
+  const pageContent = (
         <div className="max-w-2xl mx-auto px-4 py-0 md:py-8 md:px-8">
 
           {/* ── Hero header ── */}
@@ -543,22 +686,50 @@ export default function ClaudeGuidePage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4 }}
-              className="py-6 text-center"
+              className="py-6 text-center space-y-3"
             >
-              <p className="text-sm text-[#71717A] mb-3">Ready to try Claude for real?</p>
-              <button
-                onClick={() => router.push('/ai-assistant')}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#18181B] text-white text-sm font-semibold hover:bg-[#27272A] transition-colors"
-              >
-                <Sparkles className="w-4 h-4 text-[#A78BFA]" />
-                Open AI Assistant
-                <ArrowRight className="w-4 h-4" />
-              </button>
+              {isGuest ? (
+                <>
+                  <p className="text-sm text-[#71717A]">Want to save your progress and try Claude for real?</p>
+                  <Link
+                    href="/signup?from=guide"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#7C3AED] text-white text-sm font-semibold hover:bg-[#5B21B6] transition-colors"
+                  >
+                    <Crown className="w-4 h-4" />
+                    Create your free account
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm text-[#71717A]">Ready to try Claude for real?</p>
+                  <button
+                    onClick={() => router.push('/ai-assistant')}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#18181B] text-white text-sm font-semibold hover:bg-[#27272A] transition-colors"
+                  >
+                    <Sparkles className="w-4 h-4 text-[#A78BFA]" />
+                    Open AI Assistant
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </>
+              )}
             </motion.div>
           </div>
         </div>
-      </main>
+  )
 
+  if (isGuest) {
+    return (
+      <div className="min-h-screen bg-[#FAFAFA]">
+        <main className="pb-16">{pageContent}</main>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex min-h-screen bg-[#FAFAFA]">
+      <Sidebar profile={profile} onSignOut={signOut} />
+      <main className="flex-1 lg:pl-64 pb-24 lg:pb-8">{pageContent}</main>
       <MobileNav />
     </div>
   )

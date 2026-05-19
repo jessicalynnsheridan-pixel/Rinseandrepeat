@@ -1019,11 +1019,6 @@ function ShareResult({ archetype }: { archetype: Archetype }) {
 
 // ── Email capture funnel ──────────────────────────────────────────────────────
 //
-// ⚙️  SETUP: Replace STAN_STORE_URL below with your Stan Store freebie link.
-//    Create a free product on Stan Store (e.g. "Your Free CEO Starter Kit")
-//    and paste the link here. Stan Store will collect the email on their end.
-//
-const STAN_STORE_URL = 'https://join.stan.store/thedit'
 
 function EmailCapture({ archetype }: { archetype: Archetype }) {
   const [email, setEmail] = useState('')
@@ -1066,18 +1061,16 @@ function EmailCapture({ archetype }: { archetype: Archetype }) {
           <div>
             <h3 className="text-xl font-bold text-white mb-1">You are in.</h3>
             <p className="text-sm text-[#A1A1AA] leading-relaxed">
-              Click below to grab your free plan on Stan Store. Your archetype result will be waiting for you inside.
+              Your free resource is ready — a step-by-step guide to using Claude AI for your {archetype.name} business.
             </p>
           </div>
           <div className="space-y-3">
-            <a
-              href={STAN_STORE_URL}
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              href="/guide"
               className="btn-primary w-full py-3.5 text-sm inline-flex items-center justify-center gap-2"
             >
-              Get my free plan <ArrowRight className="w-4 h-4" />
-            </a>
+              Get my free Claude guide <ArrowRight className="w-4 h-4" />
+            </Link>
             <Link
               href={`/signup?email=${encodeURIComponent(email)}&from=quiz&type=${archetype.key}`}
               className="block text-xs text-[#52525B] hover:text-[#A1A1AA] transition-colors"
