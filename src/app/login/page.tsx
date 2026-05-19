@@ -20,7 +20,20 @@ function LoginForm() {
   const [loading, setLoading] = useState(false)
   const [magicLoading, setMagicLoading] = useState(false)
   const [magicSent, setMagicSent] = useState(false)
+  const [resetSent, setResetSent] = useState(false)
   const [error, setError] = useState('')
+
+  async function handleForgotPassword() {
+    if (!email) { setError('Enter your email first'); return }
+    setError('')
+    setLoading(true)
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${location.origin}/auth/callback?next=/settings`,
+    })
+    setLoading(false)
+    if (error) setError(error.message)
+    else setResetSent(true)
+  }
 
   async function handleSignIn(e: React.FormEvent) {
     e.preventDefault()
@@ -71,7 +84,18 @@ function LoginForm() {
         <h1 className="text-2xl font-bold text-[#18181B] mb-1">Welcome back</h1>
         <p className="text-sm text-[#71717A] mb-8">Sign in to your CEO dashboard</p>
 
-        {magicSent ? (
+        {resetSent ? (
+          <div className="text-center py-8">
+            <div className="w-14 h-14 rounded-full bg-[#EDE9FE] flex items-center justify-center mx-auto mb-4">
+              <Mail className="w-6 h-6 text-[#7C3AED]" />
+            </div>
+            <h2 className="font-semibold text-[#18181B] mb-2">Check your email</h2>
+            <p className="text-sm text-[#71717A]">We sent a password reset link to <strong>{email}</strong>.</p>
+            <button onClick={() => setResetSent(false)} className="mt-6 text-sm text-[#7C3AED] font-medium hover:underline">
+              Back to sign in
+            </button>
+          </div>
+        ) : magicSent ? (
           <div className="text-center py-8">
             <div className="w-14 h-14 rounded-full bg-[#EDE9FE] flex items-center justify-center mx-auto mb-4">
               <Mail className="w-6 h-6 text-[#7C3AED]" />
@@ -109,7 +133,12 @@ function LoginForm() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[#52525B] mb-1.5">Password</label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-semibold text-[#52525B]">Password</label>
+                <button type="button" onClick={handleForgotPassword} className="text-xs text-[#7C3AED] hover:underline">
+                  Forgot password?
+                </button>
+              </div>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A1A1AA]" />
                 <input

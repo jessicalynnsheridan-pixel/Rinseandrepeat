@@ -1,13 +1,25 @@
-import { createAdminClient } from '@/lib/supabase-server'
+import { createAdminClient, createRouteClient } from '@/lib/supabase-server'
 import { NextRequest } from 'next/server'
 
 // Called during onboarding to apply any pending Stan Store upgrade
 // for users who purchased before creating their app account.
 export async function POST(req: NextRequest) {
   try {
+    // Verify the caller is authenticated and matches the userId being upgraded
+    const supabaseAuth = createRouteClient()
+    const { data: { user: sessionUser } } = await supabaseAuth.auth.getUser()
+    if (!sessionUser) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const { email, userId } = await req.json()
     if (!email || !userId) {
       return Response.json({ error: 'Missing email or userId' }, { status: 400 })
+    }
+
+    // Prevent one user upgrading another user's account
+    if (sessionUser.id !== userId) {
+      return Response.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     const supabase = createAdminClient()

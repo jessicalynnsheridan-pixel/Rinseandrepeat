@@ -87,7 +87,7 @@ function NumInput({
           onChange={e => onChange(e.target.value)}
           placeholder={placeholder ?? '0'}
           className={cn(
-            'w-full rounded-xl border border-[#E4E4E7] bg-white py-2.5 text-sm text-[#18181B] placeholder:text-[#A1A1AA] outline-none focus:border-[#7C3AED] focus:ring-2 focus:ring-[#7C3AED]/10 transition-all',
+            'w-full rounded-xl border border-[#E4E4E7] bg-white py-2.5 text-base text-[#18181B] placeholder:text-[#A1A1AA] outline-none focus:border-[#7C3AED] focus:ring-2 focus:ring-[#7C3AED]/10 transition-all',
             prefix ? 'pl-7 pr-3' : suffix ? 'pl-3 pr-7' : 'px-3'
           )}
         />

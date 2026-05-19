@@ -27,6 +27,10 @@ export async function POST(req: NextRequest) {
       ? plan.stripe_price_id_yearly
       : plan.stripe_price_id_monthly
 
+    if (!priceId) {
+      return Response.json({ error: 'Stripe price not configured for this plan' }, { status: 500 })
+    }
+
     // Get or create Stripe customer
     const { data: profile } = await supabase
       .from('profiles')
@@ -58,7 +62,6 @@ export async function POST(req: NextRequest) {
       success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?upgraded=true`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing?canceled=true`,
       subscription_data: {
-        trial_period_days: 7,
         metadata: { supabase_user_id: user.id, plan_id: planId },
       },
       metadata: { supabase_user_id: user.id, plan_id: planId },

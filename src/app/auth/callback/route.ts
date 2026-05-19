@@ -6,7 +6,9 @@ import type { NextRequest } from 'next/server'
 export async function GET(req: NextRequest) {
   const { searchParams, origin } = new URL(req.url)
   const code = searchParams.get('code')
-  const next = searchParams.get('next') ?? '/dashboard'
+  const nextParam = searchParams.get('next') ?? '/dashboard'
+  // Only allow internal paths to prevent open-redirect attacks
+  const next = nextParam.startsWith('/') && !nextParam.startsWith('//') ? nextParam : '/dashboard'
 
   if (code) {
     const supabase = createRouteHandlerClient({ cookies })

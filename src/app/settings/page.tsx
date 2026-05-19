@@ -170,7 +170,7 @@ export default function SettingsPage() {
                           type="text"
                           value={profileForm.full_name}
                           onChange={e => setProfileForm(p => ({ ...p, full_name: e.target.value }))}
-                          className="input-field text-sm"
+                          className="input-field"
                         />
                       </div>
                       <div>
@@ -179,7 +179,7 @@ export default function SettingsPage() {
                           type="email"
                           value={profileForm.email}
                           disabled
-                          className="input-field text-sm opacity-60 cursor-not-allowed"
+                          className="input-field opacity-60 cursor-not-allowed"
                         />
                         <p className="text-[10px] text-[#A1A1AA] mt-1">Email changes require re-verification</p>
                       </div>
@@ -189,7 +189,7 @@ export default function SettingsPage() {
                       <select
                         value={profileForm.business_type}
                         onChange={e => setProfileForm(p => ({ ...p, business_type: e.target.value }))}
-                        className="input-field text-sm"
+                        className="input-field"
                       >
                         <option value="">Select type...</option>
                         <option value="shopify">Shopify / E-commerce</option>
@@ -302,7 +302,7 @@ export default function SettingsPage() {
                             value={passwordForm.newPassword}
                             onChange={e => setPasswordForm(p => ({ ...p, newPassword: e.target.value }))}
                             placeholder="Min 8 characters"
-                            className="input-field text-sm pr-10"
+                            className="input-field pr-10"
                           />
                           <button type="button" onClick={() => setShowPw(v => !v)}
                             className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A1A1AA]">
@@ -317,7 +317,7 @@ export default function SettingsPage() {
                           value={passwordForm.confirm}
                           onChange={e => setPasswordForm(p => ({ ...p, confirm: e.target.value }))}
                           placeholder="••••••••"
-                          className="input-field text-sm"
+                          className="input-field"
                         />
                       </div>
                       <button

@@ -209,14 +209,14 @@ function getDailyBrief(
 // ─── COMMUNITY PULSE (social proof that makes the app feel alive) ──────────
 
 const PULSE_MESSAGES = [
-  { emoji: '🎉', text: 'Maya just logged her first $1,000 month' },
-  { emoji: '🔥', text: '47 entrepreneurs kept their streak alive today' },
-  { emoji: '💼', text: 'Priya landed her first coaching client this week' },
-  { emoji: '👑', text: '12 women in this community hit $10K+ this month' },
-  { emoji: '📈', text: 'Danielle completed her Shopify roadmap milestone' },
-  { emoji: '⚡', text: '183 habits completed across the community today' },
-  { emoji: '🚀', text: 'Camille hit a 30-day streak this morning' },
-  { emoji: '💰', text: 'Revenue logged today: $18,240 across the community' },
+  { emoji: '🎉', text: 'Members are logging wins every day in the community' },
+  { emoji: '🔥', text: 'CEOs in the community are keeping their streaks alive' },
+  { emoji: '💼', text: 'Founders are landing clients and sharing what\'s working' },
+  { emoji: '👑', text: 'Women in this community are building real, profitable businesses' },
+  { emoji: '📈', text: 'Roadmap milestones are being crushed — join the conversation' },
+  { emoji: '⚡', text: 'Habits are being built, tracked, and celebrated daily' },
+  { emoji: '🚀', text: 'Streaks, wins, and accountability — it\'s all in the community' },
+  { emoji: '💰', text: 'Revenue is being tracked, logged, and celebrated here' },
 ]
 
 function CommunityPulse() {

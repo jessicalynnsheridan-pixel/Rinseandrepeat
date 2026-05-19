@@ -675,7 +675,7 @@ export default function HabitsPage() {
                         onChange={e => setNewHabitName(e.target.value)}
                         onKeyDown={e => e.key === 'Enter' && addHabit()}
                         placeholder="Name your habit..."
-                        className="flex-1 text-sm text-[#18181B] placeholder:text-[#A1A1AA] bg-transparent outline-none"
+                        className="flex-1 text-base text-[#18181B] placeholder:text-[#A1A1AA] bg-transparent outline-none"
                         autoFocus
                       />
                       <button

@@ -890,7 +890,7 @@ Scale: [Deliverables]  -  $[X]/mo
     ],
   },
   {
-    id: '12',
+    id: '13',
     title: 'Stan Store Setup Guide',
     tagline: 'Your bio link, your storefront, your email funnel  -  all in one place.',
     preview: 'A step-by-step guide to setting up your Stan Store, building your first freebie funnel, and driving Instagram traffic to sales  -  without ads.',

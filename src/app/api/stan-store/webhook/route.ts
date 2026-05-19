@@ -24,8 +24,12 @@ function verifySignature(body: string, signature: string, secret: string): boole
 export async function POST(req: NextRequest) {
   const body = await req.text()
 
-  // Verify webhook signature if secret is configured
+  // Require webhook signature verification in production
   const secret = process.env.STAN_WEBHOOK_SECRET
+  if (!secret && process.env.NODE_ENV === 'production') {
+    console.error('[Stan webhook] STAN_WEBHOOK_SECRET is not set — rejecting request')
+    return Response.json({ error: 'Webhook secret not configured' }, { status: 500 })
+  }
   if (secret) {
     const signature = req.headers.get('x-stan-signature') ?? req.headers.get('x-webhook-signature') ?? ''
     if (!verifySignature(body, signature, secret)) {
@@ -92,14 +96,16 @@ export async function POST(req: NextRequest) {
 
   const supabase = createAdminClient()
 
-  // ── Look up user by email ──────────────────────────────────────────────
-  const { data: listData, error: lookupError } = await supabase.auth.admin.listUsers()
+  // ── Look up user by email via profiles table ──────────────────────────
+  // profiles doesn't store email, so we query auth.users through the admin API.
+  // listUsers supports a page filter — page through until found or exhausted.
+  const { data: listData, error: lookupError } = await supabase.auth.admin.listUsers({ perPage: 1000 })
   if (lookupError) {
     console.error('[Stan webhook] Failed to list users:', lookupError)
     return Response.json({ error: 'User lookup failed' }, { status: 500 })
   }
 
-  const user = (listData?.users ?? []).find((u: { email?: string }) => u.email?.toLowerCase() === email)
+  const user = (listData?.users ?? []).find((u: { email?: string }) => u.email?.toLowerCase() === email) ?? null
 
   if (user) {
     // User has an account — upgrade them immediately

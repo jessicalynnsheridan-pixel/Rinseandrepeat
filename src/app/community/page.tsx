@@ -43,11 +43,11 @@ const CATEGORY_META: Record<string, { label: string; color: string; bg: string }
 }
 
 const FILTER_TABS = [
-  { id: 'all',      label: 'All Posts' },
-  { id: 'win',      label: 'Wins' },
-  { id: 'tip',      label: 'Tips' },
-  { id: 'question', label: 'Questions' },
-  { id: 'resource', label: 'Resources' },
+  { id: 'all',            label: 'All Posts' },
+  { id: 'win',            label: 'Wins' },
+  { id: 'question',       label: 'Questions' },
+  { id: 'accountability', label: 'Accountability' },
+  { id: 'update',         label: 'Updates' },
 ]
 
 function timeAgo(iso: string): string {
@@ -273,11 +273,11 @@ export default function CommunityPage() {
                     onChange={e => setNewPost(p => ({ ...p, content: e.target.value }))}
                     placeholder="Share a win, ask a question, drop a tip..."
                     rows={3}
-                    className="input-field text-sm resize-none mb-3"
+                    className="input-field resize-none mb-3"
                   />
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <div className="flex gap-2 flex-wrap">
-                      {(['win', 'tip', 'question', 'resource', 'update'] as const).map(key => {
+                      {(['win', 'question', 'accountability', 'update'] as const).map(key => {
                         const meta = CATEGORY_META[key]
                         return (
                           <button

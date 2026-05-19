@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, ReceiptText, Loader2 } from 'lucide-react'
+import { Plus, ReceiptText, Loader2, TrendingUp, ArrowRight } from 'lucide-react'
 import { cn, formatCurrency } from '@/lib/utils'
 import { Sidebar } from '@/components/navigation/Sidebar'
 import { MobileNav } from '@/components/navigation/MobileNav'
@@ -391,6 +391,33 @@ export default function RevenuePage() {
 
   // ── Render ────────────────────────────────────────────────────────────────
 
+  // Free-tier gate
+  if (profile && profile.subscription_tier === 'free') {
+    return (
+      <div className="flex min-h-screen bg-[#FAFAFA]">
+        <Sidebar profile={profile} onSignOut={signOut} />
+        <main className="flex-1 lg:pl-64 flex items-center justify-center p-8">
+          <div className="max-w-sm w-full text-center space-y-4">
+            <div className="w-14 h-14 rounded-2xl bg-[#EDE9FE] flex items-center justify-center mx-auto">
+              <TrendingUp className="w-7 h-7 text-[#7C3AED]" />
+            </div>
+            <h2 className="text-xl font-bold text-[#18181B]">Revenue Tracker</h2>
+            <p className="text-sm text-[#71717A] leading-relaxed">
+              Track your income, log wins, and watch your CEO era unfold. Upgrade to unlock.
+            </p>
+            <button
+              onClick={() => router.push('/pricing')}
+              className="btn-primary w-full py-3"
+            >
+              Upgrade to unlock <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        </main>
+        <MobileNav />
+      </div>
+    )
+  }
+
   return (
     <div className="flex min-h-screen bg-[#FAFAFA]">
       <AnimatePresence>
@@ -509,7 +536,7 @@ export default function RevenuePage() {
                       onChange={e => setNewEntry(p => ({ ...p, source: e.target.value }))}
                       onKeyDown={e => e.key === 'Enter' && addEntry()}
                       placeholder="e.g. Shopify sale, coaching call..."
-                      className="input-field text-sm"
+                      className="input-field"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
@@ -520,7 +547,7 @@ export default function RevenuePage() {
                         value={newEntry.amount}
                         onChange={e => setNewEntry(p => ({ ...p, amount: e.target.value }))}
                         placeholder="0"
-                        className="input-field text-sm"
+                        className="input-field"
                       />
                     </div>
                     <div>
@@ -528,7 +555,7 @@ export default function RevenuePage() {
                       <select
                         value={newEntry.category}
                         onChange={e => setNewEntry(p => ({ ...p, category: e.target.value }))}
-                        className="input-field text-sm"
+                        className="input-field"
                       >
                         {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
                           <option key={key} value={key}>{label}</option>
